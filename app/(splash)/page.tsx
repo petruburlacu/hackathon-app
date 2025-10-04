@@ -1,5 +1,5 @@
-import { GetStarted } from "@/app/(splash)/GetStarted/GetStarted";
+import { HackathonHome } from "@/app/(splash)/HackathonHome/HackathonHome";
 
 export default function HomePage() {
-  return <GetStarted />;
+  return <HackathonHome />;
 }

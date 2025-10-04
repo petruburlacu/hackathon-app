@@ -1,0 +1,425 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+import { RocketIcon, AvatarIcon, StarIcon } from "@radix-ui/react-icons";
+import Link from "next/link";
+import { UserMenu } from "@/components/UserMenu";
+
+export default function TeamsPage() {
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDescription, setNewTeamDescription] = useState("");
+  const [maxDevs, setMaxDevs] = useState(2);
+  const [maxNonDevs, setMaxNonDevs] = useState(2);
+
+  const viewer = useQuery(api.users.viewer);
+  const hackathonUser = useQuery(api.hackathon.getHackathonUser);
+  const teams = useQuery(api.hackathon.getTeams) || [];
+  const ideas = useQuery(api.hackathon.getIdeas) || [];
+
+  const createTeam = useMutation(api.hackathon.createTeam);
+  const joinTeam = useMutation(api.hackathon.joinTeam);
+  const assignIdeaToTeam = useMutation(api.hackathon.assignIdeaToTeam);
+  const removeIdeaFromTeam = useMutation(api.hackathon.removeIdeaFromTeam);
+  const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
+
+  if (!viewer) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-yellow-400 text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName.trim()) {
+      toast.error("Please enter a team name");
+      return;
+    }
+
+    if (newTeamName.trim().length < 3) {
+      toast.error("Team name must be at least 3 characters long");
+      return;
+    }
+
+    if (maxDevs < 1 || maxDevs > 2 || maxNonDevs < 1 || maxNonDevs > 2) {
+      toast.error("Developer and Non-Developer slots must be between 1 and 2");
+      return;
+    }
+
+    try {
+      await createTeam({
+        name: newTeamName.trim(),
+        description: newTeamDescription.trim() || undefined,
+        maxDevs,
+        maxNonDevs,
+      });
+      setNewTeamName("");
+      setNewTeamDescription("");
+      setMaxDevs(2);
+      setMaxNonDevs(2);
+      toast.success("Team created successfully!");
+    } catch {
+      toast.error("Failed to create team");
+    }
+  };
+
+  const handleJoinTeam = async (teamId: string) => {
+    try {
+      await joinTeam({ teamId: teamId as any });
+      toast.success("Joined team successfully!");
+    } catch {
+      toast.error("Failed to join team");
+    }
+  };
+
+  const handleAssignIdea = async (teamId: string, ideaId: string) => {
+    try {
+      await assignIdeaToTeam({ teamId: teamId as any, ideaId: ideaId as any });
+      toast.success("Idea assigned to team successfully!");
+    } catch {
+      toast.error("Failed to assign idea to team");
+    }
+  };
+
+  const handleRemoveIdea = async (teamId: string) => {
+    try {
+      await removeIdeaFromTeam({ teamId: teamId as any });
+      toast.success("Idea removed from team successfully!");
+    } catch {
+      toast.error("Failed to remove idea from team");
+    }
+  };
+
+  const handleAdminDeleteTeam = async (teamId: string) => {
+    if (!confirm("Are you sure you want to admin delete this team? This will remove all members and cannot be undone.")) {
+      return;
+    }
+    
+    try {
+      await adminDeleteTeam({ teamId: teamId as any });
+      toast.success("Team admin deleted successfully!");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(errorMessage);
+    }
+  };
+
+  return (
+    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-start justify-between border-b border-cyan-400/20 p-4 bg-black/20 backdrop-blur-sm">
+        <div className="flex items-center gap-6">
+          <div className="text-2xl font-bold text-yellow-400 font-mono">
+            👥 TEAMS 👥
+          </div>
+          {hackathonUser && (
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 text-sm">Role:</span>
+              <span className={`px-2 py-1 rounded text-xs font-bold ${
+                hackathonUser.role === 'dev' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-pink-500 text-white'
+              }`}>
+                {hackathonUser.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
+              </span>
+            </div>
+          )}
+          <nav className="flex items-center gap-4">
+            <Link href="/hackathon" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              Dashboard
+            </Link>
+            <Link href="/hackathon/my-dashboard" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              My Dashboard
+            </Link>
+            <Link href="/hackathon/ideas" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              Ideas
+            </Link>
+            <Link href="/hackathon/teams" className="text-yellow-400 font-mono text-sm font-bold">
+              Teams
+            </Link>
+            <Link href="/hackathon/leaderboard" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              Leaderboard
+            </Link>
+            <Link href="/hackathon/admin" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              Admin
+            </Link>
+            <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
+              Home
+            </Link>
+          </nav>
+        </div>
+        <UserMenu>{viewer.name}</UserMenu>
+      </div>
+
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Create New Team */}
+          {!hackathonUser?.teamId && (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardHeader>
+                <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
+                  <RocketIcon className="h-5 w-5" />
+                  Create New Team
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
+                  <Input
+                    placeholder="Enter a creative team name..."
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Minimum 3 characters</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Team Description (Optional)</label>
+                  <textarea
+                    placeholder="Describe your team's vision, goals, and what you're looking for in members..."
+                    value={newTeamDescription}
+                    onChange={(e) => setNewTeamDescription(e.target.value)}
+                    rows={4}
+                    className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Help others understand your team's focus</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-cyan-300 mb-2 block">Max Developers (1-2)</label>
+                    <Select value={maxDevs.toString()} onValueChange={(value) => setMaxDevs(parseInt(value))}>
+                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="1">1 Developer</SelectItem>
+                        <SelectItem value="2">2 Developers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-cyan-300 mb-2 block">Max Non-Developers (1-2)</label>
+                    <Select value={maxNonDevs.toString()} onValueChange={(value) => setMaxNonDevs(parseInt(value))}>
+                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="1">1 Non-Developer</SelectItem>
+                        <SelectItem value="2">2 Non-Developers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+                  <p className="text-blue-200 text-sm">
+                    💡 <strong>Tip:</strong> Balanced teams (1 dev + 1 non-dev) often work well, but you can adjust based on your project needs.
+                  </p>
+                </div>
+                
+                <Button
+                  onClick={handleCreateTeam}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold w-full"
+                >
+                  <RocketIcon className="mr-2 h-4 w-4" />
+                  Create Team
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Teams List */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {teams.map((team: any) => (
+              <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-yellow-400 font-mono text-lg">{team.name}</CardTitle>
+                    <Badge variant="secondary" className="bg-pink-500 text-white">
+                      {team.votes} votes
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {team.description && (
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed">{team.description}</p>
+                  )}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-cyan-300">Developers:</span>
+                      <span className="text-white">{team.currentDevs}/{team.maxDevs}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-cyan-300">Non-Developers:</span>
+                      <span className="text-white">{team.currentNonDevs}/{team.maxNonDevs}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-cyan-300">Status:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        team.status === 'forming' ? 'bg-yellow-500 text-black' :
+                        team.status === 'idea-browsing' ? 'bg-blue-500 text-white' :
+                        team.status === 'assembled' ? 'bg-green-500 text-white' :
+                        team.status === 'ready' ? 'bg-purple-500 text-white' :
+                        'bg-gray-500 text-white'
+                      }`}>
+                        {team.status === 'forming' ? '⏳ Forming' :
+                         team.status === 'idea-browsing' ? '🔍 Idea Browsing' :
+                         team.status === 'assembled' ? '✅ Assembled' :
+                         team.status === 'ready' ? '🚀 Ready' :
+                         '❓ Unknown'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Team Leader Controls */}
+                  {team.leaderId === hackathonUser?.userId && (
+                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-400/20">
+                      <h4 className="text-cyan-300 text-sm font-bold mb-2 flex items-center gap-2">
+                        <StarIcon className="h-4 w-4" /> Team Idea Assignment
+                      </h4>
+                      {team.ideaId ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 text-xs font-bold">Current Idea:</span>
+                            <Badge className="bg-green-500 text-white text-xs">
+                              {ideas.find((idea: any) => idea._id === team.ideaId)?.title}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleRemoveIdea(team._id)}
+                              className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                            >
+                              Remove Idea
+                            </Button>
+                            <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
+                              <Link href="/hackathon/ideas">Change Idea</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-gray-400 text-xs mb-2">Select an idea for your team:</p>
+                          <Select onValueChange={(ideaId) => handleAssignIdea(team._id, ideaId)}>
+                            <SelectTrigger className="w-full bg-black/30 border-cyan-400/30 text-white">
+                              <SelectValue placeholder="Choose an idea..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-black/80 border-cyan-400/30 text-white max-h-60">
+                              {ideas.length === 0 ? (
+                                <SelectItem value="no-ideas" disabled>
+                                  No ideas available
+                                </SelectItem>
+                              ) : (
+                                ideas.map((idea: any) => (
+                                  <SelectItem key={idea._id} value={idea._id}>
+                                    <div className="flex items-center gap-2">
+                                      <span>{idea.title}</span>
+                                      <Badge className="bg-pink-500 text-white text-xs ml-2">
+                                        {idea.votes} votes
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black w-full">
+                            <Link href="/hackathon/ideas">Browse All Ideas</Link>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Team Member Management */}
+                  {team.leaderId === hackathonUser?.userId && (
+                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-400/20">
+                      <h4 className="text-cyan-300 text-sm font-bold mb-2 flex items-center gap-2">
+                        <AvatarIcon className="h-4 w-4" /> Team Management
+                      </h4>
+                      <div className="space-y-2">
+                        <p className="text-gray-400 text-xs">
+                          As team leader, you can manage your team members and settings.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
+                            <Link href={`/hackathon/teams/${team._id}`}>
+                              Manage Members
+                            </Link>
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleAdminDeleteTeam(team._id)}
+                            className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                          >
+                            Delete Team
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">
+                              Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
+                            </span>
+                            <div className="flex gap-2">
+                              <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
+                                <Link href={`/hackathon/teams/${team._id}`}>
+                                  View Details
+                                </Link>
+                              </Button>
+                              {!hackathonUser?.teamId && team.leaderId !== hackathonUser?.userId && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleJoinTeam(team._id)}
+                                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                                >
+                                  <AvatarIcon className="mr-1 h-4 w-4" />
+                                  Join
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                onClick={() => handleAdminDeleteTeam(team._id)}
+                                className="bg-orange-500 hover:bg-orange-600 text-white"
+                              >
+                                Admin Delete
+                              </Button>
+                            </div>
+                          </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {teams.length === 0 && (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-12 text-center">
+                <div className="text-6xl mb-4">👥</div>
+                <h3 className="text-2xl font-bold text-yellow-400 mb-4">
+                  No Teams Yet
+                </h3>
+                <p className="text-cyan-200 mb-6">
+                  Be the first to create a team and start collaborating!
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
