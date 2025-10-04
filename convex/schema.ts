@@ -70,4 +70,31 @@ export default defineSchema({
   }).index("by_team", ["teamId"])
     .index("by_user", ["userId"])
     .index("by_team_user", ["teamId", "userId"]),
+  
+  suggestions: defineTable({
+    title: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("general"),
+      v.literal("improvement"),
+      v.literal("feature"),
+      v.literal("bug"),
+      v.literal("other")
+    ),
+    authorId: v.id("users"),
+    createdAt: v.number(),
+    votes: v.number(),
+    isAnonymous: v.boolean(),
+  }).index("by_author", ["authorId"])
+    .index("by_votes", ["votes"])
+    .index("by_category", ["category"])
+    .index("by_created", ["createdAt"]),
+  
+  suggestionVotes: defineTable({
+    suggestionId: v.id("suggestions"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_suggestion", ["suggestionId"])
+    .index("by_user", ["userId"])
+    .index("by_suggestion_user", ["suggestionId", "userId"]),
 });

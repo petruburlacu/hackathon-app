@@ -373,13 +373,6 @@ export default function TeamsPage() {
                                   Join
                                 </Button>
                               )}
-                              {/* <Button
-                                size="sm"
-                                onClick={() => handleAdminDeleteTeam(team._id)}
-                                className="bg-orange-500 hover:bg-orange-600 text-white"
-                              >
-                                Admin Delete
-                              </Button> */}
                             </div>
                           </div>
                 </CardContent>

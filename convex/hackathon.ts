@@ -869,3 +869,180 @@ export const getTeamDetails = query({
     };
   },
 });
+
+// Suggestions functions
+export const createSuggestion = mutation({
+  args: {
+    title: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("general"),
+      v.literal("improvement"),
+      v.literal("feature"),
+      v.literal("bug"),
+      v.literal("other")
+    ),
+    isAnonymous: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    if (args.title.trim().length < 3) {
+      throw new Error("Title must be at least 3 characters long");
+    }
+
+    if (args.description.trim().length < 10) {
+      throw new Error("Description must be at least 10 characters long");
+    }
+
+    return await ctx.db.insert("suggestions", {
+      title: args.title.trim(),
+      description: args.description.trim(),
+      category: args.category,
+      authorId: userId,
+      createdAt: Date.now(),
+      votes: 0,
+      isAnonymous: args.isAnonymous,
+    });
+  },
+});
+
+export const getSuggestions = query({
+  args: {
+    category: v.optional(v.union(
+      v.literal("general"),
+      v.literal("improvement"),
+      v.literal("feature"),
+      v.literal("bug"),
+      v.literal("other")
+    )),
+    sortBy: v.optional(v.union(v.literal("newest"), v.literal("votes"), v.literal("title"))),
+  },
+  handler: async (ctx, args) => {
+    let suggestions;
+
+    // Filter by category if specified
+    if (args.category) {
+      suggestions = await ctx.db
+        .query("suggestions")
+        .withIndex("by_category", (q) => q.eq("category", args.category!))
+        .collect();
+    } else {
+      suggestions = await ctx.db
+        .query("suggestions")
+        .withIndex("by_created")
+        .collect();
+    }
+
+    // Sort suggestions
+    const sortBy = args.sortBy || "newest";
+    suggestions.sort((a, b) => {
+      switch (sortBy) {
+        case "votes":
+          return b.votes - a.votes;
+        case "title":
+          return a.title.localeCompare(b.title);
+        case "newest":
+        default:
+          return b.createdAt - a.createdAt;
+      }
+    });
+
+    return suggestions;
+  },
+});
+
+export const voteForSuggestion = mutation({
+  args: {
+    suggestionId: v.id("suggestions"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    // Check if user already voted for this suggestion
+    const existingVote = await ctx.db
+      .query("suggestionVotes")
+      .withIndex("by_suggestion_user", (q) => q.eq("suggestionId", args.suggestionId).eq("userId", userId))
+      .first();
+
+    if (existingVote) {
+      throw new Error("You have already voted for this suggestion");
+    }
+
+    const suggestion = await ctx.db.get(args.suggestionId);
+    if (!suggestion) {
+      throw new Error("Suggestion not found");
+    }
+
+    // Create vote record
+    await ctx.db.insert("suggestionVotes", {
+      suggestionId: args.suggestionId,
+      userId,
+      createdAt: Date.now(),
+    });
+
+    // Update suggestion vote count
+    await ctx.db.patch(args.suggestionId, {
+      votes: suggestion.votes + 1,
+    });
+  },
+});
+
+export const getMySuggestionVotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [];
+    }
+
+    const votes = await ctx.db
+      .query("suggestionVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    return votes.map(vote => vote.suggestionId);
+  },
+});
+
+export const deleteSuggestion = mutation({
+  args: {
+    suggestionId: v.id("suggestions"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const suggestion = await ctx.db.get(args.suggestionId);
+    if (!suggestion) {
+      throw new Error("Suggestion not found");
+    }
+
+    // Only allow deletion by author or admin
+    const user = await ctx.db.get(userId);
+    if (suggestion.authorId !== userId && (!user || user.email !== "admin@hackathon.com")) {
+      throw new Error("Only the author or admin can delete suggestions");
+    }
+
+    // Delete all votes for this suggestion
+    const suggestionVotes = await ctx.db
+      .query("suggestionVotes")
+      .withIndex("by_suggestion", (q) => q.eq("suggestionId", args.suggestionId))
+      .collect();
+
+    for (const vote of suggestionVotes) {
+      await ctx.db.delete(vote._id);
+    }
+
+    // Delete the suggestion
+    await ctx.db.delete(args.suggestionId);
+  },
+});
