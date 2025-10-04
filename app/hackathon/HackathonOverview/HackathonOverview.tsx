@@ -75,7 +75,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             {userProgress.isComplete ? "🚀 Ready to Hack!" : 
              hasTeam ? "👥 Team Ready!" :
              hasParticipated ? "🎯 Participating!" :
-             "Welcome to Hackathon 2024!"}
+             "⚖️ TRIAL BY CODE ⚖️"}
           </h1>
           <p className="text-xl text-cyan-200 mb-8">
             {userProgress.isComplete ? "You're fully engaged! Participate and join teams!" :

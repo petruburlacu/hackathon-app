@@ -3,6 +3,7 @@
 import { HackathonOverview } from "./HackathonOverview/HackathonOverview";
 import { HackathonNav } from "@/components/HackathonNav";
 import { WelcomeTour } from "@/components/WelcomeTour";
+import { PixelatedHammer } from "@/components/PixelatedHammer";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
@@ -37,10 +38,15 @@ export default function HackathonPage() {
   return (
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav 
-        title="🚀 HACKATHON 2024"
+        title="⚖️ TRIAL BY CODE ⚖️"
         showTour={true}
         onShowTour={() => setShowTour(true)}
       />
+      
+      {/* Judge's Hammer Decoration */}
+      <div className="absolute top-32 right-8 z-10">
+        <PixelatedHammer size="lg" animated={true} />
+      </div>
       
       <HackathonOverview hackathonUser={hackathonUser || null} />
       

@@ -156,4 +156,27 @@
   .retro-scrollbar::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(45deg, #ffed4e, #ff8a8a);
   }
+  
+  
+  /* Judge's Hammer Animation */
+  .hammer-swing {
+    animation: hammer-swing 3s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+  
+  @keyframes hammer-swing {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-15deg);
+    }
+    50% {
+      transform: rotate(0deg);
+    }
+    75% {
+      transform: rotate(5deg);
+    }
+  }
+  
 }
