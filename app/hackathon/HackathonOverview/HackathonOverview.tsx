@@ -17,7 +17,7 @@ import {
 interface HackathonUser {
   _id: string;
   userId: string;
-  role: "dev" | "non-dev";
+  role: "dev" | "non-dev" | "admin";
   companyEmail?: string;
   teamId?: string;
 }
@@ -28,6 +28,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
   const leaderboard = useQuery(api.hackathon.getLeaderboard) || [];
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
+  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0, teamVotes: 0, total: 0 };
 
   if (!hackathonUser) {
     return (
@@ -49,21 +50,20 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
 
   const topIdeas = ideas.slice(0, 3);
   const topTeams = leaderboard.slice(0, 3);
-  const userTeam = teams.find(team => team._id === hackathonUser.teamId);
+  const userTeam = teams.find((team: any) => team._id === hackathonUser.teamId);
   
   // Determine user state for personalized content
   const hasIdeas = myIdeas.length > 0;
   const hasTeam = !!myTeamDetails;
-  const isTeamLeader = myTeamDetails?.isLeader;
-  const teamHasIdea = myTeamDetails?.idea;
+  const hasVotedForIdeas = myVotesGiven.ideaVotes > 0;
+  const hasParticipated = hasIdeas || hasVotedForIdeas; // Combined participation check
   
   // Calculate user progress
   const userProgress = {
     hasProfile: true,
-    hasIdeas,
+    hasParticipated,
     hasTeam,
-    teamHasIdea,
-    isComplete: hasIdeas && hasTeam && teamHasIdea
+    isComplete: hasParticipated && hasTeam
   };
 
   return (
@@ -74,23 +74,27 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           <h1 className="text-4xl font-bold text-yellow-400 mb-4 font-mono">
             {userProgress.isComplete ? "🚀 Ready to Hack!" : 
              hasTeam ? "👥 Team Ready!" :
-             hasIdeas ? "💡 Ideas Submitted!" :
+             hasParticipated ? "🎯 Participating!" :
              "Welcome to Hackathon 2024!"}
           </h1>
           <p className="text-xl text-cyan-200 mb-8">
-            {userProgress.isComplete ? "Your team is assembled and ready to build!" :
-             hasTeam ? "Your team is forming. Time to pick an idea!" :
-             hasIdeas ? "Great ideas! Now form or join a team." :
-             "Build the future with retro vibes! 🎮✨"}
+            {userProgress.isComplete ? "You're fully engaged! Participate and join teams!" :
+             hasTeam ? "Your team is forming. Keep participating!" :
+             hasParticipated ? "Great participation! Now form or join a team." :
+             "Build the future with retro vibes! Participate actively or support by voting! 🎮✨"}
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <Badge className={`px-4 py-2 text-lg ${
-              hackathonUser.role === 'dev' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-pink-500 text-white'
-            }`}>
-              {hackathonUser.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
-            </Badge>
+                  <div className="flex items-center justify-center gap-4">
+                    <Badge className={`px-4 py-2 text-lg ${
+                      hackathonUser.role === 'dev' 
+                        ? 'bg-blue-500 text-white' 
+                        : hackathonUser.role === 'admin'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-pink-500 text-white'
+                    }`}>
+                      {hackathonUser.role === 'dev' ? '💻 Developer' : 
+                       hackathonUser.role === 'admin' ? '🚨 Admin' :
+                       '🎨 Non-Developer'}
+                    </Badge>
             {userTeam && (
               <Badge className="px-4 py-2 text-lg bg-green-500 text-white">
                 👥 Team: {userTeam.name}
@@ -107,7 +111,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className={`flex items-center gap-3 p-3 rounded-lg ${userProgress.hasProfile ? 'bg-green-500/20 border border-green-400/30' : 'bg-gray-500/20 border border-gray-400/30'}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${userProgress.hasProfile ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
                   {userProgress.hasProfile ? '✓' : '1'}
@@ -118,13 +122,18 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                 </div>
               </div>
               
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${userProgress.hasIdeas ? 'bg-green-500/20 border border-green-400/30' : 'bg-gray-500/20 border border-gray-400/30'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${userProgress.hasIdeas ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                  {userProgress.hasIdeas ? '✓' : '2'}
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${userProgress.hasParticipated ? 'bg-green-500/20 border border-green-400/30' : 'bg-gray-500/20 border border-gray-400/30'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${userProgress.hasParticipated ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
+                  {userProgress.hasParticipated ? '✓' : '2'}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Submit Ideas</div>
-                  <div className="text-xs text-gray-400">{hasIdeas ? `${myIdeas.length} submitted` : 'Not started'}</div>
+                  <div className="text-sm font-medium text-white">Participate</div>
+                  <div className="text-xs text-gray-400">
+                    {hasParticipated ? 
+                      `${hasIdeas ? `${myIdeas.length} ideas` : ''}${hasIdeas && hasVotedForIdeas ? ', ' : ''}${hasVotedForIdeas ? `${myVotesGiven.ideaVotes} votes` : ''}` : 
+                      'Not started'
+                    }
+                  </div>
                 </div>
               </div>
               
@@ -135,16 +144,6 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                 <div>
                   <div className="text-sm font-medium text-white">Join Team</div>
                   <div className="text-xs text-gray-400">{hasTeam ? 'Complete' : 'Not started'}</div>
-                </div>
-              </div>
-              
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${userProgress.teamHasIdea ? 'bg-green-500/20 border border-green-400/30' : 'bg-gray-500/20 border border-gray-400/30'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${userProgress.teamHasIdea ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                  {userProgress.teamHasIdea ? '✓' : '4'}
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-white">Team Idea</div>
-                  <div className="text-xs text-gray-400">{teamHasIdea ? 'Assigned' : hasTeam ? 'Pending' : 'N/A'}</div>
                 </div>
               </div>
             </div>
@@ -188,7 +187,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-cyan-300">
-                {ideas.reduce((sum, idea) => sum + idea.votes, 0) + teams.reduce((sum, team) => sum + team.votes, 0)}
+                {ideas.reduce((sum: number, idea: any) => sum + idea.votes, 0) + teams.reduce((sum: number, team: any) => sum + team.votes, 0)}
               </div>
               <p className="text-gray-400 text-sm">Votes cast across all</p>
             </CardContent>
@@ -196,7 +195,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </div>
 
         {/* Personalized Action Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* Next Action Card */}
           <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/30">
             <CardHeader>
@@ -205,30 +204,28 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!hasIdeas ? (
+              {!hasParticipated ? (
                 <div>
-                  <p className="text-cyan-200 mb-4">Start by submitting your innovative ideas!</p>
-                  <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-                    <Link href="/hackathon/ideas">Submit Your First Idea</Link>
-                  </Button>
+                  <p className="text-cyan-200 mb-4">Start participating! Submit ideas or vote for others!</p>
+                  <div className="space-y-2">
+                    <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+                      <Link href="/hackathon/ideas">Submit Ideas</Link>
+                    </Button>
+                    <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold">
+                      <Link href="/hackathon/ideas">Vote for Ideas</Link>
+                    </Button>
+                  </div>
                 </div>
               ) : !hasTeam ? (
                 <div>
-                  <p className="text-cyan-200 mb-4">Great ideas! Now form or join a team.</p>
+                  <p className="text-cyan-200 mb-4">Great participation! Now form or join a team.</p>
                   <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold">
                     <Link href="/hackathon/teams">Form/Join Team</Link>
                   </Button>
                 </div>
-              ) : !teamHasIdea ? (
-                <div>
-                  <p className="text-cyan-200 mb-4">Your team needs to select an idea to work on.</p>
-                  <Button asChild className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold">
-                    <Link href="/hackathon/ideas">Browse Ideas</Link>
-                  </Button>
-                </div>
               ) : (
                 <div>
-                  <p className="text-cyan-200 mb-4">🎉 You're all set! Start building your project.</p>
+                  <p className="text-cyan-200 mb-4">🎉 You&apos;re all set! Start building your project.</p>
                   <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold">
                     <Link href="/hackathon/my-dashboard">View My Dashboard</Link>
                   </Button>
@@ -237,28 +234,29 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardContent>
           </Card>
 
-          {/* My Content Card */}
-          <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm border-blue-400/30">
+          {/* Browse & Vote Card - Always visible for non-participating users */}
+          <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm border-green-400/30">
             <CardHeader>
-              <CardTitle className="text-blue-400 font-mono flex items-center gap-2">
-                <StarIcon className="h-5 w-5" /> My Content
+              <CardTitle className="text-green-400 font-mono flex items-center gap-2">
+                <StarIcon className="h-5 w-5" /> Browse & Vote
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-cyan-200">Ideas Submitted:</span>
-                  <Badge className="bg-pink-500 text-white">{myIdeas.length}</Badge>
+                <p className="text-cyan-200 text-sm">
+                  {!hasIdeas && !hasTeam ? 
+                    "Not ready to participate? You can still browse and vote!" :
+                    "Support the community by voting for ideas and teams!"
+                  }
+                </p>
+                <div className="space-y-2">
+                  <Button asChild size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white">
+                    <Link href="/hackathon/ideas">Vote for Ideas</Link>
+                  </Button>
+                  <Button asChild size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
+                    <Link href="/hackathon/leaderboard">Vote for Teams</Link>
+                  </Button>
                 </div>
-                {hasTeam && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-cyan-200">Team:</span>
-                    <Badge className="bg-green-500 text-white">{myTeamDetails?.team.name}</Badge>
-                  </div>
-                )}
-                <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold">
-                  <Link href="/hackathon/my-dashboard">Manage My Content</Link>
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -297,7 +295,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
-                {topIdeas.map((idea, index) => (
+                {topIdeas.map((idea: any, index: number) => (
                   <div key={idea._id} className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-yellow-400 font-mono text-sm font-bold">#{index + 1}</h4>
@@ -328,7 +326,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
-                {topTeams.map((team, index) => (
+                {topTeams.map((team: any, index: number) => (
                   <div key={team._id} className={`p-4 rounded-lg border ${
                     index === 0 ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-400/30' :
                     index === 1 ? 'bg-gradient-to-r from-gray-500/10 to-slate-500/10 border-gray-400/30' :

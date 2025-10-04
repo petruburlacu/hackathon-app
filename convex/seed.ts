@@ -32,16 +32,22 @@ const sampleIdeas = [
 export const seedHackathonData = mutation({
   args: {},
   handler: async (ctx) => {
-    // Check if data already exists
-    const existingIdeas = await ctx.db.query("ideas").collect();
-    if (existingIdeas.length > 0) {
-      throw new Error("Hackathon data already exists. Clear existing data first.");
-    }
-
     // Get the current user ID (the admin seeding the data)
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Must be authenticated to seed data");
+    }
+
+    // Get user info to check admin status
+    const user = await ctx.db.get(userId);
+    if (!user || user.email !== "admin@hackathon.com") {
+      throw new Error("Admin access required");
+    }
+
+    // Check if data already exists
+    const existingIdeas = await ctx.db.query("ideas").collect();
+    if (existingIdeas.length > 0) {
+      throw new Error("Hackathon data already exists. Clear existing data first.");
     }
 
     console.log("🌱 Seeding hackathon data...");
@@ -74,6 +80,18 @@ export const seedHackathonData = mutation({
 export const clearHackathonData = mutation({
   args: {},
   handler: async (ctx) => {
+    // Get the current user ID (the admin clearing the data)
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Must be authenticated to clear data");
+    }
+
+    // Get user info to check admin status
+    const user = await ctx.db.get(userId);
+    if (!user || user.email !== "admin@hackathon.com") {
+      throw new Error("Admin access required");
+    }
+
     // Clear all hackathon data
     const ideas = await ctx.db.query("ideas").collect();
     const teams = await ctx.db.query("teams").collect();

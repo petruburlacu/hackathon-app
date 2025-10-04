@@ -19,7 +19,8 @@ interface UserMenuProps {
   children: ReactNode;
   isAdmin?: boolean;
   hackathonUser?: {
-    role: "dev" | "non-dev";
+    role: "dev" | "non-dev" | "admin";
+    displayName?: string;
   } | null;
 }
 
@@ -35,22 +36,29 @@ export function UserMenu({ children, isAdmin = false, hackathonUser }: UserMenuP
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{children}</DropdownMenuLabel>
-          {hackathonUser && (
-            <DropdownMenuLabel className="flex items-center gap-2 py-0 font-normal">
-              <span className="text-cyan-300 text-sm">Role:</span>
-              <span className={`px-2 py-1 rounded text-xs font-bold ${
-                hackathonUser.role === 'dev' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-pink-500 text-white'
-              }`}>
-                {hackathonUser.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
-              </span>
-            </DropdownMenuLabel>
-          )}
+          <DropdownMenuLabel>{hackathonUser?.displayName || children}</DropdownMenuLabel>
+                  {hackathonUser && (
+                    <DropdownMenuLabel className="flex items-center gap-2 py-0 font-normal">
+                      <span className="text-cyan-300 text-sm">Role:</span>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        hackathonUser.role === 'dev' 
+                          ? 'bg-blue-500 text-white' 
+                          : hackathonUser.role === 'admin'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-pink-500 text-white'
+                      }`}>
+                        {hackathonUser.role === 'dev' ? '💻 Developer' : 
+                         hackathonUser.role === 'admin' ? '🚨 Admin' :
+                         '🎨 Non-Developer'}
+                      </span>
+                    </DropdownMenuLabel>
+                  )}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/hackathon/my-dashboard">Personal Dashboard</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/hackathon/profile">Profile Settings</Link>
           </DropdownMenuItem>
           {isAdmin && (
             <DropdownMenuItem asChild>

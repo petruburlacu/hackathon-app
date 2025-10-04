@@ -5,13 +5,24 @@ import { v } from "convex/values";
 // User management functions
 export const createHackathonUser = mutation({
   args: {
-    role: v.union(v.literal("dev"), v.literal("non-dev")),
-    companyEmail: v.optional(v.string()),
+    role: v.union(v.literal("dev"), v.literal("non-dev"), v.literal("admin")),
+    displayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
+    }
+
+    // Get user info to check if they're admin
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Only allow admin role for admin@hackathon.com
+    if (args.role === "admin" && user.email !== "admin@hackathon.com") {
+      throw new Error("Admin role can only be assigned to admin@hackathon.com");
     }
 
     // Check if user already exists
@@ -27,7 +38,7 @@ export const createHackathonUser = mutation({
     return await ctx.db.insert("hackathonUsers", {
       userId,
       role: args.role,
-      companyEmail: args.companyEmail,
+      displayName: args.displayName,
     });
   },
 });
@@ -44,6 +55,31 @@ export const getHackathonUser = query({
       .query("hackathonUsers")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
+  },
+});
+
+export const updateHackathonUser = mutation({
+  args: {
+    displayName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const hackathonUser = await ctx.db
+      .query("hackathonUsers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!hackathonUser) {
+      throw new Error("Hackathon user not found");
+    }
+
+    await ctx.db.patch(hackathonUser._id, {
+      displayName: args.displayName,
+    });
   },
 });
 
@@ -174,13 +210,16 @@ export const adminDeleteIdea = mutation({
       throw new Error("Not signed in");
     }
 
+    // Get user info to check admin status
+    const user = await ctx.db.get(userId);
+    if (!user || user.email !== "admin@hackathon.com") {
+      throw new Error("Admin access required");
+    }
+
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) {
       throw new Error("Idea not found");
     }
-
-    // For now, allow any authenticated user to admin delete
-    // In a real app, you might want to check for admin role
 
     // Remove idea from any teams using it
     const teamsUsingIdea = await ctx.db
@@ -235,6 +274,16 @@ export const createTeam = mutation({
 
     if (hackathonUser.teamId) {
       throw new Error("User is already in a team");
+    }
+
+    // Check if user has already created a team
+    const existingTeam = await ctx.db
+      .query("teams")
+      .withIndex("by_leader", (q) => q.eq("leaderId", userId))
+      .first();
+
+    if (existingTeam) {
+      throw new Error("User has already created a team");
     }
 
     // Create team
@@ -325,6 +374,58 @@ export const joinTeam = mutation({
     await ctx.db.patch(args.teamId, {
       currentDevs: newDevCount,
       currentNonDevs: newNonDevCount,
+    });
+  },
+});
+
+export const removeTeamMember = mutation({
+  args: {
+    teamId: v.id("teams"),
+    memberUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Check if user is the team leader
+    if (team.leaderId !== userId) {
+      throw new Error("Only team leaders can remove members");
+    }
+
+    // Don't allow removing the team leader
+    if (args.memberUserId === team.leaderId) {
+      throw new Error("Team leader cannot remove themselves");
+    }
+
+    // Find the member to remove
+    const memberToRemove = await ctx.db
+      .query("hackathonUsers")
+      .withIndex("by_user", (q) => q.eq("userId", args.memberUserId))
+      .first();
+
+    if (!memberToRemove || memberToRemove.teamId !== args.teamId) {
+      throw new Error("Member not found in this team");
+    }
+
+    // Remove member from team
+    await ctx.db.patch(memberToRemove._id, {
+      teamId: undefined,
+    });
+
+    // Update team member counts
+    const newDevCount = memberToRemove.role === "dev" ? team.currentDevs - 1 : team.currentDevs;
+    const newNonDevCount = memberToRemove.role === "non-dev" ? team.currentNonDevs - 1 : team.currentNonDevs;
+
+    await ctx.db.patch(args.teamId, {
+      currentDevs: Math.max(0, newDevCount),
+      currentNonDevs: Math.max(0, newNonDevCount),
     });
   },
 });
@@ -528,13 +629,16 @@ export const adminDeleteTeam = mutation({
       throw new Error("Not signed in");
     }
 
+    // Get user info to check admin status
+    const user = await ctx.db.get(userId);
+    if (!user || user.email !== "admin@hackathon.com") {
+      throw new Error("Admin access required");
+    }
+
     const team = await ctx.db.get(args.teamId);
     if (!team) {
       throw new Error("Team not found");
     }
-
-    // For now, allow any authenticated user to admin delete
-    // In a real app, you might want to check for admin role
 
     // Remove all team members from the team
     const teamMembers = await ctx.db

@@ -28,6 +28,7 @@ export default function TeamDetailPage() {
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
 
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
+  const removeTeamMember = useMutation(api.hackathon.removeTeamMember);
 
   if (!viewer) {
     return (
@@ -54,6 +55,25 @@ export default function TeamDetailPage() {
       toast.error("Failed to update team status");
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberUserId: string) => {
+    if (!confirm("Are you sure you want to remove this member from the team?")) {
+      return;
+    }
+
+    try {
+      await removeTeamMember({ teamId, memberUserId: memberUserId as any });
+      toast.success("Member removed from team successfully!");
+    } catch (error: any) {
+      if (error.message?.includes("Only team leaders can remove members")) {
+        toast.error("Only team leaders can remove members");
+      } else if (error.message?.includes("Team leader cannot remove themselves")) {
+        toast.error("Team leader cannot remove themselves");
+      } else {
+        toast.error("Failed to remove member from team");
+      }
     }
   };
 
@@ -180,9 +200,21 @@ export default function TeamDetailPage() {
                         {member.role === 'dev' ? 'Developer' : 'Non-Developer'}
                       </div>
                     </div>
-                    {member.userId === teamDetails.team.leaderId && (
-                      <Badge className="bg-purple-500 text-white">Leader</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {member.userId === teamDetails.team.leaderId && (
+                        <Badge className="bg-purple-500 text-white">Leader</Badge>
+                      )}
+                      {/* Show remove button for team leaders, but not for the leader themselves */}
+                      {hackathonUser?.userId === teamDetails.team.leaderId && member.userId !== teamDetails.team.leaderId && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleRemoveMember(member.userId)}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

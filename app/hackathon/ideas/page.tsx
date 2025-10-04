@@ -241,7 +241,12 @@ export default function IdeasPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-cyan-200 mb-4 text-sm leading-relaxed">{idea.description}</p>
+                  <p className="text-cyan-200 mb-4 text-sm leading-relaxed">
+                    {idea.description.length > 150 
+                      ? `${idea.description.substring(0, 150)}...` 
+                      : idea.description
+                    }
+                  </p>
                   
                   {/* Team Assignment Controls */}
                   {myTeamDetails?.isLeader && (
@@ -269,6 +274,27 @@ export default function IdeasPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Admin Controls - Only visible to admin users for ideas they don't own */}
+                  {isAdmin && idea.authorId !== hackathonUser?.userId && (
+                    <div className="mb-4 p-3 bg-red-500/10 rounded-lg border border-red-400/20">
+                      <h4 className="text-red-400 text-sm font-bold mb-2 flex items-center gap-2">
+                        🚨 Admin Controls
+                      </h4>
+                      <div className="space-y-2">
+                        <p className="text-red-300 text-xs">
+                          Admin-only actions. Use with caution!
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAdminDeleteIdea(idea._id)}
+                          className="bg-red-500 hover:bg-red-600 text-white w-full"
+                        >
+                          Admin Delete Idea
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-400">
@@ -294,10 +320,14 @@ export default function IdeasPage() {
                       )}
                       <Button
                         size="sm"
-                        onClick={() => handleAdminDeleteIdea(idea._id)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                        variant="outline"
+                        className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+                        onClick={() => {
+                          // TODO: Implement idea details modal or page
+                          alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter(team => team.ideaId === idea._id).length}`);
+                        }}
                       >
-                        Admin Delete
+                        View Details
                       </Button>
                     </div>
                   </div>

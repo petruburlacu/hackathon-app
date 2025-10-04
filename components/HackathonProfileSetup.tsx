@@ -15,11 +15,12 @@ interface HackathonProfileSetupProps {
 
 export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) {
   const [showSetup, setShowSetup] = useState(false);
-  const [role, setRole] = useState<"dev" | "non-dev" | null>(null);
-  const [companyEmail, setCompanyEmail] = useState("");
+  const [role, setRole] = useState<"dev" | "non-dev" | "admin" | null>(null);
+  const [displayName, setDisplayName] = useState("");
   
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const createHackathonUser = useMutation(api.hackathon.createHackathonUser);
+  const viewer = useQuery(api.users.viewer);
 
   useEffect(() => {
     // If user is authenticated but doesn't have a hackathon profile, show setup
@@ -28,16 +29,24 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
     }
   }, [hackathonUser]);
 
+  // Check if user is admin
+  const isAdmin = viewer?.email === "admin@hackathon.com";
+
   const handleSetup = async () => {
     if (!role) {
       toast.error("Please select your role");
       return;
     }
 
+    if (!displayName.trim()) {
+      toast.error("Please enter your display name");
+      return;
+    }
+
     try {
       await createHackathonUser({
         role,
-        companyEmail: companyEmail || undefined,
+        displayName: displayName.trim(),
       });
       setShowSetup(false);
       toast.success("Hackathon profile created successfully!");
@@ -67,44 +76,51 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
           <div className="bg-black/40 backdrop-blur-sm p-8 rounded-2xl border border-cyan-400/20">
             <div className="space-y-6">
               <div>
-                <label className="text-sm font-medium mb-2 block text-cyan-300">
-                  Choose your role
-                </label>
-                <ToggleGroup
-                  type="single"
-                  value={role || ""}
-                  onValueChange={(value) => setRole(value as "dev" | "non-dev" | null)}
-                  className="w-full"
-                >
-                  <ToggleGroupItem value="dev" className="flex-1 bg-blue-500/20 border-blue-400/30 text-blue-300 data-[state=on]:bg-blue-500 data-[state=on]:text-white">
-                    <CodeIcon className="mr-2 h-4 w-4" />
-                    Developer
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="non-dev" className="flex-1 bg-pink-500/20 border-pink-400/30 text-pink-300 data-[state=on]:bg-pink-500 data-[state=on]:text-white">
-                    <PersonIcon className="mr-2 h-4 w-4" />
-                    Non-Developer
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-
-              <div>
-                <label htmlFor="companyEmail" className="text-sm font-medium text-cyan-300 mb-2 block">
-                  Company Email (optional)
+                <label htmlFor="displayName" className="text-sm font-medium text-cyan-300 mb-2 block">
+                  Display Name *
                 </label>
                 <Input
-                  id="companyEmail"
-                  type="email"
-                  value={companyEmail}
-                  onChange={(e) => setCompanyEmail(e.target.value)}
-                  placeholder="your.email@company.com"
+                  id="displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name as it will appear"
                   className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  required
                 />
               </div>
-              
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-cyan-300">
+                          Choose your role *
+                        </label>
+                        <ToggleGroup
+                          type="single"
+                          value={role || ""}
+                          onValueChange={(value) => setRole(value as "dev" | "non-dev" | "admin" | null)}
+                          className="w-full"
+                        >
+                          <ToggleGroupItem value="dev" className="flex-1 bg-blue-500/20 border-blue-400/30 text-blue-300 data-[state=on]:bg-blue-500 data-[state=on]:text-white">
+                            <CodeIcon className="mr-2 h-4 w-4" />
+                            Developer
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="non-dev" className="flex-1 bg-pink-500/20 border-pink-400/30 text-pink-300 data-[state=on]:bg-pink-500 data-[state=on]:text-white">
+                            <PersonIcon className="mr-2 h-4 w-4" />
+                            Non-Developer
+                          </ToggleGroupItem>
+                          {isAdmin && (
+                            <ToggleGroupItem value="admin" className="flex-1 bg-red-500/20 border-red-400/30 text-red-300 data-[state=on]:bg-red-500 data-[state=on]:text-white">
+                              <PersonIcon className="mr-2 h-4 w-4" />
+                              Admin
+                            </ToggleGroupItem>
+                          )}
+                        </ToggleGroup>
+                      </div>
+
               <Button 
                 onClick={handleSetup}
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg py-3"
-                disabled={!role}
+                disabled={!role || !displayName.trim()}
               >
                 Complete Profile & Enter Hackathon
               </Button>

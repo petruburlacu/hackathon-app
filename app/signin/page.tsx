@@ -14,13 +14,13 @@ export default function SignInPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string;
+    const username = formData.get("username") as string;
     const password = formData.get("password") as string;
 
     try {
       // For password provider, we need to specify the flow parameter
       const flow = isSignUp ? "signUp" : "signIn";
-      await signIn("password", { email, password, flow });
+      await signIn("password", { email: username, password, flow });
       
       toast.success(isSignUp ? "Account created successfully!" : "Signed in successfully!");
       
@@ -43,15 +43,16 @@ export default function SignInPage() {
           
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label htmlFor="email" className="text-sm font-medium text-white">
-                Email
+              <label htmlFor="username" className="text-sm font-medium text-white">
+                Username
               </label>
               <Input
-                name="email"
-                id="email"
-                type="email"
+                name="username"
+                id="username"
+                type="text"
                 required
-                autoComplete="email"
+                autoComplete="username"
+                placeholder="Enter your username (can be email or any identifier)"
                 className="mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
               />
             </div>

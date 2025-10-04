@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +78,12 @@ export default function MyDashboardPage() {
           {/* Profile Summary */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono">👤 Profile Summary</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-yellow-400 font-mono">👤 Profile Summary</CardTitle>
+                <Button asChild variant="outline" size="sm" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
+                  <Link href="/hackathon/profile">Manage Profile</Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
@@ -94,9 +99,9 @@ export default function MyDashboardPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">
-                    {myTeamDetails ? "1" : "0"}
+                    {myTeamDetails ? "Yes" : "No"}
                   </div>
-                  <div className="text-gray-400">Teams Joined</div>
+                  <div className="text-gray-400">Team Joined</div>
                 </div>
               </div>
             </CardContent>

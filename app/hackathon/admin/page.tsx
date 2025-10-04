@@ -30,6 +30,20 @@ export default function AdminPage() {
     );
   }
 
+  // Admin check - only allow admin@hackathon.com
+  const isAdmin = viewer.email === "admin@hackathon.com";
+  
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-center">
+          <div className="text-red-400 text-2xl font-bold mb-4">🚫 Access Denied</div>
+          <div className="text-cyan-200 text-lg">You don't have admin privileges</div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSeed = async () => {
     setIsSeeding(true);
     try {

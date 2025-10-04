@@ -23,6 +23,9 @@ export default function TeamsPage() {
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const teams = useQuery(api.hackathon.getTeams) || [];
   const ideas = useQuery(api.hackathon.getIdeas) || [];
+  
+  // Check if user has already created a team
+  const userCreatedTeam = teams.find((team: any) => team.leaderId === hackathonUser?.userId);
 
   const createTeam = useMutation(api.hackathon.createTeam);
   const joinTeam = useMutation(api.hackathon.joinTeam);
@@ -37,6 +40,9 @@ export default function TeamsPage() {
       </div>
     );
   }
+
+  // Admin check - only allow admin@hackathon.com
+  const isAdmin = viewer.email === "admin@hackathon.com";
 
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) {
@@ -66,8 +72,14 @@ export default function TeamsPage() {
       setMaxDevs(2);
       setMaxNonDevs(2);
       toast.success("Team created successfully!");
-    } catch {
-      toast.error("Failed to create team");
+    } catch (error: any) {
+      if (error.message?.includes("already created a team")) {
+        toast.error("You have already created a team");
+      } else if (error.message?.includes("already in a team")) {
+        toast.error("You are already in a team");
+      } else {
+        toast.error("Failed to create team");
+      }
     }
   };
 
@@ -119,7 +131,7 @@ export default function TeamsPage() {
       <div className="flex-1 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Create New Team */}
-          {!hackathonUser?.teamId && (
+          {!hackathonUser?.teamId && !userCreatedTeam && (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
@@ -315,14 +327,28 @@ export default function TeamsPage() {
                               Manage Members
                             </Link>
                           </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAdminDeleteTeam(team._id)}
-                            className="bg-red-500 hover:bg-red-600 text-white flex-1"
-                          >
-                            Delete Team
-                          </Button>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Admin Controls - Only visible to admin users for teams they don't own */}
+                  {isAdmin && team.leaderId !== hackathonUser?.userId && (
+                    <div className="mb-4 p-3 bg-red-500/10 rounded-lg border border-red-400/20">
+                      <h4 className="text-red-400 text-sm font-bold mb-2 flex items-center gap-2">
+                        🚨 Admin Controls
+                      </h4>
+                      <div className="space-y-2">
+                        <p className="text-red-300 text-xs">
+                          Admin-only actions. Use with caution!
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAdminDeleteTeam(team._id)}
+                          className="bg-red-500 hover:bg-red-600 text-white w-full"
+                        >
+                          Admin Delete Team
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -347,13 +373,13 @@ export default function TeamsPage() {
                                   Join
                                 </Button>
                               )}
-                              <Button
+                              {/* <Button
                                 size="sm"
                                 onClick={() => handleAdminDeleteTeam(team._id)}
                                 className="bg-orange-500 hover:bg-orange-600 text-white"
                               >
                                 Admin Delete
-                              </Button>
+                              </Button> */}
                             </div>
                           </div>
                 </CardContent>

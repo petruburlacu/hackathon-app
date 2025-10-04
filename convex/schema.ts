@@ -14,7 +14,8 @@ export default defineSchema({
   // Hackathon-specific tables
   hackathonUsers: defineTable({
     userId: v.id("users"),
-    role: v.union(v.literal("dev"), v.literal("non-dev")),
+    role: v.union(v.literal("dev"), v.literal("non-dev"), v.literal("admin")),
+    displayName: v.optional(v.string()),
     companyEmail: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
   }).index("by_user", ["userId"])
