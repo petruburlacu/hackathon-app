@@ -15,8 +15,8 @@ import {
   PlusIcon,
   RocketIcon,
 } from "@radix-ui/react-icons";
+import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
-import { UserMenu } from "@/components/UserMenu";
 
 export default function MyDashboardPage() {
   const [isLeaving, setIsLeaving] = useState(false);
@@ -26,6 +26,7 @@ export default function MyDashboardPage() {
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
+  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0, teamVotes: 0, total: 0 };
 
   const leaveTeam = useMutation(api.hackathon.leaveTeam);
   const deleteTeam = useMutation(api.hackathon.deleteTeam);
@@ -70,49 +71,7 @@ export default function MyDashboardPage() {
 
   return (
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="flex items-start justify-between border-b border-cyan-400/20 p-4 bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center gap-6">
-          <div className="text-2xl font-bold text-yellow-400 font-mono">
-            👤 MY DASHBOARD 👤
-          </div>
-          {hackathonUser && (
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-300 text-sm">Role:</span>
-              <span className={`px-2 py-1 rounded text-xs font-bold ${
-                hackathonUser.role === 'dev' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-pink-500 text-white'
-              }`}>
-                {hackathonUser.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
-              </span>
-            </div>
-          )}
-          <nav className="flex items-center gap-4">
-            <Link href="/hackathon" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Dashboard
-            </Link>
-            <Link href="/hackathon/my-dashboard" className="text-yellow-400 font-mono text-sm font-bold">
-              My Dashboard
-            </Link>
-            <Link href="/hackathon/ideas" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Ideas
-            </Link>
-            <Link href="/hackathon/teams" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Teams
-            </Link>
-            <Link href="/hackathon/leaderboard" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Leaderboard
-            </Link>
-            <Link href="/hackathon/admin" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Admin
-            </Link>
-            <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Home
-            </Link>
-          </nav>
-        </div>
-        <UserMenu>{viewer.name}</UserMenu>
-      </div>
+      <HackathonNav title="👤 MY DASHBOARD 👤" />
 
       <div className="flex-1 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
@@ -129,9 +88,9 @@ export default function MyDashboardPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">
-                    {myIdeas.reduce((sum, idea) => sum + idea.votes, 0)}
+                    {myVotesGiven.total}
                   </div>
-                  <div className="text-gray-400">Total Votes Received</div>
+                  <div className="text-gray-400">Total Votes Given</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">

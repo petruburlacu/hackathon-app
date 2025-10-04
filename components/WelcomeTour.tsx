@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Cross2Icon, ArrowRightIcon, ArrowLeftIcon } from "@radix-ui/react-icons";
-import Link from "next/link";
+import { Cross2Icon, ArrowRightIcon, ArrowLeftIcon, CheckIcon } from "@radix-ui/react-icons";
 
 interface WelcomeTourProps {
   isVisible: boolean;
@@ -31,33 +30,50 @@ const tourSteps = [
     id: "ideas",
     title: "💡 Step 1: Submit Your Ideas",
     content: "Start by submitting innovative ideas that could become hackathon projects. You can submit multiple ideas and vote for others' ideas too!",
-    action: "Go to Ideas",
-    link: "/hackathon/ideas",
+    action: "Next: Learn about Teams",
     showProgress: true,
   },
   {
     id: "teams",
     title: "👥 Step 2: Form or Join a Team",
     content: "Once you have ideas, form a team or join an existing one. Teams need 1-2 developers and 1-2 non-developers to be balanced.",
-    action: "Go to Teams",
-    link: "/hackathon/teams",
+    action: "Next: Learn about Idea Assignment",
     showProgress: true,
   },
   {
     id: "assign",
     title: "🎯 Step 3: Assign an Idea to Your Team",
     content: "Team leaders can assign an idea to their team. This helps teams focus on a specific project and shows what they're working on.",
-    action: "Browse Ideas",
-    link: "/hackathon/ideas",
+    action: "Next: Learn about Voting",
     showProgress: true,
   },
   {
-    id: "compete",
-    title: "🏆 Step 4: Compete and Vote",
-    content: "Vote for your favorite ideas and teams! The leaderboard shows which teams are most popular. Good luck!",
-    action: "View Leaderboard",
-    link: "/hackathon/leaderboard",
+    id: "voting",
+    title: "⭐ Step 4: Vote for Teams",
+    content: "Once teams are formed and have ideas, you can vote for your favorite teams on the leaderboard. Each person gets one vote per team.",
+    action: "Next: Learn about Navigation",
     showProgress: true,
+  },
+  {
+    id: "navigation",
+    title: "🧭 Navigation Tips",
+    content: "Use the navigation bar to move between sections. Your personal dashboard shows your progress, and the user menu contains your profile settings.",
+    action: "Next: Learn about Your Progress",
+    showProgress: true,
+  },
+  {
+    id: "progress",
+    title: "📊 Track Your Progress",
+    content: "Check your progress in the personalized dashboard. Complete all steps to be fully ready for the hackathon!",
+    action: "Complete Tour",
+    showProgress: true,
+  },
+  {
+    id: "complete",
+    title: "🎉 Tour Complete!",
+    content: "You're all set! You now know how to navigate the hackathon platform. Good luck with your projects!",
+    action: "Start Hackathon",
+    showProgress: false,
   },
 ];
 
@@ -66,18 +82,22 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
   const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
-    // Check if user has completed the tour before
-    const hasSeenTour = localStorage.getItem("hackathon-tour-completed");
-    if (hasSeenTour) {
-      onClose();
+    if (isVisible) {
+      setCurrentStep(0);
+      setIsCompleted(false);
     }
-  }, [onClose]);
+  }, [isVisible]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Finish tour - mark as completed and close
       setIsCompleted(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("hackathon-tour-completed", "true");
+      }
+      onClose(); // Close the tour
     }
   };
 
@@ -87,33 +107,62 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
     }
   };
 
-  const handleComplete = () => {
-    localStorage.setItem("hackathon-tour-completed", "true");
+  const handleClose = () => {
+    if (!isCompleted) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("hackathon-tour-completed", "true");
+      }
+    }
     onClose();
   };
 
-  const handleSkip = () => {
-    localStorage.setItem("hackathon-tour-completed", "true");
-    onClose();
+  const getProgressStatus = (stepId: string) => {
+    switch (stepId) {
+      case "ideas":
+        return userProgress.hasIdeas;
+      case "teams":
+        return userProgress.hasTeam;
+      case "assign":
+        return userProgress.teamHasIdea;
+      case "voting":
+        return userProgress.isComplete;
+      default:
+        return false;
+    }
+  };
+
+  const getProgressText = (stepId: string) => {
+    switch (stepId) {
+      case "ideas":
+        return userProgress.hasIdeas ? "✅ Ideas submitted!" : "⏳ Submit your ideas";
+      case "teams":
+        return userProgress.hasTeam ? "✅ Team joined!" : "⏳ Join or create a team";
+      case "assign":
+        return userProgress.teamHasIdea ? "✅ Idea assigned!" : "⏳ Assign an idea to your team";
+      case "voting":
+        return userProgress.isComplete ? "✅ Ready to vote!" : "⏳ Complete previous steps";
+      default:
+        return "";
+    }
   };
 
   if (!isVisible) return null;
 
   const currentStepData = tourSteps[currentStep];
-  const progress = userProgress;
+  const isLastStep = currentStep === tourSteps.length - 1;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="bg-gradient-to-br from-purple-900/90 to-blue-900/90 backdrop-blur-sm border-cyan-400/30 max-w-2xl w-full">
+      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white">
         <CardHeader className="relative">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-yellow-400 font-mono text-2xl">
+            <CardTitle className="text-yellow-400 font-mono text-xl">
               {currentStepData.title}
             </CardTitle>
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleSkip}
+              onClick={handleClose}
               className="text-gray-400 hover:text-white"
             >
               <Cross2Icon className="h-4 w-4" />
@@ -121,114 +170,101 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
           </div>
           
           {/* Progress Bar */}
-          <div className="flex items-center gap-2 mt-4">
-            {tourSteps.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 flex-1 rounded ${
-                  index <= currentStep 
-                    ? 'bg-yellow-400' 
-                    : 'bg-gray-600'
-                }`}
-              />
-            ))}
+          <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
+            <div
+              className="bg-gradient-to-r from-cyan-400 to-yellow-400 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
+            />
           </div>
-          <div className="text-center text-sm text-gray-400 mt-2">
+          
+          {/* Step Counter */}
+          <div className="text-sm text-gray-400 mt-2">
             Step {currentStep + 1} of {tourSteps.length}
           </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Step Content */}
-          <div className="text-center">
-            <p className="text-cyan-200 text-lg leading-relaxed">
-              {currentStepData.content}
-            </p>
+          {/* Main Content */}
+          <div className="text-cyan-200 leading-relaxed">
+            {currentStepData.content}
           </div>
 
-          {/* Progress Checklist */}
+          {/* Progress Status for Current Step */}
           {currentStepData.showProgress && (
-            <div className="bg-black/30 rounded-lg p-4 border border-cyan-400/20">
-              <h4 className="text-yellow-400 font-bold mb-3 text-center">Your Progress</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className={`flex items-center gap-2 ${progress.hasIdeas ? 'text-green-400' : 'text-gray-400'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${progress.hasIdeas ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                    {progress.hasIdeas ? '✓' : '○'}
-                  </div>
-                  Submit Ideas
-                </div>
-                <div className={`flex items-center gap-2 ${progress.hasTeam ? 'text-green-400' : 'text-gray-400'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${progress.hasTeam ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                    {progress.hasTeam ? '✓' : '○'}
-                  </div>
-                  Join Team
-                </div>
-                <div className={`flex items-center gap-2 ${progress.teamHasIdea ? 'text-green-400' : 'text-gray-400'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${progress.teamHasIdea ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                    {progress.teamHasIdea ? '✓' : '○'}
-                  </div>
-                  Team Idea
-                </div>
-                <div className={`flex items-center gap-2 ${progress.isComplete ? 'text-green-400' : 'text-gray-400'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${progress.isComplete ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
-                    {progress.isComplete ? '✓' : '○'}
-                  </div>
-                  Complete
-                </div>
+            <div className="p-4 bg-black/40 rounded-lg border border-cyan-400/20">
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant="secondary" 
+                  className={`${
+                    getProgressStatus(currentStepData.id) 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-yellow-500 text-black'
+                  }`}
+                >
+                  {getProgressStatus(currentStepData.id) ? (
+                    <CheckIcon className="h-3 w-3 mr-1" />
+                  ) : (
+                    <span className="mr-1">⏳</span>
+                  )}
+                  {getProgressText(currentStepData.id)}
+                </Badge>
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between">
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between pt-4">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50"
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+
             <div className="flex gap-2">
               {currentStep > 0 && (
                 <Button
                   variant="outline"
-                  onClick={handlePrevious}
-                  className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+                  onClick={() => setCurrentStep(0)}
+                  className="border-gray-400/30 text-gray-400 hover:bg-gray-400/10"
                 >
-                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                  Previous
+                  Restart
                 </Button>
               )}
-            </div>
-
-            <div className="flex gap-2">
-              {currentStepData.link ? (
-                <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-                  <Link href={currentStepData.link}>
-                    {currentStepData.action}
-                    <ArrowRightIcon className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
-                >
-                  {currentStepData.action}
-                  <ArrowRightIcon className="ml-2 h-4 w-4" />
-                </Button>
-              )}
+              
+              <Button
+                onClick={handleNext}
+                className={`font-bold ${
+                  isLastStep 
+                    ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-8 py-3' 
+                    : 'bg-yellow-400 hover:bg-yellow-500 text-black'
+                }`}
+              >
+                {isLastStep ? "🎉 Start Hackathon!" : currentStepData.action}
+                {!isLastStep && <ArrowRightIcon className="h-4 w-4 ml-2" />}
+              </Button>
             </div>
           </div>
 
-          {/* Completion Message */}
-          {isCompleted && (
-            <div className="text-center bg-green-500/20 border border-green-400/30 rounded-lg p-4">
-              <h3 className="text-green-400 font-bold text-lg mb-2">🎉 Tour Complete!</h3>
-              <p className="text-cyan-200 mb-4">
-                You're all set to participate in the hackathon! Remember to check your progress on the dashboard.
-              </p>
-              <Button
-                onClick={handleComplete}
-                className="bg-green-500 hover:bg-green-600 text-white font-bold"
-              >
-                Start Hacking!
-              </Button>
-            </div>
-          )}
+          {/* Step Indicators */}
+          <div className="flex justify-center gap-2 pt-4">
+            {tourSteps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentStep
+                    ? 'bg-yellow-400'
+                    : index < currentStep
+                    ? 'bg-green-400'
+                    : 'bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

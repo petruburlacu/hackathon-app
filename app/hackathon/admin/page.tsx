@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMutation } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { UserMenu } from "@/components/UserMenu";
-import { useQuery } from "convex/react";
-import Link from "next/link";
+import { HackathonNav } from "@/components/HackathonNav";
 
 export default function AdminPage() {
   const [isSeeding, setIsSeeding] = useState(false);
@@ -119,31 +117,7 @@ export default function AdminPage() {
 
   return (
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="flex items-start justify-between border-b border-cyan-400/20 p-4 bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center gap-6">
-          <div className="text-2xl font-bold text-yellow-400 font-mono">
-            🛠️ ADMIN PANEL 🛠️
-          </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/hackathon" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Dashboard
-            </Link>
-            <Link href="/hackathon/ideas" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Ideas
-            </Link>
-            <Link href="/hackathon/teams" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Teams
-            </Link>
-            <Link href="/hackathon/leaderboard" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Leaderboard
-            </Link>
-            <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-              Home
-            </Link>
-          </nav>
-        </div>
-        <UserMenu>{viewer.name}</UserMenu>
-      </div>
+      <HackathonNav title="🛠️ ADMIN PANEL 🛠️" />
 
       <div className="flex-1 p-6">
         <div className="max-w-4xl mx-auto space-y-6">

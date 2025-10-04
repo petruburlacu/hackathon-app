@@ -660,6 +660,34 @@ export const getMyTeamDetails = query({
   },
 });
 
+export const getMyVotesGiven = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return { ideaVotes: 0, teamVotes: 0, total: 0 };
+    }
+
+    // Get user's idea votes
+    const ideaVotes = await ctx.db
+      .query("ideaVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Get user's team votes
+    const teamVotes = await ctx.db
+      .query("teamVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    return {
+      ideaVotes: ideaVotes.length,
+      teamVotes: teamVotes.length,
+      total: ideaVotes.length + teamVotes.length,
+    };
+  },
+});
+
 export const updateTeamStatus = mutation({
   args: {
     teamId: v.id("teams"),
