@@ -179,4 +179,23 @@
     }
   }
   
+  /* Countdown Pulse Animation */
+  .countdown-pulse {
+    animation: countdown-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes countdown-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    }
+  }
+  
+  /* Countdown Glow Effect */
+  .countdown-glow {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.1);
+  }
+  
 }

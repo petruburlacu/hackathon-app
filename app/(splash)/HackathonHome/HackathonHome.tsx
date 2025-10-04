@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HackathonCountdown } from "@/components/HackathonCountdown";
 import {
   CodeIcon,
   PersonIcon,
@@ -37,6 +38,13 @@ export const HackathonHome = () => {
           </h1>
           <div className="mb-8 text-center text-xl text-cyan-200 font-mono">
             Build the future with retro vibes! 🎮✨
+          </div>
+        </div>
+
+        {/* Countdown Timer */}
+        <div className="mb-16 flex justify-center">
+          <div className="w-full max-w-4xl">
+            <HackathonCountdown />
           </div>
         </div>
 
@@ -135,23 +143,6 @@ export const HackathonHome = () => {
               READY TO HACK? 🚀
             </div>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <RetroResource 
-              title="💻 Developer Track" 
-              href="/hackathon"
-              description="Code your way to victory with cutting-edge tech"
-            />
-            <RetroResource 
-              title="🎨 Creative Track" 
-              href="/hackathon"
-              description="Design, UX, and creative problem solving"
-            />
-            <RetroResource 
-              title="🏆 Leaderboard" 
-              href="/hackathon/leaderboard"
-              description="See who's dominating the competition"
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -207,28 +198,5 @@ function RuleCard({
         </ul>
       </CardContent>
     </Card>
-  );
-}
-
-function RetroResource({
-  title,
-  children,
-  href,
-}: {
-  title: string;
-  children: ReactNode;
-  href: string;
-}) {
-  return (
-    <Button
-      asChild
-      variant="secondary"
-      className="flex h-auto flex-col items-center justify-center gap-4 whitespace-normal p-6 font-normal bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 hover:border-purple-400/60 hover:scale-105 transition-all"
-    >
-      <Link href={href}>
-        <div className="text-lg font-bold text-yellow-400">{title}</div>
-        <div className="text-cyan-200 text-sm">{children}</div>
-      </Link>
-    </Button>
   );
 }
