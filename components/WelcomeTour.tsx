@@ -80,6 +80,15 @@ const tourSteps = [
 export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
+  const handleClose = () => {
+    // Don't mark as completed when manually closed - allow resuming
+    // Just save the current step and close
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("hackathon-tour-step", currentStep.toString());
+    }
+    onClose();
+  };
+
   useEffect(() => {
     if (isVisible) {
       // Try to resume from saved step, otherwise start from beginning
@@ -89,6 +98,20 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
       setCurrentStep(savedStep);
     }
   }, [isVisible]);
+
+  // Add escape key handler
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isVisible) {
+        handleClose();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isVisible, handleClose]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -117,15 +140,6 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
         localStorage.setItem("hackathon-tour-step", prevStep.toString());
       }
     }
-  };
-
-  const handleClose = () => {
-    // Don't mark as completed when manually closed - allow resuming
-    // Just save the current step and close
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("hackathon-tour-step", currentStep.toString());
-    }
-    onClose();
   };
 
   const getProgressStatus = (stepId: string) => {
@@ -164,8 +178,16 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
   const isLastStep = currentStep === tourSteps.length - 1;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+      onClick={(e) => {
+        // Close when clicking on the backdrop
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+    >
+      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white relative">
         <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <CardTitle className="text-yellow-400 font-mono text-xl">
@@ -175,7 +197,8 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10"
+              aria-label="Close tour"
             >
               <Cross2Icon className="h-4 w-4" />
             </Button>

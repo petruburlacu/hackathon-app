@@ -272,7 +272,7 @@ export default function IdeasPage() {
                 className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
               />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-cyan-300 mb-2 block">Category</label>
                   <div className="space-y-2">
@@ -322,7 +322,7 @@ export default function IdeasPage() {
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardContent className="p-4">
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                   <div className="flex-1">
                     <Input
                       placeholder="Search ideas by title, description, or tags..."
@@ -331,7 +331,7 @@ export default function IdeasPage() {
                       className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                       <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
                         <SelectValue />
@@ -368,7 +368,7 @@ export default function IdeasPage() {
           </Card>
 
           {/* Ideas List */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedIdeas.map((idea: any) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
                 <CardHeader className="flex-shrink-0">
@@ -473,7 +473,7 @@ export default function IdeasPage() {
                     {/* Action buttons - organized in rows */}
                     <div className="space-y-2">
                       {/* Primary actions row */}
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -499,7 +499,7 @@ export default function IdeasPage() {
                       
                       {/* Owner actions row */}
                       {idea.authorId === hackathonUser?.userId && (
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button
                             size="sm"
                             onClick={() => handleEditIdea(idea)}
@@ -586,7 +586,7 @@ export default function IdeasPage() {
                 className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
               />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-cyan-300 mb-2 block">Category</label>
                   <div className="space-y-2">

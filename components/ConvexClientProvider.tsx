@@ -3,7 +3,6 @@
 import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
 import { ConvexReactClient } from "convex/react";
 import { ReactNode, useMemo } from "react";
-import { validateEnvironmentVariables, logEnvironmentInfo } from "@/lib/env-validation";
 
 export default function ConvexClientProvider({
   children,
@@ -12,17 +11,6 @@ export default function ConvexClientProvider({
 }) {
   // Initialize Convex client inside the component to ensure env vars are available
   const convex = useMemo(() => {
-    // Validate environment variables on client side
-    if (typeof window !== 'undefined') {
-      logEnvironmentInfo();
-      const isValid = validateEnvironmentVariables();
-      
-      if (!isValid) {
-        console.error("🚨 ConvexClientProvider: Missing required environment variables!");
-        console.error("Check the console above for details on what's missing.");
-      }
-    }
-
     const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
     if (!convexUrl) {
       console.error("❌ NEXT_PUBLIC_CONVEX_URL is not set!");

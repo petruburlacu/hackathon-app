@@ -194,7 +194,7 @@ export default function TeamsPage() {
                   <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-cyan-300 mb-2 block">Max Developers (1-2)</label>
                     <Select value={maxDevs.toString()} onValueChange={(value) => setMaxDevs(parseInt(value))}>
@@ -242,7 +242,7 @@ export default function TeamsPage() {
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardContent className="p-4">
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                   <div className="flex-1">
                     <Input
                       placeholder="Search teams by name or description..."
@@ -251,7 +251,7 @@ export default function TeamsPage() {
                       className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
                         <SelectValue />
@@ -284,7 +284,7 @@ export default function TeamsPage() {
           </Card>
 
           {/* Teams List */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedTeams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
@@ -343,7 +343,7 @@ export default function TeamsPage() {
                           <div className="text-xs text-gray-400 mb-2">
                             {ideas.find((idea: any) => idea._id === team.ideaId)?.description?.substring(0, 100)}...
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <Button
                               size="sm"
                               onClick={() => handleRemoveIdea(team._id)}
@@ -382,7 +382,7 @@ export default function TeamsPage() {
                               )}
                             </SelectContent>
                           </Select>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
                               <Link href="/hackathon/ideas">Browse All Ideas</Link>
                             </Button>
@@ -405,7 +405,7 @@ export default function TeamsPage() {
                         <p className="text-gray-400 text-xs">
                           As team leader, you can manage your team members and settings.
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
                             <Link href={`/hackathon/teams/${team._id}`}>
                               Manage Members
@@ -447,8 +447,8 @@ export default function TeamsPage() {
                             <span className="text-sm text-gray-400">
                               Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
                             </span>
-                            <div className="flex gap-2">
-                              <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
                                 <Link href={`/hackathon/teams/${team._id}`}>
                                   View Details
                                 </Link>
@@ -457,7 +457,7 @@ export default function TeamsPage() {
                                 <Button
                                   size="sm"
                                   onClick={() => handleJoinTeam(team._id)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                                  className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
                                 >
                                   <AvatarIcon className="mr-1 h-4 w-4" />
                                   Join

@@ -80,7 +80,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
              hasParticipated ? "Great participation! Now form or join a team." :
              "Enjoy the retro vibes! Participate actively or support by voting! 🎮✨"}
           </p>
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <Badge className={`px-4 py-2 text-lg hackathon-text ${
                       hackathonUser.role === 'dev' 
                         ? 'bg-blue-500 text-white' 
@@ -108,7 +108,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <div className={`flex items-center gap-3 p-3 rounded-lg ${userProgress.hasProfile ? 'bg-green-500/20 border border-green-400/30' : 'bg-gray-500/20 border border-gray-400/30'}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${userProgress.hasProfile ? 'bg-green-500 text-white' : 'bg-gray-500 text-gray-300'}`}>
                   {userProgress.hasProfile ? '✓' : '1'}
@@ -148,39 +148,39 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </Card>
 
         {/* Quick Stats */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-              <StarIcon className="h-5 w-5" /> Ideas Submitted
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg">
+                <StarIcon className="h-5 w-5" /> Ideas Submitted
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-cyan-300 hackathon-title">{ideas.length}</div>
+            <CardContent className="pt-0">
+              <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">{ideas.length}</div>
               <p className="text-gray-400 text-sm hackathon-text">Total ideas in the pool</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-              <AvatarIcon className="h-5 w-5" /> Teams Formed
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg">
+                <AvatarIcon className="h-5 w-5" /> Teams Formed
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-cyan-300 hackathon-title">{teams.length}</div>
+            <CardContent className="pt-0">
+              <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">{teams.length}</div>
               <p className="text-gray-400 text-sm hackathon-text">Teams ready to compete</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-              <BadgeIcon className="h-5 w-5" /> Total Votes
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg">
+                <BadgeIcon className="h-5 w-5" /> Total Votes
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-cyan-300 hackathon-title">
+            <CardContent className="pt-0">
+              <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">
                 {ideas.reduce((sum: number, idea: any) => sum + idea.votes, 0) + teams.reduce((sum: number, team: any) => sum + team.votes, 0)}
               </div>
               <p className="text-gray-400 text-sm hackathon-text">Votes cast across all</p>
@@ -189,7 +189,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </div>
 
         {/* Personalized Action Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {/* Next Action Card */}
           <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/30">
             <CardHeader>
@@ -287,7 +287,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {topIdeas.map((idea: any, index: number) => (
                   <div key={idea._id} className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                     <div className="flex items-start justify-between mb-2">
@@ -317,7 +317,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {topTeams.map((team: any, index: number) => (
                   <div key={team._id} className={`p-4 rounded-lg border ${
                     index === 0 ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-400/30' :
