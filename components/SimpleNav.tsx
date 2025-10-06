@@ -16,9 +16,6 @@ export function SimpleNav() {
         <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
           Home
         </Link>
-        <Link href="/#about" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-          About
-        </Link>
       </div>
     </nav>
   );
