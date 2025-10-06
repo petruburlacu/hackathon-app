@@ -35,11 +35,11 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 p-8">
           <CardContent className="text-center">
-            <h3 className="text-xl font-bold text-yellow-400 mb-4">Registration Required</h3>
-            <p className="text-cyan-200 mb-4">
+            <h3 className="text-xl font-bold text-yellow-400 mb-4 hackathon-title">Registration Required</h3>
+            <p className="text-cyan-200 mb-4 hackathon-text">
               You need to register for the hackathon to access this dashboard.
             </p>
-            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold hackathon-title">
               <Link href="/signin">Sign In / Register</Link>
             </Button>
           </CardContent>
@@ -71,20 +71,20 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Personalized Welcome Section */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-yellow-400 mb-4 font-mono">
+          <h1 className="text-4xl font-bold text-yellow-400 mb-4 hackathon-title">
             {userProgress.isComplete ? "🚀 Ready to Hack!" : 
              hasTeam ? "👥 Team Ready!" :
              hasParticipated ? "🎯 Participating!" :
              "⚖️ TRIAL BY CODE ⚖️"}
           </h1>
-          <p className="text-xl text-cyan-200 mb-8">
+          <p className="text-xl text-cyan-200 mb-8 hackathon-text">
             {userProgress.isComplete ? "You're fully engaged! Participate and join teams!" :
              hasTeam ? "Your team is forming. Keep participating!" :
              hasParticipated ? "Great participation! Now form or join a team." :
              "Build the future with retro vibes! Participate actively or support by voting! 🎮✨"}
           </p>
                   <div className="flex items-center justify-center gap-4">
-                    <Badge className={`px-4 py-2 text-lg ${
+                    <Badge className={`px-4 py-2 text-lg hackathon-text ${
                       hackathonUser.role === 'dev' 
                         ? 'bg-blue-500 text-white' 
                         : hackathonUser.role === 'admin'
@@ -96,7 +96,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                        '🎨 Non-Developer'}
                     </Badge>
             {userTeam && (
-              <Badge className="px-4 py-2 text-lg bg-green-500 text-white">
+              <Badge className="px-4 py-2 text-lg bg-green-500 text-white hackathon-text">
                 👥 Team: {userTeam.name}
               </Badge>
             )}
@@ -106,8 +106,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {/* Progress Checklist */}
         <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
           <CardHeader>
-            <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
               <BadgeIcon className="h-5 w-5" /> Your Hackathon Progress
+            <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -117,8 +117,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   {userProgress.hasProfile ? '✓' : '1'}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Profile Setup</div>
-                  <div className="text-xs text-gray-400">Complete</div>
+                  <div className="text-sm font-medium text-white hackathon-text">Profile Setup</div>
+                  <div className="text-xs text-gray-400 hackathon-text">Complete</div>
                 </div>
               </div>
               
@@ -127,8 +127,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   {userProgress.hasParticipated ? '✓' : '2'}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Participate</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-sm font-medium text-white hackathon-text">Participate</div>
+                  <div className="text-xs text-gray-400 hackathon-text">
                     {hasParticipated ? 
                       `${hasIdeas ? `${myIdeas.length} ideas` : ''}${hasIdeas && hasVotedForIdeas ? ', ' : ''}${hasVotedForIdeas ? `${myVotesGiven.ideaVotes} votes` : ''}` : 
                       'Not started'
@@ -142,8 +142,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   {userProgress.hasTeam ? '✓' : '3'}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Join Team</div>
-                  <div className="text-xs text-gray-400">{hasTeam ? 'Complete' : 'Not started'}</div>
+                  <div className="text-sm font-medium text-white hackathon-text">Join Team</div>
+                  <div className="text-xs text-gray-400 hackathon-text">{hasTeam ? 'Complete' : 'Not started'}</div>
                 </div>
               </div>
             </div>
@@ -154,42 +154,42 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <StarIcon className="h-5 w-5" />
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
                 Ideas Submitted
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-cyan-300">{ideas.length}</div>
-              <p className="text-gray-400 text-sm">Total ideas in the pool</p>
+              <div className="text-3xl font-bold text-cyan-300 hackathon-title">{ideas.length}</div>
+              <p className="text-gray-400 text-sm hackathon-text">Total ideas in the pool</p>
             </CardContent>
           </Card>
 
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <AvatarIcon className="h-5 w-5" />
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
                 Teams Formed
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-cyan-300">{teams.length}</div>
-              <p className="text-gray-400 text-sm">Teams ready to compete</p>
+              <div className="text-3xl font-bold text-cyan-300 hackathon-title">{teams.length}</div>
+              <p className="text-gray-400 text-sm hackathon-text">Teams ready to compete</p>
             </CardContent>
           </Card>
 
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <BadgeIcon className="h-5 w-5" />
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
                 Total Votes
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-cyan-300">
+              <div className="text-3xl font-bold text-cyan-300 hackathon-title">
                 {ideas.reduce((sum: number, idea: any) => sum + idea.votes, 0) + teams.reduce((sum: number, team: any) => sum + team.votes, 0)}
               </div>
-              <p className="text-gray-400 text-sm">Votes cast across all</p>
+              <p className="text-gray-400 text-sm hackathon-text">Votes cast across all</p>
             </CardContent>
           </Card>
         </div>
@@ -199,34 +199,34 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Next Action Card */}
           <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/30">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <LightningBoltIcon className="h-5 w-5" /> Next Action
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!hasParticipated ? (
                 <div>
-                  <p className="text-cyan-200 mb-4">Start participating! Submit ideas or vote for others!</p>
+                  <p className="text-cyan-200 mb-4 hackathon-text">Start participating! Submit ideas or vote for others!</p>
                   <div className="space-y-2">
-                    <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+                    <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold hackathon-title">
                       <Link href="/hackathon/ideas">Submit Ideas</Link>
                     </Button>
-                    <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold">
+                    <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold hackathon-title">
                       <Link href="/hackathon/ideas">Vote for Ideas</Link>
                     </Button>
                   </div>
                 </div>
               ) : !hasTeam ? (
                 <div>
-                  <p className="text-cyan-200 mb-4">Great participation! Now form or join a team.</p>
-                  <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold">
+                  <p className="text-cyan-200 mb-4 hackathon-text">Great participation! Now form or join a team.</p>
+                  <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold hackathon-title">
                     <Link href="/hackathon/teams">Form/Join Team</Link>
                   </Button>
                 </div>
               ) : (
                 <div>
-                  <p className="text-cyan-200 mb-4">🎉 You&apos;re all set! Start building your project.</p>
-                  <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold">
+                  <p className="text-cyan-200 mb-4 hackathon-text">🎉 You&apos;re all set! Start building your project.</p>
+                  <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold hackathon-title">
                     <Link href="/hackathon/my-dashboard">View My Dashboard</Link>
                   </Button>
                 </div>
@@ -237,23 +237,23 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Browse & Vote Card - Always visible for non-participating users */}
           <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm border-green-400/30">
             <CardHeader>
-              <CardTitle className="text-green-400 font-mono flex items-center gap-2">
                 <StarIcon className="h-5 w-5" /> Browse & Vote
+              <CardTitle className="text-green-400 hackathon-title flex items-center gap-2">
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-cyan-200 text-sm">
+                <p className="text-cyan-200 text-sm hackathon-text">
                   {!hasIdeas && !hasTeam ? 
                     "Not ready to participate? You can still browse and vote!" :
                     "Support the community by voting for ideas and teams!"
                   }
                 </p>
                 <div className="space-y-2">
-                  <Button asChild size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white">
+                  <Button asChild size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white hackathon-text">
                     <Link href="/hackathon/ideas">Vote for Ideas</Link>
                   </Button>
-                  <Button asChild size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
+                  <Button asChild size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white hackathon-text">
                     <Link href="/hackathon/leaderboard">Vote for Teams</Link>
                   </Button>
                 </div>
@@ -264,19 +264,19 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Quick Access Card */}
           <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm border-purple-400/30">
             <CardHeader>
-              <CardTitle className="text-purple-400 font-mono flex items-center gap-2">
                 <RocketIcon className="h-5 w-5" /> Quick Access
+              <CardTitle className="text-purple-400 hackathon-title flex items-center gap-2">
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button asChild size="sm" className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                <Button asChild size="sm" className="w-full bg-purple-500 hover:bg-purple-600 text-white hackathon-text">
                   <Link href="/hackathon/leaderboard">View Leaderboard</Link>
                 </Button>
-                <Button asChild size="sm" className="w-full bg-pink-500 hover:bg-pink-600 text-white">
+                <Button asChild size="sm" className="w-full bg-pink-500 hover:bg-pink-600 text-white hackathon-text">
                   <Link href="/hackathon/ideas">Browse All Ideas</Link>
                 </Button>
-                <Button asChild size="sm" className="w-full bg-indigo-500 hover:bg-indigo-600 text-white">
+                <Button asChild size="sm" className="w-full bg-indigo-500 hover:bg-indigo-600 text-white hackathon-text">
                   <Link href="/hackathon/teams">Browse All Teams</Link>
                 </Button>
               </div>
@@ -288,8 +288,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {topIdeas.length > 0 && (
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <StarIcon className="h-5 w-5" />
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
                 Top Ideas
               </CardTitle>
             </CardHeader>
@@ -298,16 +298,16 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                 {topIdeas.map((idea: any, index: number) => (
                   <div key={idea._id} className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-yellow-400 font-mono text-sm font-bold">#{index + 1}</h4>
-                      <Badge className="bg-pink-500 text-white text-xs">{idea.votes} votes</Badge>
+                      <h4 className="text-yellow-400 hackathon-title text-sm font-bold">#{index + 1}</h4>
+                      <Badge className="bg-pink-500 text-white text-xs hackathon-text">{idea.votes} votes</Badge>
                     </div>
-                    <h5 className="text-cyan-300 font-bold mb-2">{idea.title}</h5>
-                    <p className="text-gray-400 text-xs line-clamp-2">{idea.description}</p>
+                    <h5 className="text-cyan-300 font-bold mb-2 hackathon-title">{idea.title}</h5>
+                    <p className="text-gray-400 text-xs line-clamp-2 hackathon-text">{idea.description}</p>
                   </div>
                 ))}
               </div>
               <div className="text-center mt-4">
-                <Button asChild variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
+                <Button asChild variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black hackathon-text">
                   <Link href="/hackathon/ideas">View All Ideas</Link>
                 </Button>
               </div>
@@ -319,8 +319,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {topTeams.length > 0 && (
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <BadgeIcon className="h-5 w-5" />
+              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
                 Top Teams
               </CardTitle>
             </CardHeader>
@@ -333,24 +333,24 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                     'bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-400/30'
                   }`}>
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className={`font-mono text-sm font-bold ${
+                      <h4 className={`hackathon-title text-sm font-bold ${
                         index === 0 ? 'text-yellow-400' : 
                         index === 1 ? 'text-gray-300' : 
                         'text-orange-400'
                       }`}>
                         #{index + 1}
                       </h4>
-                      <Badge className="bg-pink-500 text-white text-xs">{team.votes} votes</Badge>
+                      <Badge className="bg-pink-500 text-white text-xs hackathon-text">{team.votes} votes</Badge>
                     </div>
-                    <h5 className="text-cyan-300 font-bold mb-2">{team.name}</h5>
-                    <p className="text-gray-400 text-xs">
+                    <h5 className="text-cyan-300 font-bold mb-2 hackathon-title">{team.name}</h5>
+                    <p className="text-gray-400 text-xs hackathon-text">
                       {team.currentDevs} devs, {team.currentNonDevs} non-devs
                     </p>
                   </div>
                 ))}
               </div>
               <div className="text-center mt-4">
-                <Button asChild variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
+                <Button asChild variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black hackathon-text">
                   <Link href="/hackathon/leaderboard">View Full Leaderboard</Link>
                 </Button>
               </div>

@@ -22,22 +22,22 @@ export const HackathonHome = () => {
   
   return (
     <div className="flex grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
-      {/* Retro Header */}
+      {/* Hero Section */}
       <div className="container mb-20 flex grow flex-col justify-center">
-        <div className="text-center mb-8">
-          <div className="inline-block px-4 py-2 bg-yellow-400 text-black font-bold text-lg rounded-lg mb-6 transform -rotate-2 shadow-lg">
-            🚀 HACKATHON 2024 🚀
+        <div className="text-center mb-16">
+          <div className="inline-block px-6 py-3 bg-yellow-400 text-black font-bold text-xl rounded-lg mb-8 transform -rotate-2 shadow-lg hackathon-title">
+            🚀 Hackathon 2025 🚀
           </div>
-          <h1 className="mb-8 mt-16 flex flex-col items-center gap-8 text-center text-6xl font-extrabold leading-none tracking-tight text-white">
-            <span className="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent">
-              RETRO TECH
+          <h1 className="mb-8 mt-16 flex flex-col items-center gap-8 text-center text-7xl font-extrabold leading-none tracking-tight text-white">
+            <span className="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent hackathon-title">
+              TRIAL BY CODE
             </span>
-            <span className="text-4xl text-cyan-300 font-mono">
+            <span className="text-5xl text-cyan-300 font-mono countdown-font">
               &lt;/&gt; HACKATHON &lt;/&gt;
             </span>
           </h1>
-          <div className="mb-8 text-center text-xl text-cyan-200 font-mono">
-            Build the future with retro vibes! 🎮✨
+          <div className="mb-12 text-center text-2xl text-cyan-200 font-mono hackathon-text">
+          Cross-functional teams, fresh ideas, and good vibes 🎮✨
           </div>
         </div>
 
@@ -49,22 +49,22 @@ export const HackathonHome = () => {
         </div>
 
         <div className="mb-16 flex justify-center gap-4">
-          <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg px-8 py-4 rounded-lg shadow-lg transform hover:scale-105 transition-all">
+          <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl px-10 py-6 rounded-lg shadow-lg transform hover:scale-105 transition-all hackathon-title">
             <Link href={viewer ? "/hackathon" : "/signin"}>
               {viewer ? "Enter Hackathon" : "Join Hackathon"}
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-lg px-8 py-4 rounded-lg">
+          <Button asChild size="lg" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-xl px-10 py-6 rounded-lg hackathon-title">
             <Link href="/signin">Sign In</Link>
           </Button>
         </div>
 
         {/* Features Grid */}
         <div className="flex flex-col gap-8 bg-black/20 backdrop-blur-sm p-12 rounded-2xl border border-cyan-400/20">
-          <h2 className="mb-4 text-center text-4xl font-bold text-yellow-400 font-mono">
+          <h2 className="mb-4 text-center text-4xl font-bold text-yellow-400 font-mono hackathon-title">
             HACKATHON FEATURES
           </h2>
-          <div className="text-center text-lg text-cyan-200 mb-8">
+          <div className="text-center text-lg text-cyan-200 mb-8 hackathon-text">
             Everything you need for an epic hackathon experience
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -166,10 +166,10 @@ function FeatureCard({
         <div className={`mx-auto mb-4 p-4 rounded-full bg-gradient-to-r ${color} text-white`}>
           {icon}
         </div>
-        <CardTitle className="text-yellow-400 font-mono text-xl">{title}</CardTitle>
+        <CardTitle className="text-yellow-400 font-mono text-xl hackathon-title">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-cyan-200 text-center">{description}</p>
+        <p className="text-cyan-200 text-center hackathon-text">{description}</p>
       </CardContent>
     </Card>
   );
@@ -185,12 +185,12 @@ function RuleCard({
   return (
     <Card className="bg-black/40 backdrop-blur-sm border-pink-400/20">
       <CardHeader>
-        <CardTitle className="text-pink-300 font-mono text-lg">{title}</CardTitle>
+        <CardTitle className="text-pink-300 font-mono text-lg hackathon-title">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2">
           {rules.map((rule, index) => (
-            <li key={index} className="text-cyan-200 text-sm flex items-start">
+            <li key={index} className="text-cyan-200 text-sm flex items-start hackathon-text">
               <span className="text-yellow-400 mr-2">▶</span>
               {rule}
             </li>

@@ -56,17 +56,17 @@ export function HackathonCountdown() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative countdown-pulse">
       {/* Background Glow Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl scale-110"></div>
       
       <Card className="relative bg-gradient-to-r from-yellow-500/30 to-orange-500/30 backdrop-blur-sm border-yellow-400/50 p-12 rounded-3xl countdown-glow shadow-2xl">
         <CardContent className="text-center">
-          <div className="text-6xl mb-6 countdown-pulse">⏰</div>
-          <h2 className="text-5xl font-bold text-yellow-400 font-mono mb-4 retro-gradient-text">
+          <div className="text-6xl mb-6">⏰</div>
+          <h2 className="text-5xl font-bold text-yellow-400 font-mono mb-4 retro-gradient-text countdown-font">
             COUNTDOWN TO HACKATHON
           </h2>
-          <p className="text-yellow-200 text-2xl mb-10 font-mono">
+          <p className="text-yellow-200 text-2xl mb-10 font-mono hackathon-text">
             December 8th, 2025 at 10:00 AM UTC
           </p>
           
@@ -78,7 +78,7 @@ export function HackathonCountdown() {
           </div>
           
           <div className="mt-8 text-center">
-            <div className="inline-block px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all">
+            <div className="inline-block px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all hackathon-title">
               🎮 GET READY TO HACK! 🎮
             </div>
           </div>
@@ -91,10 +91,10 @@ export function HackathonCountdown() {
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="bg-black/50 backdrop-blur-sm border border-yellow-400/30 rounded-xl p-6 hover:border-yellow-400/60 transition-all hover:scale-110 hover:shadow-lg">
-      <div className="text-5xl font-bold text-yellow-400 font-mono mb-3 retro-glow">
+      <div className="text-5xl font-bold text-yellow-400 font-mono mb-3 retro-glow countdown-font">
         {value.toString().padStart(2, '0')}
       </div>
-      <div className="text-cyan-300 text-lg font-mono uppercase tracking-wider">
+      <div className="text-cyan-300 text-lg font-mono uppercase tracking-wider hackathon-text">
         {label}
       </div>
     </div>

@@ -21,7 +21,7 @@ interface WelcomeTourProps {
 const tourSteps = [
   {
     id: "welcome",
-    title: "🚀 Welcome to Hackathon 2024!",
+    title: "🚀 Welcome to Hackathon 2025!",
     content: "Welcome to our retro-themed hackathon! This tour will guide you through the process of participating in the event.",
     action: "Let's get started!",
     showProgress: false,

@@ -36,7 +36,7 @@ export default function TeamsPage() {
   if (!viewer) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl">Loading...</div>
+        <div className="text-yellow-400 text-xl hackathon-text">Loading...</div>
       </div>
     );
   }

@@ -14,7 +14,7 @@ export default function SplashPageLayout({
         <header className="sticky top-0 z-10 flex h-20 border-b border-cyan-400/20 bg-black/20 backdrop-blur px-4 md:px-6">
           <nav className="container hidden w-full justify-between gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
             <Link href="/">
-              <h1 className="text-xl font-bold text-yellow-400 font-mono">🚀 HACKATHON 2024</h1>
+              <h1 className="text-xl font-bold text-yellow-400 font-mono">🚀 HACKATHON 2025</h1>
             </Link>
             <div className="flex items-center gap-4">
               <SplashPageNav />
@@ -25,7 +25,7 @@ export default function SplashPageLayout({
         <footer className="border-t">
           <div className="container py-4 text-sm leading-loose">
             Built with ❤️ for{" "}
-            <FooterLink href="https://www.convex.dev/">Hackathon 2024</FooterLink>.
+            <FooterLink href="https://www.convex.dev/">Hackathon 2025</FooterLink>.
             Powered by Convex,{" "}
             <FooterLink href="https://nextjs.org/">Next.js</FooterLink> and{" "}
             <FooterLink href="https://ui.shadcn.com/">shadcn/ui</FooterLink>.

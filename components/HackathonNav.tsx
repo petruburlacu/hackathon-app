@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -36,13 +35,57 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
   ];
 
   return (
-    <div className="border-b border-cyan-400/20 bg-black/20 backdrop-blur-sm">
-      {/* Main Header Row */}
-      <div className="flex items-center justify-between p-4">
-        <div className="text-xl md:text-2xl font-bold text-yellow-400 font-mono">
-          {title}
-        </div>
+    <header className="sticky top-0 z-10 flex h-20 border-b border-cyan-400/20 bg-black/20 backdrop-blur px-4 md:px-6">
+      <nav className="container hidden w-full justify-between gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+        <Link href="/hackathon">
+          <h1 className="text-xl font-bold text-yellow-400 hackathon-title">
+            {title}
+          </h1>
+        </Link>
         
+        <div className="flex items-center gap-4">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`hackathon-text text-sm transition-colors py-2 px-3 rounded-md ${
+                  item.current
+                    ? 'text-yellow-400 font-bold bg-yellow-400/10 border border-yellow-400/20'
+                    : 'text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors hackathon-text text-sm py-2 px-3 rounded-md hover:bg-yellow-400/5">
+              Home
+            </Link>
+          </div>
+          
+          {children}
+          {showTour && onShowTour && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShowTour}
+              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black text-xs hackathon-text"
+            >
+              🎯 Take Tour
+            </Button>
+          )}
+          <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.name}</UserMenu>
+        </div>
+      </nav>
+      
+      {/* Mobile Navigation */}
+      <div className="md:hidden flex items-center justify-between w-full px-4">
+        <Link href="/hackathon">
+          <h1 className="text-lg font-bold text-yellow-400 hackathon-title">
+            {title}
+          </h1>
+        </Link>
         <div className="flex items-center gap-2">
           {children}
           {showTour && onShowTour && (
@@ -50,40 +93,19 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
               variant="outline"
               size="sm"
               onClick={onShowTour}
-              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black text-xs"
+              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black text-xs hackathon-text"
             >
-              🎯 Take Tour
+              🎯 Tour
             </Button>
           )}
-          <ThemeToggle />
           <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.name}</UserMenu>
         </div>
       </div>
       
-      {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center gap-4 px-4 pb-4">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`font-mono text-sm transition-colors ${
-              item.current
-                ? 'text-yellow-400 font-bold'
-                : 'text-cyan-300 hover:text-yellow-400'
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-        <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors font-mono text-sm">
-          Home
-        </Link>
-      </nav>
-      
-      {/* Mobile Navigation */}
-      <div className="md:hidden px-4 pb-4">
+      {/* Mobile Navigation Menu */}
+      <div className="md:hidden px-4 pb-4 w-full">
         <select 
-          className="w-full bg-black/30 border border-cyan-400/30 text-white rounded px-3 py-2 text-sm"
+          className="w-full bg-black/30 border border-cyan-400/30 text-white rounded px-3 py-2 text-sm hackathon-text"
           onChange={(e) => {
             if (e.target.value) {
               window.location.href = e.target.value;
@@ -99,6 +121,6 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
           <option value="/">Home</option>
         </select>
       </div>
-    </div>
+    </header>
   );
 }

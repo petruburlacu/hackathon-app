@@ -8,7 +8,7 @@ export function SimpleNav() {
     <nav className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-cyan-400/20">
       <div className="flex items-center gap-4">
         <Link href="/" className="text-2xl font-bold text-yellow-400 font-mono">
-          🚀 HACKATHON 2024
+          🚀 Hackathon 2025
         </Link>
       </div>
       
