@@ -10,10 +10,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
-  AvatarIcon,
-  StarIcon,
   ArrowLeftIcon,
-  RocketIcon,
   Pencil1Icon,
   CheckIcon,
   Cross2Icon,
@@ -35,7 +32,7 @@ export default function TeamDetailPage() {
   });
 
   const viewer = useQuery(api.users.viewer);
-  const teamDetails = useQuery(api.hackathon.getTeamDetails, { teamId });
+  const teamDetails = useQuery(api.hackathon.getTeamDetails, { teamId: teamId as any });
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
 
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
@@ -116,9 +113,9 @@ export default function TeamDetailPage() {
   const handleStatusUpdate = async (newStatus: string) => {
     setIsUpdatingStatus(true);
     try {
-      await updateTeamStatus({ teamId, status: newStatus as any });
+      await updateTeamStatus({ teamId: teamId as any, status: newStatus as any });
       toast.success("Team status updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update team status");
     } finally {
       setIsUpdatingStatus(false);
@@ -131,7 +128,7 @@ export default function TeamDetailPage() {
     }
 
     try {
-      await removeTeamMember({ teamId, memberUserId: memberUserId as any });
+      await removeTeamMember({ teamId: teamId as any, memberUserId: memberUserId as any });
       toast.success("Member removed from team successfully!");
     } catch (error: any) {
       if (error.message?.includes("Only team leaders can remove members")) {
@@ -319,8 +316,8 @@ export default function TeamDetailPage() {
                         <span className="text-white font-bold">👑</span>
                       </div>
                       <div>
-                        <div className="text-purple-400 font-bold">{teamDetails.leader.name}</div>
-                        <div className="text-gray-400 text-sm">{teamDetails.leader.email}</div>
+                        <div className="text-purple-400 font-bold">{teamDetails.leader?.name}</div>
+                        <div className="text-gray-400 text-sm">{teamDetails.leader?.email}</div>
                       </div>
                     </div>
                   </div>
@@ -404,7 +401,7 @@ export default function TeamDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-cyan-200 text-sm">
-                  Update the team's status to reflect their current stage in the hackathon process.
+                  Update the team&apos;s status to reflect their current stage in the hackathon process.
                 </p>
                 <div className="flex items-center gap-4">
                   <Select

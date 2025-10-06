@@ -28,9 +28,12 @@ export default defineSchema({
     createdAt: v.number(),
     votes: v.number(),
     isSelected: v.boolean(),
+    category: v.optional(v.string()), // Made optional for migration
+    tags: v.optional(v.array(v.string())), // Made optional for migration
   }).index("by_author", ["authorId"])
     .index("by_votes", ["votes"])
-    .index("by_selected", ["isSelected"]),
+    .index("by_selected", ["isSelected"])
+    .index("by_category", ["category"]),
   
   teams: defineTable({
     name: v.string(),

@@ -88,6 +88,8 @@ export const createIdea = mutation({
   args: {
     title: v.string(),
     description: v.string(),
+    category: v.optional(v.string()), // Made optional
+    tags: v.optional(v.array(v.string())), // Made optional
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -95,14 +97,16 @@ export const createIdea = mutation({
       throw new Error("Not signed in");
     }
 
-    const ideaId = await ctx.db.insert("ideas", {
-      title: args.title,
-      description: args.description,
-      authorId: userId,
-      createdAt: Date.now(),
-      votes: 0,
-      isSelected: false,
-    });
+        const ideaId = await ctx.db.insert("ideas", {
+          title: args.title,
+          description: args.description,
+          authorId: userId,
+          createdAt: Date.now(),
+          votes: 0,
+          isSelected: false,
+          category: args.category || "Other",
+          tags: args.tags || [],
+        });
 
     return ideaId;
   },
@@ -115,6 +119,49 @@ export const getIdeas = query({
       .query("ideas")
       .withIndex("by_votes")
       .collect();
+  },
+});
+
+export const updateIdea = mutation({
+  args: {
+    ideaId: v.id("ideas"),
+    title: v.string(),
+    description: v.string(),
+    category: v.optional(v.string()), // Made optional
+    tags: v.optional(v.array(v.string())), // Made optional
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) {
+      throw new Error("Idea not found");
+    }
+
+    // Check if user is the author of the idea
+    if (idea.authorId !== userId) {
+      throw new Error("Only the idea author can edit their idea");
+    }
+
+    // Check if any teams are using this idea
+    const teamsUsingIdea = await ctx.db
+      .query("teams")
+      .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
+      .collect();
+
+    if (teamsUsingIdea.length > 0) {
+      throw new Error("Cannot edit idea that is being used by teams. Teams must first remove this idea.");
+    }
+
+        await ctx.db.patch(args.ideaId, {
+          title: args.title,
+          description: args.description,
+          category: args.category || "Other",
+          tags: args.tags || [],
+        });
   },
 });
 

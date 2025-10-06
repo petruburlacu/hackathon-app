@@ -1,6 +1,6 @@
 "use client";
 
-import { Leaderboard } from "@/app/hackathon/Leaderboard/Leaderboard";
+import { Leaderboard } from "@/app/hackathon/leaderboard/Leaderboard";
 import { HackathonNav } from "@/components/HackathonNav";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";

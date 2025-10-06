@@ -18,7 +18,7 @@ export default function AdminPage() {
 
   const seedData = useMutation(api.seed.seedHackathonData);
   const clearData = useMutation(api.seed.clearHackathonData);
-  const migrateTeamStatuses = useMutation(api.hackathon.migrateTeamStatuses);
+  // const migrateTeamStatuses = useMutation(api.hackathon.migrateTeamStatuses);
   const adminDeleteIdea = useMutation(api.hackathon.adminDeleteIdea);
   const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
 
@@ -94,8 +94,8 @@ export default function AdminPage() {
 
   const handleMigrateStatuses = async () => {
     try {
-      const result = await migrateTeamStatuses({});
-      toast.success(`Migrated ${result.migrated} team statuses!`);
+      // const result = await migrateTeamStatuses({});
+      toast.success("Migration function commented out");
     } catch {
       toast.error("Failed to migrate team statuses");
     }
@@ -107,7 +107,7 @@ export default function AdminPage() {
     }
     
     try {
-      await adminDeleteIdea({ ideaId });
+      await adminDeleteIdea({ ideaId: ideaId as any });
       toast.success("Idea admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -121,7 +121,7 @@ export default function AdminPage() {
     }
     
     try {
-      await adminDeleteTeam({ teamId });
+      await adminDeleteTeam({ teamId: teamId as any });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";

@@ -31,7 +31,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
     { href: "/hackathon/ideas", label: "Ideas", current: pathname === "/hackathon/ideas" },
     { href: "/hackathon/teams", label: "Teams", current: pathname === "/hackathon/teams" },
     { href: "/hackathon/leaderboard", label: "Leaderboard", current: pathname === "/hackathon/leaderboard" },
-    { href: "/hackathon/suggestions", label: "Suggestions", current: pathname === "/hackathon/suggestions" },
+    { href: "/hackathon/suggestions", label: "Feedback", current: pathname === "/hackathon/suggestions" },
   ];
 
   return (

@@ -65,7 +65,7 @@ export function Leaderboard() {
     // Create a wrapper function to catch any errors
     const safeVote = async () => {
       try {
-        const result = await toggleTeamVote({ teamId });
+        const result = await toggleTeamVote({ teamId: teamId as any });
         return result;
       } catch (error) {
         console.error("Error in safeVote:", error);

@@ -9,14 +9,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { PlusIcon, StarIcon } from "@radix-ui/react-icons";
+import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 
 export default function IdeasPage() {
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
   const [newIdeaDescription, setNewIdeaDescription] = useState("");
+  const [newIdeaCategory, setNewIdeaCategory] = useState<string>("");
+  const [newIdeaTags, setNewIdeaTags] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "votes" | "title">("votes");
+  
+  // Edit state
+  const [editingIdea, setEditingIdea] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState<string>("");
+  const [editTags, setEditTags] = useState("");
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -25,6 +35,7 @@ export default function IdeasPage() {
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
 
   const createIdea = useMutation(api.hackathon.createIdea);
+  const updateIdea = useMutation(api.hackathon.updateIdea);
   const toggleIdeaVote = useMutation(api.hackathon.toggleIdeaVote);
   const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
   const assignIdeaToTeam = useMutation(api.hackathon.assignIdeaToTeam);
@@ -59,13 +70,20 @@ export default function IdeasPage() {
       return;
     }
 
+    // Parse tags from comma-separated string
+    const tags = newIdeaTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
     try {
       await createIdea({
         title: newIdeaTitle.trim(),
         description: newIdeaDescription.trim(),
+        category: newIdeaCategory,
+        tags: tags,
       });
       setNewIdeaTitle("");
       setNewIdeaDescription("");
+      setNewIdeaTags("");
+      setNewIdeaCategory("web-app");
       toast.success("Idea submitted successfully!");
     } catch {
       toast.error("Failed to submit idea");
@@ -74,10 +92,17 @@ export default function IdeasPage() {
 
   // Filter and sort ideas
   const filteredAndSortedIdeas = ideas
-    .filter((idea: any) => 
-      idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter((idea: any) => {
+      // Text search
+      const matchesSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        idea.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        idea.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Category filter
+      const matchesCategory = categoryFilter === "all" || idea.category === categoryFilter;
+      
+      return matchesSearch && matchesCategory;
+    })
     .sort((a: any, b: any) => {
       switch (sortBy) {
         case "newest":
@@ -93,7 +118,7 @@ export default function IdeasPage() {
 
   const handleToggleIdeaVote = async (ideaId: string) => {
     try {
-      const result = await toggleIdeaVote({ ideaId });
+      const result = await toggleIdeaVote({ ideaId: ideaId as any });
       if (result.action === "added") {
         toast.success("Vote recorded!");
       } else {
@@ -117,7 +142,7 @@ export default function IdeasPage() {
     }
     
     try {
-      await assignIdeaToTeam({ teamId: myTeamDetails.team._id, ideaId });
+      await assignIdeaToTeam({ teamId: myTeamDetails.team._id, ideaId: ideaId as any });
       toast.success("Idea assigned to your team!");
     } catch {
       toast.error("Failed to assign idea to team");
@@ -166,6 +191,58 @@ export default function IdeasPage() {
     }
   };
 
+  const handleEditIdea = (idea: any) => {
+    setEditingIdea(idea);
+    setEditTitle(idea.title);
+    setEditDescription(idea.description);
+    setEditCategory(idea.category || "web-app");
+    setEditTags(idea.tags ? idea.tags.join(", ") : "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingIdea) return;
+
+    if (!editTitle.trim() || !editDescription.trim()) {
+      toast.error("Please fill in both title and description");
+      return;
+    }
+
+    if (editTitle.trim().length < 5) {
+      toast.error("Idea title must be at least 5 characters long");
+      return;
+    }
+
+    if (editDescription.trim().length < 20) {
+      toast.error("Idea description must be at least 20 characters long");
+      return;
+    }
+
+    // Parse tags from comma-separated string
+    const tags = editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
+    try {
+      await updateIdea({
+        ideaId: editingIdea._id,
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        category: editCategory,
+        tags: tags,
+      });
+      setEditingIdea(null);
+      toast.success("Idea updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update idea");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIdea(null);
+    setEditTitle("");
+    setEditDescription("");
+    setEditCategory("web-app");
+    setEditTags("");
+  };
+
   return (
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="💡 IDEAS BOARD 💡" />
@@ -194,6 +271,44 @@ export default function IdeasPage() {
                 rows={6}
                 className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
               />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Category</label>
+                  <div className="space-y-2">
+                    <Select value={newIdeaCategory} onValueChange={setNewIdeaCategory}>
+                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue placeholder="Select or create category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="Development">💻 Development</SelectItem>
+                        <SelectItem value="Product">📦 Product</SelectItem>
+                        <SelectItem value="Automation">🤖 Automation</SelectItem>
+                        <SelectItem value="Productivity">⚡ Productivity</SelectItem>
+                        <SelectItem value="User Experience">🎨 User Experience</SelectItem>
+                        <SelectItem value="Other">🔧 Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Or enter custom category..."
+                      value={newIdeaCategory}
+                      onChange={(e) => setNewIdeaCategory(e.target.value)}
+                      className="bg-black/20 border-cyan-400/30 text-white placeholder-gray-400"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Tags (comma-separated)</label>
+                  <Input
+                    placeholder="react, api, ui, etc..."
+                    value={newIdeaTags}
+                    onChange={(e) => setNewIdeaTags(e.target.value)}
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+              
               <Button
                 onClick={handleCreateIdea}
                 className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
@@ -206,29 +321,47 @@ export default function IdeasPage() {
           {/* Search and Sort Controls */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search ideas by title or description..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "title") => setSortBy(value)}>
-                    <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                      <SelectItem value="votes">Most Votes</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="title">Alphabetical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
-                    {filteredAndSortedIdeas.length} ideas
-                  </Badge>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Search ideas by title, description, or tags..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {Array.from(new Set(ideas.map((idea: any) => idea.category)))
+                          .filter((category): category is string => Boolean(category))
+                          .sort()
+                          .map((category: string) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "title") => setSortBy(value)}>
+                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="votes">Most Votes</SelectItem>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="title">Alphabetical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
+                      {filteredAndSortedIdeas.length} ideas
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -237,8 +370,8 @@ export default function IdeasPage() {
           {/* Ideas List */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedIdeas.map((idea: any) => (
-              <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
-                <CardHeader>
+              <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
+                <CardHeader className="flex-shrink-0">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg">{idea.title}</CardTitle>
                     <div className="flex gap-2">
@@ -250,39 +383,47 @@ export default function IdeasPage() {
                       </Badge>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-cyan-200 mb-4 text-sm leading-relaxed">
-                    {idea.description.length > 150 
-                      ? `${idea.description.substring(0, 150)}...` 
-                      : idea.description
-                    }
-                  </p>
                   
-                  {/* Team Assignment Controls */}
-                  {myTeamDetails?.isLeader && (
-                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-400/10">
-                      <h5 className="text-cyan-300 font-bold text-xs mb-2">Team Assignment:</h5>
-                      {myTeamDetails.team.ideaId === idea._id ? (
-                        <div className="space-y-2">
-                          <p className="text-green-400 text-xs">✅ This idea is assigned to your team</p>
-                          <Button
-                            size="sm"
-                            onClick={handleRemoveIdea}
-                            className="bg-red-500 hover:bg-red-600 text-white w-full"
-                          >
-                            Remove from Team
-                          </Button>
-                        </div>
-                      ) : (
+                  {/* Category and Tags */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {idea.category && (
+                      <Badge variant="secondary" className="bg-gray-600 text-white text-xs">
+                        {idea.category}
+                      </Badge>
+                    )}
+                    {idea.tags && idea.tags.length > 0 && (
+                      <>
+                        {idea.tags.map((tag: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="bg-gray-600 text-white text-xs">
+                            #{tag}
+                          </Badge>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col flex-1">
+                  <div className="flex-1">
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed">
+                      {idea.description.length > 150 
+                        ? `${idea.description.substring(0, 150)}...` 
+                        : idea.description
+                      }
+                    </p>
+                  
+                  {/* Team Assignment Status */}
+                  {myTeamDetails?.isLeader && myTeamDetails.team.ideaId === idea._id && (
+                    <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-400/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-green-400 text-xs font-medium">✅ Assigned to your team</span>
                         <Button
                           size="sm"
-                          onClick={() => handleAssignIdea(idea._id)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white w-full"
+                          onClick={handleRemoveIdea}
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1"
                         >
-                          Assign to My Team
+                          Remove
                         </Button>
-                      )}
+                      </div>
                     </div>
                   )}
 
@@ -307,11 +448,14 @@ export default function IdeasPage() {
                     </div>
                   )}
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">
-                      by {idea.authorId === hackathonUser?.userId ? "You" : "Anonymous"}
-                    </span>
-                    <div className="flex gap-2">
+                  </div>
+                  
+                  {/* Sticky bottom section */}
+                  <div className="mt-auto space-y-3 pt-4 border-t border-cyan-400/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">
+                        by {idea.authorId === hackathonUser?.userId ? "You" : "Anonymous"}
+                      </span>
                       <Button
                         size="sm"
                         onClick={() => handleToggleIdeaVote(idea._id)}
@@ -324,26 +468,55 @@ export default function IdeasPage() {
                         <StarIcon className="mr-1 h-4 w-4" />
                         {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
                       </Button>
-                      {idea.authorId === hackathonUser?.userId && (
+                    </div>
+                    
+                    {/* Action buttons - organized in rows */}
+                    <div className="space-y-2">
+                      {/* Primary actions row */}
+                      <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => handleDeleteIdea(idea._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white"
+                          variant="outline"
+                          className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1"
+                          onClick={() => {
+                            // TODO: Implement idea details modal or page
+                            alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
+                          }}
                         >
-                          Delete
+                          View Details
                         </Button>
+                        {myTeamDetails?.isLeader && myTeamDetails.team.ideaId !== idea._id && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAssignIdea(idea._id)}
+                            variant="outline"
+                            className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1"
+                          >
+                            Assign to Team
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* Owner actions row */}
+                      {idea.authorId === hackathonUser?.userId && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditIdea(idea)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                          >
+                            <Pencil1Icon className="mr-1 h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleDeleteIdea(idea._id)}
+                            className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
-                        onClick={() => {
-                          // TODO: Implement idea details modal or page
-                          alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
-                        }}
-                      >
-                        View Details
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -378,6 +551,97 @@ export default function IdeasPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Idea Modal */}
+      {editingIdea && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white">
+            <CardHeader className="relative">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-yellow-400 font-mono text-xl">
+                  Edit Idea
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <Cross2Icon className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                placeholder="Idea title..."
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+              />
+              <textarea
+                placeholder="Describe your idea in detail..."
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={6}
+                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Category</label>
+                  <div className="space-y-2">
+                    <Select value={editCategory} onValueChange={setEditCategory}>
+                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue placeholder="Select or create category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="Development">💻 Development</SelectItem>
+                        <SelectItem value="Product">📦 Product</SelectItem>
+                        <SelectItem value="Automation">🤖 Automation</SelectItem>
+                        <SelectItem value="Productivity">⚡ Productivity</SelectItem>
+                        <SelectItem value="User Experience">🎨 User Experience</SelectItem>
+                        <SelectItem value="Other">🔧 Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Or enter custom category..."
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="bg-black/20 border-cyan-400/30 text-white placeholder-gray-400"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Tags (comma-separated)</label>
+                  <Input
+                    placeholder="react, api, ui, etc..."
+                    value={editTags}
+                    onChange={(e) => setEditTags(e.target.value)}
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={handleSaveEdit}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold flex-1"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  variant="outline"
+                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }

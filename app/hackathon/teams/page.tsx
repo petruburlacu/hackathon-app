@@ -18,6 +18,11 @@ export default function TeamsPage() {
   const [newTeamDescription, setNewTeamDescription] = useState("");
   const [maxDevs, setMaxDevs] = useState(2);
   const [maxNonDevs, setMaxNonDevs] = useState(2);
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"newest" | "votes" | "name">("votes");
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -86,7 +91,7 @@ export default function TeamsPage() {
 
   const handleJoinTeam = async (teamId: string) => {
     try {
-      await joinTeam({ teamId });
+      await joinTeam({ teamId: teamId as any });
       toast.success("Joined team successfully!");
     } catch {
       toast.error("Failed to join team");
@@ -95,7 +100,7 @@ export default function TeamsPage() {
 
   const handleAssignIdea = async (teamId: string, ideaId: string) => {
     try {
-      await assignIdeaToTeam({ teamId, ideaId });
+      await assignIdeaToTeam({ teamId: teamId as any, ideaId: ideaId as any });
       toast.success("Idea assigned to team successfully!");
     } catch {
       toast.error("Failed to assign idea to team");
@@ -104,7 +109,7 @@ export default function TeamsPage() {
 
   const handleRemoveIdea = async (teamId: string) => {
     try {
-      await removeIdeaFromTeam({ teamId });
+      await removeIdeaFromTeam({ teamId: teamId as any });
       toast.success("Idea removed from team successfully!");
     } catch {
       toast.error("Failed to remove idea from team");
@@ -117,13 +122,38 @@ export default function TeamsPage() {
     }
     
     try {
-      await adminDeleteTeam({ teamId });
+      await adminDeleteTeam({ teamId: teamId as any });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast.error(errorMessage);
     }
   };
+
+  // Filter and sort teams
+  const filteredAndSortedTeams = teams
+    .filter((team: any) => {
+      // Text search
+      const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        team.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = statusFilter === "all" || team.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "newest":
+          return b.createdAt - a.createdAt;
+        case "votes":
+          return b.votes - a.votes;
+        case "name":
+          return a.name.localeCompare(b.name);
+        default:
+          return b.votes - a.votes;
+      }
+    });
 
   return (
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -208,9 +238,54 @@ export default function TeamsPage() {
             </Card>
           )}
 
+          {/* Search and Filter Controls */}
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Search teams by name or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="forming">⏳ Forming</SelectItem>
+                        <SelectItem value="idea-browsing">🔍 Idea Browsing</SelectItem>
+                        <SelectItem value="assembled">✅ Assembled</SelectItem>
+                        <SelectItem value="ready">🚀 Ready</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "name") => setSortBy(value)}>
+                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                        <SelectItem value="votes">Most Votes</SelectItem>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="name">Alphabetical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
+                      {filteredAndSortedTeams.length} teams
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Teams List */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {teams.map((team: any) => (
+            {filteredAndSortedTeams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -265,6 +340,9 @@ export default function TeamsPage() {
                               {ideas.find((idea: any) => idea._id === team.ideaId)?.title}
                             </Badge>
                           </div>
+                          <div className="text-xs text-gray-400 mb-2">
+                            {ideas.find((idea: any) => idea._id === team.ideaId)?.description?.substring(0, 100)}...
+                          </div>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
@@ -274,7 +352,7 @@ export default function TeamsPage() {
                               Remove Idea
                             </Button>
                             <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
-                              <Link href="/hackathon/ideas">Change Idea</Link>
+                              <Link href="/hackathon/ideas">Browse Ideas</Link>
                             </Button>
                           </div>
                         </div>
@@ -304,9 +382,14 @@ export default function TeamsPage() {
                               )}
                             </SelectContent>
                           </Select>
-                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black w-full">
-                            <Link href="/hackathon/ideas">Browse All Ideas</Link>
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
+                              <Link href="/hackathon/ideas">Browse All Ideas</Link>
+                            </Button>
+                            <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black flex-1">
+                              <Link href="/hackathon/ideas">Submit New Idea</Link>
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -388,16 +471,30 @@ export default function TeamsPage() {
           </div>
 
           {/* Empty State */}
-          {teams.length === 0 && (
+          {filteredAndSortedTeams.length === 0 && (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardContent className="p-12 text-center">
                 <div className="text-6xl mb-4">👥</div>
                 <h3 className="text-2xl font-bold text-yellow-400 mb-4">
-                  No Teams Yet
+                  {searchQuery || statusFilter !== "all" ? "No Teams Found" : "No Teams Yet"}
                 </h3>
                 <p className="text-cyan-200 mb-6">
-                  Be the first to create a team and start collaborating!
+                  {searchQuery || statusFilter !== "all" 
+                    ? "No teams match your current filters. Try adjusting your search criteria."
+                    : "Be the first to create a team and start collaborating!"
+                  }
                 </p>
+                {(searchQuery || statusFilter !== "all") && (
+                  <Button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                    }}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

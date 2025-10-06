@@ -30,15 +30,15 @@ export default function RootLayout({
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" className="dark" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <ThemeProvider attribute="class">
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             {children}
             <Toaster 
               theme="dark"
-              position="top-right"
+              position="bottom-right"
               className="toaster"
               toastOptions={{
                 style: {

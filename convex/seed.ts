@@ -6,26 +6,38 @@ const sampleIdeas = [
   {
     title: "AI-Powered Code Review Assistant",
     description: "An intelligent tool that automatically reviews code submissions, suggests improvements, and identifies potential bugs using machine learning. The assistant would learn from code patterns and provide contextual feedback to developers, making code reviews faster and more thorough.",
+    category: "Development",
+    tags: ["AI", "Code Review", "Machine Learning"],
   },
   {
     title: "Retro Gaming Social Platform",
     description: "A social networking platform specifically designed for retro gaming enthusiasts. Features include game library sharing, multiplayer matchmaking for classic games, achievement systems, and community forums. Built with a nostalgic 8-bit aesthetic and modern web technologies.",
+    category: "Product",
+    tags: ["Gaming", "Social", "Retro"],
   },
   {
     title: "Smart Home Energy Optimizer",
     description: "An IoT solution that monitors household energy consumption and automatically optimizes usage patterns. Uses machine learning to predict energy needs, integrates with smart devices, and provides real-time recommendations to reduce electricity bills while maintaining comfort.",
+    category: "Automation",
+    tags: ["IoT", "Energy", "Smart Home"],
   },
   {
     title: "AR Shopping Experience",
     description: "Augmented reality mobile app that lets users visualize furniture and home decor in their actual space before purchasing. Features include 3D model rendering, size scaling, color matching, and integration with e-commerce platforms for seamless shopping experience.",
+    category: "User Experience",
+    tags: ["AR", "Shopping", "Mobile"],
   },
   {
     title: "Blockchain Voting System",
     description: "A secure, transparent voting platform using blockchain technology for elections and polls. Ensures voter anonymity while maintaining verifiable results, prevents fraud, and provides real-time vote counting with immutable audit trails.",
+    category: "Product",
+    tags: ["Blockchain", "Voting", "Security"],
   },
   {
     title: "Mental Health Chatbot",
     description: "An AI-powered mental health companion that provides 24/7 emotional support, mood tracking, and connects users with professional resources. Features natural language processing, crisis detection, and personalized wellness recommendations based on user interactions.",
+    category: "Product",
+    tags: ["AI", "Mental Health", "Chatbot"],
   }
 ];
 
@@ -62,6 +74,8 @@ export const seedHackathonData = mutation({
         createdAt: Date.now(),
         votes: 0,
         isSelected: false,
+        category: idea.category,
+        tags: idea.tags,
       });
       createdIdeas.push(ideaId);
       console.log(`✅ Created idea: ${idea.title}`);

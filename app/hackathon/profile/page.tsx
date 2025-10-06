@@ -9,8 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CodeIcon, PersonIcon } from "@radix-ui/react-icons";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -189,16 +188,16 @@ export default function ProfilePage() {
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
                 <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white">
-                  <a href="/hackathon/my-dashboard">View Dashboard</a>
+                  <Link href="/hackathon/my-dashboard">View Dashboard</Link>
                 </Button>
                 <Button asChild className="bg-purple-500 hover:bg-purple-600 text-white">
-                  <a href="/hackathon/ideas">Browse Ideas</a>
+                  <Link href="/hackathon/ideas">Browse Ideas</Link>
                 </Button>
                 <Button asChild className="bg-green-500 hover:bg-green-600 text-white">
-                  <a href="/hackathon/teams">View Teams</a>
+                  <Link href="/hackathon/teams">View Teams</Link>
                 </Button>
                 <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
-                  <a href="/hackathon/leaderboard">Leaderboard</a>
+                  <Link href="/hackathon/leaderboard">Leaderboard</Link>
                 </Button>
               </div>
             </CardContent>

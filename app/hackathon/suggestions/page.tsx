@@ -13,7 +13,6 @@ import {
   StarIcon,
   PlusIcon,
   TrashIcon,
-  EyeOpenIcon,
 } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 
@@ -32,7 +31,6 @@ export default function SuggestionsPage() {
     category: categoryFilter === "all" ? undefined : categoryFilter as any,
     sortBy 
   }) || [];
-  const myVotes = useQuery(api.hackathon.getMySuggestionVotes) || [];
 
   const createSuggestion = useMutation(api.hackathon.createSuggestion);
   const toggleSuggestionVote = useMutation(api.hackathon.toggleSuggestionVote);

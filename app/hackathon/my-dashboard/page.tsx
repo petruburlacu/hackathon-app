@@ -8,12 +8,9 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
-  StarIcon,
-  AvatarIcon,
   TrashIcon,
   ExitIcon,
   PlusIcon,
-  RocketIcon,
 } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
@@ -23,7 +20,6 @@ export default function MyDashboardPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const viewer = useQuery(api.users.viewer);
-  const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
   const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0, teamVotes: 0, total: 0 };

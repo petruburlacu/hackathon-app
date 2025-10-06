@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import {
   PlusIcon,
@@ -72,6 +73,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       await createIdea({
         title: newIdeaTitle,
         description: newIdeaDescription,
+        category: "Other", // Default category
+        tags: [], // Default empty tags
       });
       setNewIdeaTitle("");
       setNewIdeaDescription("");
@@ -104,7 +107,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
   const handleJoinTeam = async (teamId: string) => {
     try {
-      await joinTeam({ teamId });
+      await joinTeam({ teamId: teamId as Id<"teams"> });
       toast.success("Joined team successfully!");
     } catch {
       toast.error("Failed to join team");
@@ -113,7 +116,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
   const handleToggleIdeaVote = async (ideaId: string) => {
     try {
-      const result = await toggleIdeaVote({ ideaId });
+      const result = await toggleIdeaVote({ ideaId: ideaId as Id<"ideas"> });
       if (result.action === "added") {
         toast.success("Vote recorded!");
       } else {
@@ -191,7 +194,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
           {/* Ideas List */}
           <div className="grid gap-4 md:grid-cols-2">
-            {ideas.map((idea: any) => (
+            {ideas.map((idea) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -288,7 +291,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
           {/* Teams List */}
           <div className="grid gap-4 md:grid-cols-2">
-            {teams.map((team: any) => (
+            {teams.map((team) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -346,7 +349,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
           </Card>
 
           <div className="space-y-4">
-            {leaderboard.map((team: any, index: number) => (
+            {leaderboard.map((team, index: number) => (
               <Card key={team._id} className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 ${
                 index === 0 ? 'border-yellow-400/60 bg-gradient-to-r from-yellow-500/10 to-orange-500/10' : ''
               }`}>

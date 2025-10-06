@@ -52,8 +52,11 @@ export default function HackathonPage() {
       
       {/* Welcome Tour */}
       <WelcomeTour
-        isVisible={showTour || shouldShowTour}
-        onClose={() => setShowTour(false)}
+        isVisible={showTour || shouldShowTour || false}
+        onClose={() => {
+          setShowTour(false);
+          // Don't mark as completed when manually closed - allow resuming
+        }}
         userProgress={userProgress}
       />
     </main>

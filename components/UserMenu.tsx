@@ -1,6 +1,5 @@
 "use client";
 
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,10 +54,10 @@ export function UserMenu({ children, isAdmin = false, hackathonUser }: UserMenuP
                   )}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/hackathon/my-dashboard">Personal Dashboard</Link>
+            <Link href="/hackathon/my-dashboard">My Dashboard</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/hackathon/profile">Profile Settings</Link>
+            <Link href="/hackathon/profile">Profile</Link>
           </DropdownMenuItem>
           {isAdmin && (
             <DropdownMenuItem asChild>

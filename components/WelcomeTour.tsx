@@ -79,23 +79,30 @@ const tourSteps = [
 
 export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
-      setCurrentStep(0);
-      setIsCompleted(false);
+      // Try to resume from saved step, otherwise start from beginning
+      const savedStep = typeof window !== 'undefined' 
+        ? parseInt(localStorage.getItem("hackathon-tour-step") || "0", 10)
+        : 0;
+      setCurrentStep(savedStep);
     }
   }, [isVisible]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      // Save current step for resuming
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("hackathon-tour-step", nextStep.toString());
+      }
     } else {
       // Finish tour - mark as completed and close
-      setIsCompleted(true);
       if (typeof window !== 'undefined') {
         localStorage.setItem("hackathon-tour-completed", "true");
+        localStorage.removeItem("hackathon-tour-step"); // Clear saved step
       }
       onClose(); // Close the tour
     }
@@ -103,15 +110,20 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      // Save current step for resuming
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("hackathon-tour-step", prevStep.toString());
+      }
     }
   };
 
   const handleClose = () => {
-    if (!isCompleted) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("hackathon-tour-completed", "true");
-      }
+    // Don't mark as completed when manually closed - allow resuming
+    // Just save the current step and close
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("hackathon-tour-step", currentStep.toString());
     }
     onClose();
   };
@@ -228,7 +240,13 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
               {currentStep > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep(0)}
+                  onClick={() => {
+                    setCurrentStep(0);
+                    // Save current step for resuming
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem("hackathon-tour-step", "0");
+                    }
+                  }}
                   className="border-gray-400/30 text-gray-400 hover:bg-gray-400/10"
                 >
                   Restart
@@ -254,7 +272,13 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
             {tourSteps.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentStep(index)}
+                onClick={() => {
+                  setCurrentStep(index);
+                  // Save current step for resuming
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem("hackathon-tour-step", index.toString());
+                  }
+                }}
                 className={`w-2 h-2 rounded-full transition-all ${
                   index === currentStep
                     ? 'bg-yellow-400'
