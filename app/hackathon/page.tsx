@@ -4,6 +4,7 @@ import { HackathonOverview } from "./HackathonOverview/HackathonOverview";
 import { HackathonNav } from "@/components/HackathonNav";
 import { WelcomeTour } from "@/components/WelcomeTour";
 import { PixelatedHammer } from "@/components/PixelatedHammer";
+import { FullScreenLoader } from "@/components/PixelatedLoader";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
@@ -16,11 +17,7 @@ export default function HackathonPage() {
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
 
   if (!viewer) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl hackathon-text">Loading...</div>
-      </div>
-    );
+    return <FullScreenLoader text="Loading hackathon..." />;
   }
 
   // Determine if user should see the tour (new users who haven't completed it)

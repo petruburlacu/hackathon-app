@@ -11,6 +11,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
+import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
 
 export default function IdeasPage() {
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
@@ -44,11 +45,7 @@ export default function IdeasPage() {
   const adminDeleteIdea = useMutation(api.hackathon.adminDeleteIdea);
 
   if (!viewer) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl hackathon-text">Loading...</div>
-      </div>
-    );
+    return <FullScreenLoader text="Loading ideas..." />;
   }
 
   // Simple admin check - in a real app, you'd have proper role-based access
@@ -368,8 +365,11 @@ export default function IdeasPage() {
           </Card>
 
           {/* Ideas List */}
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredAndSortedIdeas.map((idea: any) => (
+          {ideas.length === 0 ? (
+            <GridSkeleton count={6} />
+          ) : (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedIdeas.map((idea: any) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
                 <CardHeader className="flex-shrink-0">
                   <div className="flex items-start justify-between">
@@ -521,8 +521,9 @@ export default function IdeasPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredAndSortedIdeas.length === 0 && (

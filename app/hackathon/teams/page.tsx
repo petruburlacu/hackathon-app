@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { RocketIcon, AvatarIcon, StarIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
+import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
 
 export default function TeamsPage() {
   const [newTeamName, setNewTeamName] = useState("");
@@ -39,11 +40,7 @@ export default function TeamsPage() {
   const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
 
   if (!viewer) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl hackathon-text">Loading...</div>
-      </div>
-    );
+    return <FullScreenLoader text="Loading teams..." />;
   }
 
   // Admin check - only allow admin@hackathon.com
@@ -284,8 +281,11 @@ export default function TeamsPage() {
           </Card>
 
           {/* Teams List */}
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredAndSortedTeams.map((team: any) => (
+          {teams.length === 0 ? (
+            <GridSkeleton count={6} />
+          ) : (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedTeams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -467,8 +467,9 @@ export default function TeamsPage() {
                           </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredAndSortedTeams.length === 0 && (
