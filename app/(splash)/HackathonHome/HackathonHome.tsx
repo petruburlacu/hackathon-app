@@ -161,11 +161,11 @@ function FeatureCard({
 }) {
   return (
     <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
-      <CardHeader className="text-center">
-        <div className={`mx-auto mb-4 p-4 rounded-full bg-gradient-to-r ${color} text-white`}>
+      <CardHeader className="text-center flex flex-col items-center">
+        <div className={`mx-auto mb-4 p-4 rounded-full bg-gradient-to-r ${color} text-white flex items-center justify-center`}>
           {icon}
         </div>
-        <CardTitle className="text-yellow-400 font-mono text-xl hackathon-title">{title}</CardTitle>
+        <CardTitle className="text-yellow-400 font-mono text-xl hackathon-title text-center">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-cyan-200 text-center hackathon-text">{description}</p>

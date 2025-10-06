@@ -75,7 +75,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             {userProgress.isComplete ? "🚀 Ready to Hack!" : 'Get Ready to Hack!'}
           </h1>
           <p className="text-xl text-cyan-200 mb-8 hackathon-text">
-            {userProgress.isComplete ? "You're fully engaged!" :
+            {userProgress.isComplete ? "You're all set!" :
              hasTeam ? "Your team is getting ready. Keep participating!" :
              hasParticipated ? "Great participation! Now form or join a team." :
              "Enjoy the retro vibes! Participate actively or support by voting! 🎮✨"}
@@ -103,8 +103,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {/* Progress Checklist */}
         <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
           <CardHeader>
-              <BadgeIcon className="h-5 w-5" /> Your Hackathon Progress
             <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
+            <BadgeIcon className="h-5 w-5" /> Your Hackathon Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -151,9 +151,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-                <StarIcon className="h-5 w-5" />
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-                Ideas Submitted
+              <StarIcon className="h-5 w-5" /> Ideas Submitted
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -164,9 +163,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
 
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-                <AvatarIcon className="h-5 w-5" />
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-                Teams Formed
+              <AvatarIcon className="h-5 w-5" /> Teams Formed
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -177,9 +175,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
 
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-                <BadgeIcon className="h-5 w-5" />
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-                Total Votes
+              <BadgeIcon className="h-5 w-5" /> Total Votes
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -196,8 +193,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Next Action Card */}
           <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/30">
             <CardHeader>
-                <LightningBoltIcon className="h-5 w-5" /> Next Action
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
+              <LightningBoltIcon className="h-5 w-5" /> Next Action
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -234,8 +231,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Browse & Vote Card - Always visible for non-participating users */}
           <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm border-green-400/30">
             <CardHeader>
-                <StarIcon className="h-5 w-5" /> Browse & Vote
               <CardTitle className="text-green-400 hackathon-title flex items-center gap-2">
+              <StarIcon className="h-5 w-5" /> Browse & Vote
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -261,8 +258,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           {/* Quick Access Card */}
           <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm border-purple-400/30">
             <CardHeader>
-                <RocketIcon className="h-5 w-5" /> Quick Access
               <CardTitle className="text-purple-400 hackathon-title flex items-center gap-2">
+              <RocketIcon className="h-5 w-5" /> Quick Access
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -285,9 +282,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {topIdeas.length > 0 && (
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-                <StarIcon className="h-5 w-5" />
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-                Top Ideas
+              <StarIcon className="h-5 w-5" /> Top Ideas
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -316,9 +312,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {topTeams.length > 0 && (
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
-                <BadgeIcon className="h-5 w-5" />
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-                Top Teams
+              <BadgeIcon className="h-5 w-5" /> Top Teams
               </CardTitle>
             </CardHeader>
             <CardContent>
