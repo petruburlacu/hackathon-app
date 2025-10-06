@@ -25,7 +25,8 @@ export default function IdeasPage() {
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
 
   const createIdea = useMutation(api.hackathon.createIdea);
-  const voteForIdea = useMutation(api.hackathon.voteForIdea);
+  const toggleIdeaVote = useMutation(api.hackathon.toggleIdeaVote);
+  const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
   const assignIdeaToTeam = useMutation(api.hackathon.assignIdeaToTeam);
   const removeIdeaFromTeam = useMutation(api.hackathon.removeIdeaFromTeam);
   const deleteIdea = useMutation(api.hackathon.deleteIdea);
@@ -66,18 +67,18 @@ export default function IdeasPage() {
       setNewIdeaTitle("");
       setNewIdeaDescription("");
       toast.success("Idea submitted successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit idea");
     }
   };
 
   // Filter and sort ideas
   const filteredAndSortedIdeas = ideas
-    .filter(idea => 
+    .filter((idea: any) => 
       idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       idea.description.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       switch (sortBy) {
         case "newest":
           return b.createdAt - a.createdAt;
@@ -90,13 +91,23 @@ export default function IdeasPage() {
       }
     });
 
-  const handleVoteIdea = async (ideaId: string) => {
+  const handleToggleIdeaVote = async (ideaId: string) => {
     try {
-      await voteForIdea({ ideaId });
-      toast.success("Vote recorded!");
-    } catch (error) {
-      toast.error("Failed to vote for idea");
+      const result = await toggleIdeaVote({ ideaId });
+      if (result.action === "added") {
+        toast.success("Vote recorded!");
+      } else {
+        toast.success("Vote retracted!");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to toggle vote");
     }
+  };
+
+  const hasVotedForIdea = (ideaId: string) => {
+    if (!voteStatus) return false; // Still loading
+    const ideaIdStr = String(ideaId);
+    return voteStatus.ideaVotes?.some((votedIdeaId: string) => String(votedIdeaId) === ideaIdStr) || false;
   };
 
   const handleAssignIdea = async (ideaId: string) => {
@@ -108,7 +119,7 @@ export default function IdeasPage() {
     try {
       await assignIdeaToTeam({ teamId: myTeamDetails.team._id, ideaId });
       toast.success("Idea assigned to your team!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to assign idea to team");
     }
   };
@@ -122,7 +133,7 @@ export default function IdeasPage() {
     try {
       await removeIdeaFromTeam({ teamId: myTeamDetails.team._id });
       toast.success("Idea removed from your team!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove idea from team");
     }
   };
@@ -225,7 +236,7 @@ export default function IdeasPage() {
 
           {/* Ideas List */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredAndSortedIdeas.map((idea) => (
+            {filteredAndSortedIdeas.map((idea: any) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -235,7 +246,7 @@ export default function IdeasPage() {
                         {idea.votes} votes
                       </Badge>
                       <Badge variant="secondary" className="bg-blue-500 text-white">
-                        {teams.filter(team => team.ideaId === idea._id).length} teams
+                        {teams.filter((team: any) => team.ideaId === idea._id).length} teams
                       </Badge>
                     </div>
                   </div>
@@ -303,11 +314,15 @@ export default function IdeasPage() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => handleVoteIdea(idea._id)}
-                        className="bg-pink-500 hover:bg-pink-600 text-white"
+                        onClick={() => handleToggleIdeaVote(idea._id)}
+                        className={`transition-all duration-300 transform hover:scale-105 ${
+                          hasVotedForIdea(idea._id)
+                            ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
+                            : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
+                        }`}
                       >
                         <StarIcon className="mr-1 h-4 w-4" />
-                        Vote
+                        {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
                       </Button>
                       {idea.authorId === hackathonUser?.userId && (
                         <Button
@@ -324,7 +339,7 @@ export default function IdeasPage() {
                         className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
                         onClick={() => {
                           // TODO: Implement idea details modal or page
-                          alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter(team => team.ideaId === idea._id).length}`);
+                          alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
                         }}
                       >
                         View Details

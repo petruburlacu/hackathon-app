@@ -38,7 +38,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-center">
           <div className="text-red-400 text-2xl font-bold mb-4">🚫 Access Denied</div>
-          <div className="text-cyan-200 text-lg">You don't have admin privileges</div>
+          <div className="text-cyan-200 text-lg">You don&apos;t have admin privileges</div>
         </div>
       </div>
     );
@@ -107,7 +107,7 @@ export default function AdminPage() {
     }
     
     try {
-      await adminDeleteIdea({ ideaId: ideaId as any });
+      await adminDeleteIdea({ ideaId });
       toast.success("Idea admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -121,7 +121,7 @@ export default function AdminPage() {
     }
     
     try {
-      await adminDeleteTeam({ teamId: teamId as any });
+      await adminDeleteTeam({ teamId });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -212,7 +212,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {ideas.slice(0, 6).map((idea) => (
+                  {ideas.slice(0, 6).map((idea: any) => (
                     <div key={idea._id} className="bg-black/20 p-3 rounded-lg border border-cyan-400/10">
                       <h4 className="text-yellow-400 font-bold text-sm mb-1">{idea.title}</h4>
                       <p className="text-gray-400 text-xs line-clamp-2">{idea.description}</p>
@@ -221,7 +221,7 @@ export default function AdminPage() {
                           {idea.votes} votes
                         </span>
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                          {teams.filter(team => team.ideaId === idea._id).length} teams
+                          {teams.filter((team: any) => team.ideaId === idea._id).length} teams
                         </span>
                       </div>
                       <div className="mt-2">
@@ -248,7 +248,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {teams.slice(0, 6).map((team) => (
+                  {teams.slice(0, 6).map((team: any) => (
                     <div key={team._id} className="bg-black/20 p-3 rounded-lg border border-cyan-400/10">
                       <h4 className="text-yellow-400 font-bold text-sm mb-1">{team.name}</h4>
                       <p className="text-gray-400 text-xs line-clamp-2">{team.description || "No description"}</p>

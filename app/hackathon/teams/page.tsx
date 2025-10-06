@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { RocketIcon, AvatarIcon, StarIcon } from "@radix-ui/react-icons";
+import { RocketIcon, AvatarIcon, StarIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
 
@@ -72,10 +72,11 @@ export default function TeamsPage() {
       setMaxDevs(2);
       setMaxNonDevs(2);
       toast.success("Team created successfully!");
-    } catch (error: any) {
-      if (error.message?.includes("already created a team")) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      if (errorMessage.includes("already created a team")) {
         toast.error("You have already created a team");
-      } else if (error.message?.includes("already in a team")) {
+      } else if (errorMessage.includes("already in a team")) {
         toast.error("You are already in a team");
       } else {
         toast.error("Failed to create team");
@@ -85,7 +86,7 @@ export default function TeamsPage() {
 
   const handleJoinTeam = async (teamId: string) => {
     try {
-      await joinTeam({ teamId: teamId as any });
+      await joinTeam({ teamId });
       toast.success("Joined team successfully!");
     } catch {
       toast.error("Failed to join team");
@@ -94,7 +95,7 @@ export default function TeamsPage() {
 
   const handleAssignIdea = async (teamId: string, ideaId: string) => {
     try {
-      await assignIdeaToTeam({ teamId: teamId as any, ideaId: ideaId as any });
+      await assignIdeaToTeam({ teamId, ideaId });
       toast.success("Idea assigned to team successfully!");
     } catch {
       toast.error("Failed to assign idea to team");
@@ -103,7 +104,7 @@ export default function TeamsPage() {
 
   const handleRemoveIdea = async (teamId: string) => {
     try {
-      await removeIdeaFromTeam({ teamId: teamId as any });
+      await removeIdeaFromTeam({ teamId });
       toast.success("Idea removed from team successfully!");
     } catch {
       toast.error("Failed to remove idea from team");
@@ -116,7 +117,7 @@ export default function TeamsPage() {
     }
     
     try {
-      await adminDeleteTeam({ teamId: teamId as any });
+      await adminDeleteTeam({ teamId });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -160,7 +161,7 @@ export default function TeamsPage() {
                     rows={4}
                     className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Help others understand your team's focus</p>
+                  <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -325,6 +326,12 @@ export default function TeamsPage() {
                           <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
                             <Link href={`/hackathon/teams/${team._id}`}>
                               Manage Members
+                            </Link>
+                          </Button>
+                          <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
+                            <Link href={`/hackathon/teams/${team._id}`}>
+                              <Pencil1Icon className="mr-1 h-4 w-4" />
+                              Edit Team
                             </Link>
                           </Button>
                         </div>

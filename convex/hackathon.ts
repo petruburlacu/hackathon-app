@@ -155,6 +155,108 @@ export const voteForIdea = mutation({
   },
 });
 
+export const toggleIdeaVote = mutation({
+  args: {
+    ideaId: v.id("ideas"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    // Check if user already voted for this idea
+    const existingVote = await ctx.db
+      .query("ideaVotes")
+      .withIndex("by_idea_user", (q) => q.eq("ideaId", args.ideaId).eq("userId", userId))
+      .first();
+
+    const idea = await ctx.db.get(args.ideaId);
+    if (!idea) {
+      throw new Error("Idea not found");
+    }
+
+    if (existingVote) {
+      // User has voted, so retract the vote
+      await ctx.db.delete(existingVote._id);
+      await ctx.db.patch(args.ideaId, {
+        votes: Math.max(0, idea.votes - 1),
+      });
+      return { action: "retracted", votes: Math.max(0, idea.votes - 1) };
+    } else {
+      // User hasn't voted, so add the vote
+      await ctx.db.insert("ideaVotes", {
+        ideaId: args.ideaId,
+        userId,
+        createdAt: Date.now(),
+      });
+      await ctx.db.patch(args.ideaId, {
+        votes: idea.votes + 1,
+      });
+      return { action: "added", votes: idea.votes + 1 };
+    }
+  },
+});
+
+export const hasUserVotedForIdea = query({
+  args: {
+    ideaId: v.id("ideas"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return false;
+    }
+
+    const existingVote = await ctx.db
+      .query("ideaVotes")
+      .withIndex("by_idea_user", (q) => q.eq("ideaId", args.ideaId).eq("userId", userId))
+      .first();
+
+    return !!existingVote;
+  },
+});
+
+export const getUserVoteStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    console.log("getUserVoteStatus - userId:", userId);
+    
+    if (userId === null) {
+      console.log("getUserVoteStatus - user not signed in");
+      return { ideaVotes: [], teamVotes: [], suggestionVotes: [] };
+    }
+
+    // Get all votes for ideas
+    const ideaVotes = await ctx.db
+      .query("ideaVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Get all votes for teams
+    const teamVotes = await ctx.db
+      .query("teamVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Get all votes for suggestions
+    const suggestionVotes = await ctx.db
+      .query("suggestionVotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const result = {
+      ideaVotes: ideaVotes.map(vote => vote.ideaId),
+      teamVotes: teamVotes.map(vote => vote.teamId),
+      suggestionVotes: suggestionVotes.map(vote => vote.suggestionId),
+    };
+
+    console.log("getUserVoteStatus - result:", result);
+    return result;
+  },
+});
+
 export const deleteIdea = mutation({
   args: {
     ideaId: v.id("ideas"),
@@ -312,6 +414,70 @@ export const createTeam = mutation({
     });
 
     return teamId;
+  },
+});
+
+export const updateTeam = mutation({
+  args: {
+    teamId: v.id("teams"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    maxDevs: v.number(),
+    maxNonDevs: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    // Get the team
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Check if user is the team leader
+    if (team.leaderId !== userId) {
+      throw new Error("Only team leaders can update team details");
+    }
+
+    // Validate team name
+    if (!args.name.trim()) {
+      throw new Error("Team name cannot be empty");
+    }
+
+    if (args.name.trim().length < 3) {
+      throw new Error("Team name must be at least 3 characters long");
+    }
+
+    // Validate member limits
+    if (args.maxDevs < 1 || args.maxDevs > 2) {
+      throw new Error("Max developers must be between 1 and 2");
+    }
+
+    if (args.maxNonDevs < 1 || args.maxNonDevs > 2) {
+      throw new Error("Max non-developers must be between 1 and 2");
+    }
+
+    // Check if new limits would violate current member counts
+    if (args.maxDevs < team.currentDevs) {
+      throw new Error(`Cannot reduce max developers below current count (${team.currentDevs})`);
+    }
+
+    if (args.maxNonDevs < team.currentNonDevs) {
+      throw new Error(`Cannot reduce max non-developers below current count (${team.currentNonDevs})`);
+    }
+
+    // Update the team
+    await ctx.db.patch(args.teamId, {
+      name: args.name.trim(),
+      description: args.description?.trim() || undefined,
+      maxDevs: args.maxDevs,
+      maxNonDevs: args.maxNonDevs,
+    });
+
+    return args.teamId;
   },
 });
 
@@ -519,6 +685,78 @@ export const voteForTeam = mutation({
         votes: team.votes + 1,
       });
     }
+  },
+});
+
+export const toggleTeamVote = mutation({
+  args: {
+    teamId: v.id("teams"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    // Check if user already voted for this team
+    const existingVote = await ctx.db
+      .query("teamVotes")
+      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
+      .first();
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    if (existingVote) {
+      // User has voted, so retract the vote
+      await ctx.db.delete(existingVote._id);
+      await ctx.db.patch(args.teamId, {
+        votes: Math.max(0, team.votes - 1),
+      });
+      return { action: "retracted", votes: Math.max(0, team.votes - 1) };
+    } else {
+      // Check if user has already voted for another team (only 1 team vote allowed)
+      const otherTeamVotes = await ctx.db
+        .query("teamVotes")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+
+      if (otherTeamVotes.length > 0) {
+        throw new Error("You can only vote for one team. Please retract your existing team vote first.");
+      }
+
+      // User hasn't voted, so add the vote
+      await ctx.db.insert("teamVotes", {
+        teamId: args.teamId,
+        userId,
+        createdAt: Date.now(),
+      });
+      await ctx.db.patch(args.teamId, {
+        votes: team.votes + 1,
+      });
+      return { action: "added", votes: team.votes + 1 };
+    }
+  },
+});
+
+export const hasUserVotedForTeam = query({
+  args: {
+    teamId: v.id("teams"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return false;
+    }
+
+    const existingVote = await ctx.db
+      .query("teamVotes")
+      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
+      .first();
+
+    return !!existingVote;
   },
 });
 
@@ -991,6 +1229,49 @@ export const voteForSuggestion = mutation({
     await ctx.db.patch(args.suggestionId, {
       votes: suggestion.votes + 1,
     });
+  },
+});
+
+export const toggleSuggestionVote = mutation({
+  args: {
+    suggestionId: v.id("suggestions"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    // Check if user already voted for this suggestion
+    const existingVote = await ctx.db
+      .query("suggestionVotes")
+      .withIndex("by_suggestion_user", (q) => q.eq("suggestionId", args.suggestionId).eq("userId", userId))
+      .first();
+
+    const suggestion = await ctx.db.get(args.suggestionId);
+    if (!suggestion) {
+      throw new Error("Suggestion not found");
+    }
+
+    if (existingVote) {
+      // User has voted, so retract the vote
+      await ctx.db.delete(existingVote._id);
+      await ctx.db.patch(args.suggestionId, {
+        votes: Math.max(0, suggestion.votes - 1),
+      });
+      return { action: "retracted", votes: Math.max(0, suggestion.votes - 1) };
+    } else {
+      // User hasn't voted, so add the vote
+      await ctx.db.insert("suggestionVotes", {
+        suggestionId: args.suggestionId,
+        userId,
+        createdAt: Date.now(),
+      });
+      await ctx.db.patch(args.suggestionId, {
+        votes: suggestion.votes + 1,
+      });
+      return { action: "added", votes: suggestion.votes + 1 };
+    }
   },
 });
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -13,6 +14,9 @@ import {
   StarIcon,
   ArrowLeftIcon,
   RocketIcon,
+  Pencil1Icon,
+  CheckIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import { useParams } from "next/navigation";
@@ -22,6 +26,13 @@ export default function TeamDetailPage() {
   const params = useParams();
   const teamId = params.teamId as string;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    maxDevs: 2,
+    maxNonDevs: 2,
+  });
 
   const viewer = useQuery(api.users.viewer);
   const teamDetails = useQuery(api.hackathon.getTeamDetails, { teamId });
@@ -29,6 +40,62 @@ export default function TeamDetailPage() {
 
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
   const removeTeamMember = useMutation(api.hackathon.removeTeamMember);
+  const updateTeam = useMutation(api.hackathon.updateTeam);
+
+  // Update edit form when team details load
+  React.useEffect(() => {
+    if (teamDetails?.team) {
+      setEditForm({
+        name: teamDetails.team.name,
+        description: teamDetails.team.description || "",
+        maxDevs: teamDetails.team.maxDevs,
+        maxNonDevs: teamDetails.team.maxNonDevs,
+      });
+    }
+  }, [teamDetails]);
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // Reset form to original values
+    if (teamDetails?.team) {
+      setEditForm({
+        name: teamDetails.team.name,
+        description: teamDetails.team.description || "",
+        maxDevs: teamDetails.team.maxDevs,
+        maxNonDevs: teamDetails.team.maxNonDevs,
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm.name.trim()) {
+      toast.error("Team name cannot be empty");
+      return;
+    }
+
+    if (editForm.name.trim().length < 3) {
+      toast.error("Team name must be at least 3 characters long");
+      return;
+    }
+
+    try {
+      await updateTeam({
+        teamId: teamId as any,
+        name: editForm.name.trim(),
+        description: editForm.description.trim() || undefined,
+        maxDevs: editForm.maxDevs,
+        maxNonDevs: editForm.maxNonDevs,
+      });
+      setIsEditing(false);
+      toast.success("Team updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update team");
+    }
+  };
 
   if (!viewer) {
     return (
@@ -117,12 +184,99 @@ export default function TeamDetailPage() {
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-yellow-400 font-mono text-3xl mb-2">
-                    {teamDetails.team.name}
-                  </CardTitle>
-                  {teamDetails.team.description && (
-                    <p className="text-cyan-200 text-lg">{teamDetails.team.description}</p>
+                <div className="flex-1">
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
+                        <Input
+                          value={editForm.name}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                          className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 text-2xl font-mono"
+                          placeholder="Enter team name..."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-cyan-300 mb-2 block">Team Description</label>
+                        <textarea
+                          value={editForm.description}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                          rows={3}
+                          className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50 text-lg"
+                          placeholder="Describe your team's vision and goals..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-cyan-300 mb-2 block">Max Developers</label>
+                          <Select 
+                            value={editForm.maxDevs.toString()} 
+                            onValueChange={(value) => setEditForm(prev => ({ ...prev, maxDevs: parseInt(value) }))}
+                          >
+                            <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                              <SelectItem value="1">1 Developer</SelectItem>
+                              <SelectItem value="2">2 Developers</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm text-cyan-300 mb-2 block">Max Non-Developers</label>
+                          <Select 
+                            value={editForm.maxNonDevs.toString()} 
+                            onValueChange={(value) => setEditForm(prev => ({ ...prev, maxNonDevs: parseInt(value) }))}
+                          >
+                            <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                              <SelectItem value="1">1 Non-Developer</SelectItem>
+                              <SelectItem value="2">2 Non-Developers</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleSaveEdit}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <CheckIcon className="mr-2 h-4 w-4" />
+                          Save Changes
+                        </Button>
+                        <Button
+                          onClick={handleCancelEdit}
+                          variant="outline"
+                          className="border-red-400 text-red-400 hover:bg-red-400 hover:text-black"
+                        >
+                          <Cross2Icon className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle className="text-yellow-400 font-mono text-3xl">
+                          {teamDetails.team.name}
+                        </CardTitle>
+                        {hackathonUser?.userId === teamDetails.team.leaderId && (
+                          <Button
+                            onClick={handleStartEdit}
+                            size="sm"
+                            variant="outline"
+                            className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+                          >
+                            <Pencil1Icon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {teamDetails.team.description && (
+                        <p className="text-cyan-200 text-lg">{teamDetails.team.description}</p>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2">

@@ -10,8 +10,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
-  CodeIcon,
-  PersonIcon,
   PlusIcon,
   StarIcon,
   AvatarIcon,
@@ -43,8 +41,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   const createIdea = useMutation(api.hackathon.createIdea);
   const createTeam = useMutation(api.hackathon.createTeam);
   const joinTeam = useMutation(api.hackathon.joinTeam);
-  const voteForIdea = useMutation(api.hackathon.voteForIdea);
-  const voteForTeam = useMutation(api.hackathon.voteForTeam);
+  const toggleIdeaVote = useMutation(api.hackathon.toggleIdeaVote);
+  const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
 
   if (!hackathonUser) {
     return (
@@ -78,7 +76,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       setNewIdeaTitle("");
       setNewIdeaDescription("");
       toast.success("Idea submitted successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit idea");
     }
   };
@@ -99,7 +97,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       setNewTeamName("");
       setNewTeamDescription("");
       toast.success("Team created successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to create team");
     }
   };
@@ -108,27 +106,29 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
     try {
       await joinTeam({ teamId });
       toast.success("Joined team successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to join team");
     }
   };
 
-  const handleVoteIdea = async (ideaId: string) => {
+  const handleToggleIdeaVote = async (ideaId: string) => {
     try {
-      await voteForIdea({ ideaId });
-      toast.success("Vote recorded!");
-    } catch (error) {
-      toast.error("Failed to vote for idea");
+      const result = await toggleIdeaVote({ ideaId });
+      if (result.action === "added") {
+        toast.success("Vote recorded!");
+      } else {
+        toast.success("Vote retracted!");
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to toggle vote";
+      toast.error(errorMessage);
     }
   };
 
-  const handleVoteTeam = async (teamId: string) => {
-    try {
-      await voteForTeam({ teamId });
-      toast.success("Vote recorded!");
-    } catch (error) {
-      toast.error("Failed to vote for team");
-    }
+  const hasVotedForIdea = (ideaId: string) => {
+    if (!voteStatus) return false; // Still loading
+    const ideaIdStr = String(ideaId);
+    return voteStatus.ideaVotes?.some((votedIdeaId: string) => String(votedIdeaId) === ideaIdStr) || false;
   };
 
   return (
@@ -191,7 +191,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
           {/* Ideas List */}
           <div className="grid gap-4 md:grid-cols-2">
-            {ideas.map((idea) => (
+            {ideas.map((idea: any) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -209,11 +209,15 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                     </span>
                     <Button
                       size="sm"
-                      onClick={() => handleVoteIdea(idea._id)}
-                      className="bg-pink-500 hover:bg-pink-600 text-white"
+                      onClick={() => handleToggleIdeaVote(idea._id)}
+                      className={`transition-all duration-300 transform hover:scale-105 ${
+                        hasVotedForIdea(idea._id)
+                          ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
+                          : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
+                      }`}
                     >
                       <StarIcon className="mr-1 h-4 w-4" />
-                      Vote
+                      {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
                     </Button>
                   </div>
                 </CardContent>
@@ -284,7 +288,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
           {/* Teams List */}
           <div className="grid gap-4 md:grid-cols-2">
-            {teams.map((team) => (
+            {teams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -342,7 +346,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
           </Card>
 
           <div className="space-y-4">
-            {leaderboard.map((team, index) => (
+            {leaderboard.map((team: any, index: number) => (
               <Card key={team._id} className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 ${
                 index === 0 ? 'border-yellow-400/60 bg-gradient-to-r from-yellow-500/10 to-orange-500/10' : ''
               }`}>

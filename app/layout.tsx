@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,14 +30,27 @@ export default function RootLayout({
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
-      {/* `suppressHydrationWarning` only affects the html tag,
-      // and is needed by `ThemeProvider` which sets the theme
-      // class attribute on it */}
       <html lang="en" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <ThemeProvider attribute="class">{children}</ThemeProvider>
+          <ThemeProvider attribute="class">
+            {children}
+            <Toaster 
+              theme="dark"
+              position="top-right"
+              className="toaster"
+              toastOptions={{
+                style: {
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontFamily: 'var(--font-geist-mono)',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                },
+              }}
+            />
+          </ThemeProvider>
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>

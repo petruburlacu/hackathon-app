@@ -72,16 +72,13 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         {/* Personalized Welcome Section */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-yellow-400 mb-4 hackathon-title">
-            {userProgress.isComplete ? "🚀 Ready to Hack!" : 
-             hasTeam ? "👥 Team Ready!" :
-             hasParticipated ? "🎯 Participating!" :
-             "⚖️ TRIAL BY CODE ⚖️"}
+            {userProgress.isComplete ? "🚀 Ready to Hack!" : 'Get Ready to Hack!'}
           </h1>
           <p className="text-xl text-cyan-200 mb-8 hackathon-text">
-            {userProgress.isComplete ? "You're fully engaged! Participate and join teams!" :
-             hasTeam ? "Your team is forming. Keep participating!" :
+            {userProgress.isComplete ? "You're fully engaged!" :
+             hasTeam ? "Your team is getting ready. Keep participating!" :
              hasParticipated ? "Great participation! Now form or join a team." :
-             "Build the future with retro vibes! Participate actively or support by voting! 🎮✨"}
+             "Enjoy the retro vibes! Participate actively or support by voting! 🎮✨"}
           </p>
                   <div className="flex items-center justify-center gap-4">
                     <Badge className={`px-4 py-2 text-lg hackathon-text ${
@@ -127,7 +124,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   {userProgress.hasParticipated ? '✓' : '2'}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white hackathon-text">Participate</div>
+                  <div className="text-sm font-medium text-white hackathon-text">Engage With Ideas</div>
                   <div className="text-xs text-gray-400 hackathon-text">
                     {hasParticipated ? 
                       `${hasIdeas ? `${myIdeas.length} ideas` : ''}${hasIdeas && hasVotedForIdeas ? ', ' : ''}${hasVotedForIdeas ? `${myVotesGiven.ideaVotes} votes` : ''}` : 

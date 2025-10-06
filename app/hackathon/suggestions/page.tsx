@@ -35,7 +35,8 @@ export default function SuggestionsPage() {
   const myVotes = useQuery(api.hackathon.getMySuggestionVotes) || [];
 
   const createSuggestion = useMutation(api.hackathon.createSuggestion);
-  const voteForSuggestion = useMutation(api.hackathon.voteForSuggestion);
+  const toggleSuggestionVote = useMutation(api.hackathon.toggleSuggestionVote);
+  const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
   const deleteSuggestion = useMutation(api.hackathon.deleteSuggestion);
 
   if (!viewer) {
@@ -84,17 +85,23 @@ export default function SuggestionsPage() {
     }
   };
 
-  const handleVoteSuggestion = async (suggestionId: string) => {
+  const handleToggleSuggestionVote = async (suggestionId: string) => {
     try {
-      await voteForSuggestion({ suggestionId: suggestionId as any });
-      toast.success("Vote recorded!");
-    } catch (error: any) {
-      if (error.message?.includes("already voted")) {
-        toast.error("You have already voted for this suggestion");
+      const result = await toggleSuggestionVote({ suggestionId: suggestionId as any });
+      if (result.action === "added") {
+        toast.success("Vote recorded!");
       } else {
-        toast.error("Failed to vote for suggestion");
+        toast.success("Vote retracted!");
       }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to toggle vote");
     }
+  };
+
+  const hasVotedForSuggestion = (suggestionId: string) => {
+    if (!voteStatus) return false; // Still loading
+    const suggestionIdStr = String(suggestionId);
+    return voteStatus.suggestionVotes?.some(votedSuggestionId => String(votedSuggestionId) === suggestionIdStr) || false;
   };
 
   const handleDeleteSuggestion = async (suggestionId: string) => {
@@ -329,16 +336,15 @@ export default function SuggestionsPage() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => handleVoteSuggestion(suggestion._id)}
-                        disabled={myVotes.includes(suggestion._id)}
-                        className={`${
-                          myVotes.includes(suggestion._id) 
-                            ? "bg-green-500 text-white cursor-not-allowed" 
-                            : "bg-pink-500 hover:bg-pink-600 text-white"
+                        onClick={() => handleToggleSuggestionVote(suggestion._id)}
+                        className={`transition-all duration-300 transform hover:scale-105 ${
+                          hasVotedForSuggestion(suggestion._id)
+                            ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
+                            : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
                         }`}
                       >
                         <StarIcon className="mr-1 h-4 w-4" />
-                        {myVotes.includes(suggestion._id) ? "Voted" : "Vote"}
+                        {hasVotedForSuggestion(suggestion._id) ? "Voted" : "Vote"}
                       </Button>
                       {(suggestion.authorId === viewer._id || isAdmin) && (
                         <Button

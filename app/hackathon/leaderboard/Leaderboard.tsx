@@ -1,24 +1,126 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { BadgeIcon } from "@radix-ui/react-icons";
+import { StarIcon } from "lucide-react";
 
 export function Leaderboard() {
   const leaderboard = useQuery(api.hackathon.getLeaderboard) || [];
-  const voteForTeam = useMutation(api.hackathon.voteForTeam);
+  const toggleTeamVote = useMutation(api.hackathon.toggleTeamVote);
+  const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
+  const [isVoting, setIsVoting] = useState<string | null>(null);
 
-  const handleVoteTeam = async (teamId: string) => {
-    try {
-      await voteForTeam({ teamId });
-      toast.success("Vote recorded!");
-    } catch (error) {
-      toast.error("Failed to vote for team");
+  // Global error handler for uncaught errors
+  useEffect(() => {
+    const handleUncaughtError = (event: ErrorEvent) => {
+      console.error("Uncaught error:", event.error);
+      console.error("Uncaught error message:", event.error?.message);
+      
+      if (event.error?.message?.includes("only vote for one team")) {
+        toast.error("You can only vote for one team! Please retract your existing team vote first.");
+      } else if (event.error?.message?.includes("Not signed in")) {
+        toast.error("Please sign in to vote");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled promise rejection:", event.reason);
+      console.error("Rejection reason message:", event.reason?.message);
+      
+      if (event.reason?.message?.includes("only vote for one team")) {
+        toast.error("You can only vote for one team! Please retract your existing team vote first.");
+      } else if (event.reason?.message?.includes("Not signed in")) {
+        toast.error("Please sign in to vote");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    };
+
+    window.addEventListener('error', handleUncaughtError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleUncaughtError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  const handleToggleVote = async (teamId: string) => {
+    if (isVoting === teamId) {
+      console.log("Already voting for this team, ignoring click");
+      return;
     }
+    
+    setIsVoting(teamId);
+    
+    console.log("Attempting to vote for team:", teamId);
+    
+    // Create a wrapper function to catch any errors
+    const safeVote = async () => {
+      try {
+        const result = await toggleTeamVote({ teamId });
+        return result;
+      } catch (error) {
+        console.error("Error in safeVote:", error);
+        throw error;
+      }
+    };
+    
+    try {
+      const result = await safeVote();
+      console.log("Vote result:", result);
+      
+      if (result && typeof result === 'object' && 'action' in result) {
+        if (result.action === "added") {
+          toast.success("Vote recorded!");
+        } else {
+          toast.success("Vote retracted!");
+        }
+      }
+    } catch (error: unknown) {
+      console.error("Vote error caught:", error);
+      
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error message:", errorMessage);
+      console.error("Error type:", typeof error);
+      
+      if (errorMessage.includes("only vote for one team")) {
+        toast.error("You can only vote for one team! Please retract your existing team vote first.");
+      } else if (errorMessage.includes("Not signed in")) {
+        toast.error("Please sign in to vote");
+      } else if (errorMessage.includes("Team not found")) {
+        toast.error("Team not found");
+      } else {
+        toast.error(errorMessage || "Failed to toggle vote");
+      }
+    } finally {
+      setIsVoting(null);
+    }
+  };
+
+  const hasVotedForTeam = (teamId: string) => {
+    if (!voteStatus) {
+      console.log("Vote status still loading...");
+      return false; // Still loading
+    }
+    
+    // Convert teamId to string to ensure proper comparison
+    const teamIdStr = String(teamId);
+    const hasVoted = voteStatus.teamVotes?.some((votedTeamId: string) => String(votedTeamId) === teamIdStr) || false;
+    
+    console.log(`Checking team ${teamIdStr}:`, {
+      teamVotes: voteStatus.teamVotes,
+      hasVoted: hasVoted
+    });
+    
+    return hasVoted;
   };
 
   return (
@@ -38,7 +140,7 @@ export function Leaderboard() {
 
         {/* Leaderboard */}
         <div className="space-y-4">
-          {leaderboard.map((team, index) => (
+          {leaderboard.map((team: any, index: number) => (
             <Card 
               key={team._id} 
               className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 transition-all hover:scale-[1.02] ${
@@ -87,11 +189,17 @@ export function Leaderboard() {
                     </div>
                     <div className="text-sm text-gray-400 mb-3">votes</div>
                     <Button
-                      onClick={() => handleVoteTeam(team._id)}
-                      className="bg-pink-500 hover:bg-pink-600 text-white font-bold"
+                      size="sm"
+                      onClick={() => handleToggleVote(team._id)}
+                      disabled={isVoting === team._id}
+                      className={`transition-all duration-300 transform hover:scale-105 ${
+                        hasVotedForTeam(team._id)
+                          ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
+                          : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
+                      } ${isVoting === team._id ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <BadgeIcon className="mr-2 h-4 w-4" />
-                      Vote
+                      <StarIcon className="mr-1 h-4 w-4" />
+                      {isVoting === team._id ? "Voting..." : hasVotedForTeam(team._id) ? "Voted" : "Vote"}
                     </Button>
                   </div>
                 </div>

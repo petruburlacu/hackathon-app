@@ -2,6 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Toast Styles for Hackathon Theme */
+@layer components {
+  .toaster [data-sonner-toast] {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(59, 130, 246, 0.9)) !important;
+    border: 2px solid rgba(34, 211, 238, 0.8) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-family: var(--font-geist-mono) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: 
+      0 0 15px rgba(34, 211, 238, 0.4),
+      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0 0 6px rgba(34, 211, 238, 0.6) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="success"] {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(16, 185, 129, 0.9)) !important;
+    border: 2px solid rgba(34, 197, 94, 0.7) !important;
+    box-shadow: 
+      0 0 15px rgba(34, 197, 94, 0.5),
+      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0 0 6px rgba(34, 197, 94, 0.7) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="error"] {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 1), rgba(59, 130, 246, 1)) !important;
+    border: 2px solid rgba(239, 68, 68, 0.8) !important;
+    box-shadow: 
+      0 0 15px rgba(239, 68, 68, 0.5),
+      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0 0 6px rgba(239, 68, 68, 0.7) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="warning"] {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(217, 119, 6, 0.9)) !important;
+    border: 2px solid rgba(245, 158, 11, 0.7) !important;
+    box-shadow: 
+      0 0 15px rgba(245, 158, 11, 0.5),
+      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0 0 6px rgba(245, 158, 11, 0.7) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="info"] {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(59, 130, 246, 0.9)) !important;
+    border: 2px solid rgba(34, 211, 238, 0.7) !important;
+    box-shadow: 
+      0 0 15px rgba(34, 211, 238, 0.5),
+      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0 0 6px rgba(34, 211, 238, 0.7) !important;
+  }
+
+  .toaster [data-sonner-toast] [data-icon] {
+    color: #22d3ee !important;
+    filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8)) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="success"] [data-icon] {
+    color: #22c55e !important;
+    filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.8)) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="error"] [data-icon] {
+    color: #ef4444 !important;
+    filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.8)) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="warning"] [data-icon] {
+    color: #f59e0b !important;
+    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.8)) !important;
+  }
+
+  .toaster [data-sonner-toast][data-type="info"] [data-icon] {
+    color: #22d3ee !important;
+    filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8)) !important;
+  }
+}
+
 /* Hackathon Retro Theme */
 @layer base {
   :root {
