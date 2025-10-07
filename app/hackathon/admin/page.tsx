@@ -7,6 +7,37 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { HackathonNav } from "@/components/HackathonNav";
+import { Id } from "@/convex/_generated/dataModel";
+
+// Type for idea object
+type Idea = {
+  _id: Id<"ideas">;
+  title: string;
+  description: string;
+  authorId: Id<"users">;
+  createdAt: number;
+  votes: number;
+  isSelected: boolean;
+  category?: string;
+  tags?: string[];
+};
+
+// Type for team object
+type Team = {
+  _id: Id<"teams">;
+  name: string;
+  description?: string;
+  leaderId: Id<"users">;
+  ideaId?: Id<"ideas">;
+  status?: "forming" | "idea-browsing" | "assembled" | "ready";
+  isAssembled?: boolean;
+  maxDevs: number;
+  maxNonDevs: number;
+  currentDevs: number;
+  currentNonDevs: number;
+  createdAt: number;
+  votes: number;
+};
 
 export default function AdminPage() {
   const [isSeeding, setIsSeeding] = useState(false);
@@ -101,13 +132,13 @@ export default function AdminPage() {
     }
   };
 
-  const handleAdminDeleteIdea = async (ideaId: string) => {
+  const handleAdminDeleteIdea = async (ideaId: Id<"ideas">) => {
     if (!confirm("Are you sure you want to admin delete this idea? This will remove it from all teams and cannot be undone.")) {
       return;
     }
     
     try {
-      await adminDeleteIdea({ ideaId: ideaId as any });
+      await adminDeleteIdea({ ideaId });
       toast.success("Idea admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -115,13 +146,13 @@ export default function AdminPage() {
     }
   };
 
-  const handleAdminDeleteTeam = async (teamId: string) => {
+  const handleAdminDeleteTeam = async (teamId: Id<"teams">) => {
     if (!confirm("Are you sure you want to admin delete this team? This will remove all members and cannot be undone.")) {
       return;
     }
     
     try {
-      await adminDeleteTeam({ teamId: teamId as any });
+      await adminDeleteTeam({ teamId });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -212,7 +243,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {ideas.slice(0, 6).map((idea: any) => (
+                  {ideas.slice(0, 6).map((idea: Idea) => (
                     <div key={idea._id} className="bg-black/20 p-3 rounded-lg border border-cyan-400/10">
                       <h4 className="text-yellow-400 font-bold text-sm mb-1">{idea.title}</h4>
                       <p className="text-gray-400 text-xs line-clamp-2">{idea.description}</p>
@@ -221,7 +252,7 @@ export default function AdminPage() {
                           {idea.votes} votes
                         </span>
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                          {teams.filter((team: any) => team.ideaId === idea._id).length} teams
+                          {teams.filter((team: Team) => team.ideaId === idea._id).length} teams
                         </span>
                       </div>
                       <div className="mt-2">
@@ -248,7 +279,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {teams.slice(0, 6).map((team: any) => (
+                  {teams.slice(0, 6).map((team: Team) => (
                     <div key={team._id} className="bg-black/20 p-3 rounded-lg border border-cyan-400/10">
                       <h4 className="text-yellow-400 font-bold text-sm mb-1">{team.name}</h4>
                       <p className="text-gray-400 text-xs line-clamp-2">{team.description || "No description"}</p>

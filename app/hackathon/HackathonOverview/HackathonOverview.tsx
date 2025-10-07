@@ -13,6 +13,7 @@ import {
   RocketIcon,
   LightningBoltIcon,
 } from "@radix-ui/react-icons";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface HackathonUser {
   _id: string;
@@ -21,6 +22,36 @@ interface HackathonUser {
   companyEmail?: string;
   teamId?: string;
 }
+
+// Type for idea object
+type Idea = {
+  _id: Id<"ideas">;
+  title: string;
+  description: string;
+  authorId: Id<"users">;
+  createdAt: number;
+  votes: number;
+  isSelected: boolean;
+  category?: string;
+  tags?: string[];
+};
+
+// Type for team object
+type Team = {
+  _id: Id<"teams">;
+  name: string;
+  description?: string;
+  leaderId: Id<"users">;
+  ideaId?: Id<"ideas">;
+  status?: "forming" | "idea-browsing" | "assembled" | "ready";
+  isAssembled?: boolean;
+  maxDevs: number;
+  maxNonDevs: number;
+  currentDevs: number;
+  currentNonDevs: number;
+  createdAt: number;
+  votes: number;
+};
 
 export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonUser | null | undefined }) {
   const ideas = useQuery(api.hackathon.getIdeas) || [];
@@ -50,7 +81,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
 
   const topIdeas = ideas.slice(0, 3);
   const topTeams = leaderboard.slice(0, 3);
-  const userTeam = teams.find((team: any) => team._id === hackathonUser.teamId);
+  const userTeam = teams.find((team: Team) => team._id === hackathonUser.teamId);
   
   // Determine user state for personalized content
   const hasIdeas = myIdeas.length > 0;
@@ -181,7 +212,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">
-                {ideas.reduce((sum: number, idea: any) => sum + idea.votes, 0) + teams.reduce((sum: number, team: any) => sum + team.votes, 0)}
+                {ideas.reduce((sum: number, idea: Idea) => sum + idea.votes, 0) + teams.reduce((sum: number, team: Team) => sum + team.votes, 0)}
               </div>
               <p className="text-gray-400 text-sm hackathon-text">Votes cast across all</p>
             </CardContent>
@@ -288,7 +319,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {topIdeas.map((idea: any, index: number) => (
+                {topIdeas.map((idea: Idea, index: number) => (
                   <div key={idea._id} className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-yellow-400 hackathon-title text-sm font-bold">#{index + 1}</h4>
@@ -318,7 +349,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {topTeams.map((team: any, index: number) => (
+                {topTeams.map((team: Team, index: number) => (
                   <div key={team._id} className={`p-4 rounded-lg border ${
                     index === 0 ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-400/30' :
                     index === 1 ? 'bg-gradient-to-r from-gray-500/10 to-slate-500/10 border-gray-400/30' :

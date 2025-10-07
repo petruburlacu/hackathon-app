@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,14 +80,14 @@ const tourSteps = [
 export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     // Don't mark as completed when manually closed - allow resuming
     // Just save the current step and close
     if (typeof window !== 'undefined') {
       localStorage.setItem("hackathon-tour-step", currentStep.toString());
     }
     onClose();
-  };
+  }, [currentStep, onClose]);
 
   useEffect(() => {
     if (isVisible) {
