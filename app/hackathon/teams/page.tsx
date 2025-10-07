@@ -362,6 +362,8 @@ export default function TeamsPage() {
               </CardContent>
             </Card>
           ) : (
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedTeams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
