@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HackathonCountdown } from "@/components/HackathonCountdown";
 import {
@@ -11,14 +10,9 @@ import {
   BadgeIcon,
   LightningBoltIcon,
 } from "@radix-ui/react-icons";
-import Link from "next/link";
 import { ReactNode } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
 export const HackathonHome = () => {
-  const viewer = useQuery(api.users.viewer);
-  
   return (
     <div className="flex grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
       {/* Hero Section */}
@@ -27,15 +21,15 @@ export const HackathonHome = () => {
           <div className="inline-block px-6 py-3 bg-yellow-400 text-black font-bold text-xl rounded-lg mb-8 transform -rotate-2 shadow-lg hackathon-title">
             🚀 Hackathon 2025 🚀
           </div>
-          <h1 className="mb-8 mt-16 flex flex-col items-center gap-8 text-center text-7xl font-extrabold leading-none tracking-tight text-white">
+          <h1 className="mb-8 mt-16 flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-none tracking-tight text-white px-4">
             <span className="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent hackathon-title">
               TRIAL BY CODE
             </span>
-            <span className="text-5xl text-cyan-300 font-mono countdown-font">
+            <span className="text-2xl sm:text-3xl lg:text-5xl text-cyan-300 font-mono countdown-font">
               &lt;/&gt; HACKATHON &lt;/&gt;
             </span>
           </h1>
-          <div className="mb-12 text-center text-2xl text-cyan-200 font-mono hackathon-text">
+          <div className="mb-12 text-center text-lg sm:text-xl lg:text-2xl text-cyan-200 font-mono hackathon-text px-4">
           Cross-functional teams, fresh ideas, and good vibes 🎮✨
           </div>
         </div>
@@ -47,23 +41,12 @@ export const HackathonHome = () => {
           </div>
         </div>
 
-        <div className="mb-16 flex justify-center gap-4">
-          <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl px-10 py-6 rounded-lg shadow-lg transform hover:scale-105 transition-all hackathon-title">
-            <Link href={viewer ? "/hackathon" : "/signin"}>
-              {viewer ? "Enter Hackathon" : "Join Hackathon"}
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-xl px-10 py-6 rounded-lg hackathon-title">
-            <Link href="/signin">Sign In</Link>
-          </Button>
-        </div>
-
         {/* Features Grid */}
-        <div className="flex flex-col gap-8 bg-black/20 backdrop-blur-sm p-12 rounded-2xl border border-cyan-400/20">
-          <h2 className="mb-4 text-center text-4xl font-bold text-yellow-400 font-mono hackathon-title">
+        <div className="flex flex-col gap-8 bg-black/20 backdrop-blur-sm p-6 sm:p-8 lg:p-12 rounded-2xl border border-cyan-400/20 mx-4">
+          <h2 className="mb-4 text-center text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 font-mono hackathon-title">
             HACKATHON FEATURES
           </h2>
-          <div className="text-center text-lg text-cyan-200 mb-8 hackathon-text">
+          <div className="text-center text-base sm:text-lg text-cyan-200 mb-8 hackathon-text">
             Everything you need for an epic hackathon experience
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -107,8 +90,8 @@ export const HackathonHome = () => {
         </div>
 
         {/* Rules Section */}
-        <div className="mt-16 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm p-8 rounded-2xl border border-pink-400/20">
-          <h3 className="text-2xl font-bold text-center text-pink-300 mb-6 font-mono">
+        <div className="mt-16 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-pink-400/20 mx-4">
+          <h3 className="text-xl sm:text-2xl font-bold text-center text-pink-300 mb-6 font-mono">
             🎮 HACKATHON RULES 🎮
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
@@ -135,10 +118,10 @@ export const HackathonHome = () => {
       </div>
 
       {/* Retro Footer */}
-      <div className="px-20 pb-20">
+      <div className="px-4 sm:px-8 lg:px-20 pb-8 sm:pb-12 lg:pb-20">
         <div className="container">
           <div className="text-center mb-8">
-            <div className="inline-block px-6 py-3 bg-gradient-to-r from-yellow-400 to-pink-500 text-black font-bold text-xl rounded-lg transform rotate-1 shadow-lg">
+            <div className="inline-block px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-yellow-400 to-pink-500 text-black font-bold text-lg sm:text-xl rounded-lg transform rotate-1 shadow-lg">
               READY TO HACK? 🚀
             </div>
           </div>

@@ -128,13 +128,13 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
           <div className="px-0 pb-4 border-t border-cyan-400/20 bg-black/30">
-            <div className="space-y-2 pt-3 px-4">
+            <div className="space-y-1 pt-3 px-4">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`block px-4 py-3 rounded-lg text-base transition-colors ${
                     item.current
                       ? 'text-yellow-400 font-bold bg-yellow-400/10 border border-yellow-400/20'
                       : 'text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5'
@@ -146,7 +146,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
               <Link
                 href="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md text-sm text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5 transition-colors"
+                className="block px-4 py-3 rounded-lg text-base text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5 transition-colors"
               >
                 Home
               </Link>

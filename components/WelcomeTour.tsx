@@ -179,7 +179,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
 
   return (
     <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-4"
       onClick={(e) => {
         // Close when clicking on the backdrop
         if (e.target === e.currentTarget) {
@@ -187,17 +187,17 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
         }
       }}
     >
-      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white relative">
-        <CardHeader className="relative">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-yellow-400 font-mono text-xl">
+      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white relative mx-2 sm:mx-4">
+        <CardHeader className="relative p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-yellow-400 font-mono text-lg sm:text-xl leading-tight flex-1">
               {currentStepData.title}
             </CardTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10"
+              className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10 flex-shrink-0"
               aria-label="Close tour"
             >
               <Cross2Icon className="h-4 w-4" />
@@ -218,19 +218,19 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
           {/* Main Content */}
-          <div className="text-cyan-200 leading-relaxed">
+          <div className="text-cyan-200 leading-relaxed text-sm sm:text-base">
             {currentStepData.content}
           </div>
 
           {/* Progress Status for Current Step */}
           {currentStepData.showProgress && (
-            <div className="p-4 bg-black/40 rounded-lg border border-cyan-400/20">
+            <div className="p-3 sm:p-4 bg-black/40 rounded-lg border border-cyan-400/20">
               <div className="flex items-center gap-2">
                 <Badge 
                   variant="secondary" 
-                  className={`${
+                  className={`text-xs sm:text-sm ${
                     getProgressStatus(currentStepData.id) 
                       ? 'bg-green-500 text-white' 
                       : 'bg-yellow-500 text-black'
@@ -241,25 +241,26 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
                   ) : (
                     <span className="mr-1">⏳</span>
                   )}
-                  {getProgressText(currentStepData.id)}
+                  <span className="hidden sm:inline">{getProgressText(currentStepData.id)}</span>
+                  <span className="sm:hidden">{getProgressText(currentStepData.id).split(' ')[0]}</span>
                 </Badge>
               </div>
             </div>
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 pt-2 sm:pt-4">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
-              className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50"
+              className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50 py-2 sm:py-2 text-sm sm:text-base order-2 sm:order-1"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Previous
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 order-1 sm:order-2">
               {currentStep > 0 && (
                 <Button
                   variant="outline"
@@ -270,7 +271,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
                       localStorage.setItem("hackathon-tour-step", "0");
                     }
                   }}
-                  className="border-gray-400/30 text-gray-400 hover:bg-gray-400/10"
+                  className="border-gray-400/30 text-gray-400 hover:bg-gray-400/10 py-2 sm:py-2 text-sm sm:text-base"
                 >
                   Restart
                 </Button>
@@ -278,20 +279,25 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
               
               <Button
                 onClick={handleNext}
-                className={`font-bold ${
+                className={`font-bold py-3 sm:py-2 text-sm sm:text-base ${
                   isLastStep 
-                    ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-8 py-3' 
-                    : 'bg-yellow-400 hover:bg-yellow-500 text-black'
+                    ? 'bg-green-500 hover:bg-green-600 text-white px-4 sm:px-8' 
+                    : 'bg-yellow-400 hover:bg-yellow-500 text-black px-4 sm:px-6'
                 }`}
               >
-                {isLastStep ? "🎉 Start Hackathon!" : currentStepData.action}
+                <span className="hidden sm:inline">
+                  {isLastStep ? "🎉 Start Hackathon!" : currentStepData.action}
+                </span>
+                <span className="sm:hidden">
+                  {isLastStep ? "🎉 Start!" : "Next"}
+                </span>
                 {!isLastStep && <ArrowRightIcon className="h-4 w-4 ml-2" />}
               </Button>
             </div>
           </div>
 
           {/* Step Indicators */}
-          <div className="flex justify-center gap-2 pt-4">
+          <div className="flex justify-center gap-1 sm:gap-2 pt-2 sm:pt-4">
             {tourSteps.map((_, index) => (
               <button
                 key={index}
@@ -302,13 +308,14 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
                     localStorage.setItem("hackathon-tour-step", index.toString());
                   }
                 }}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
                   index === currentStep
                     ? 'bg-yellow-400'
                     : index < currentStep
                     ? 'bg-green-400'
                     : 'bg-gray-600'
                 }`}
+                aria-label={`Go to step ${index + 1}`}
               />
             ))}
           </div>

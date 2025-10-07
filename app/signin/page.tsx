@@ -35,9 +35,9 @@ export default function SignInPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <SimpleNav />
       
-      <div className="flex min-h-[calc(100vh-80px)] w-full container my-auto mx-auto">
-        <div className="max-w-[384px] mx-auto flex flex-col my-auto gap-4 pb-8">
-          <h2 className="font-semibold text-2xl tracking-tight text-white">
+      <div className="flex min-h-[calc(100vh-80px)] w-full container my-auto mx-auto px-4">
+        <div className="max-w-[384px] mx-auto flex flex-col my-auto gap-4 pb-8 w-full">
+          <h2 className="font-semibold text-xl sm:text-2xl tracking-tight text-white text-center sm:text-left">
             {isSignUp ? "Join the Hackathon" : "Sign in"}
           </h2>
           
@@ -53,7 +53,7 @@ export default function SignInPage() {
                 required
                 autoComplete="username"
                 placeholder="Enter your username (can be email or any identifier)"
-                className="mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                className="mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
               />
             </div>
             
@@ -67,14 +67,14 @@ export default function SignInPage() {
                 type="password"
                 required
                 autoComplete={isSignUp ? "new-password" : "current-password"}
-                className="mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                className="mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
               />
             </div>
 
             
             <Button 
               type="submit" 
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3"
             >
               {isSignUp ? "Join Hackathon" : "Sign In"}
             </Button>

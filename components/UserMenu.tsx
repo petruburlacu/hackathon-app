@@ -25,17 +25,19 @@ interface UserMenuProps {
 
 export function UserMenu({ children, isAdmin = false, hackathonUser }: UserMenuProps) {
   return (
-    <div className="flex items-center gap-2 text-sm font-medium">
-      {children}
+    <div className="flex items-center gap-1 sm:gap-2 text-sm font-medium">
+      <span className="hidden sm:inline text-xs sm:text-sm text-cyan-300 truncate max-w-20 sm:max-w-none">
+        {children}
+      </span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <PersonIcon className="h-5 w-5" />
+          <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 sm:h-10 sm:w-10">
+            <PersonIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{hackathonUser?.displayName || children}</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="text-sm">{hackathonUser?.displayName || children}</DropdownMenuLabel>
                   {hackathonUser && (
                     <DropdownMenuLabel className="flex items-center gap-2 py-0 font-normal">
                       <span className="text-cyan-300 text-sm">Role:</span>

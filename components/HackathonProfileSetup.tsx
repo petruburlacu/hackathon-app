@@ -59,22 +59,22 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
   // If user doesn't have a hackathon profile, show setup form
   if (showSetup) {
     return (
-      <div className="flex min-h-screen w-full container my-auto mx-auto bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="max-w-[500px] mx-auto flex flex-col my-auto gap-6 pb-8">
+      <div className="flex min-h-screen w-full container my-auto mx-auto bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
+        <div className="max-w-[500px] mx-auto flex flex-col my-auto gap-4 sm:gap-6 pb-8 w-full">
           <div className="text-center">
-            <div className="inline-block px-4 py-2 bg-yellow-400 text-black font-bold text-lg rounded-lg mb-6 transform -rotate-2 shadow-lg">
+            <div className="inline-block px-3 sm:px-4 py-2 bg-yellow-400 text-black font-bold text-base sm:text-lg rounded-lg mb-4 sm:mb-6 transform -rotate-2 shadow-lg">
               🚀 COMPLETE YOUR PROFILE 🚀
             </div>
-            <h2 className="font-semibold text-3xl tracking-tight text-yellow-400 font-mono mb-4">
+            <h2 className="font-semibold text-2xl sm:text-3xl tracking-tight text-yellow-400 font-mono mb-3 sm:mb-4 px-2">
               Join the Hackathon
             </h2>
-            <p className="text-cyan-200 text-lg">
+            <p className="text-cyan-200 text-base sm:text-lg px-2">
               Complete your profile to participate in the hackathon
             </p>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-sm p-8 rounded-2xl border border-cyan-400/20">
-            <div className="space-y-6">
+          <div className="bg-black/40 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-2xl border border-cyan-400/20">
+            <div className="space-y-4 sm:space-y-6">
               <div>
                 <label htmlFor="displayName" className="text-sm font-medium text-cyan-300 mb-2 block">
                   Display Name *
@@ -85,41 +85,41 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Your name as it will appear"
-                  className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
                   required
                 />
               </div>
 
-                      <div>
-                        <label className="text-sm font-medium mb-2 block text-cyan-300">
-                          Choose your role *
-                        </label>
-                        <ToggleGroup
-                          type="single"
-                          value={role || ""}
-                          onValueChange={(value) => setRole(value as "dev" | "non-dev" | "admin" | null)}
-                          className="w-full"
-                        >
-                          <ToggleGroupItem value="dev" className="flex-1 bg-blue-500/20 border-blue-400/30 text-blue-300 data-[state=on]:bg-blue-500 data-[state=on]:text-white">
-                            <CodeIcon className="mr-2 h-4 w-4" />
-                            Developer
-                          </ToggleGroupItem>
-                          <ToggleGroupItem value="non-dev" className="flex-1 bg-pink-500/20 border-pink-400/30 text-pink-300 data-[state=on]:bg-pink-500 data-[state=on]:text-white">
-                            <PersonIcon className="mr-2 h-4 w-4" />
-                            Non-Developer
-                          </ToggleGroupItem>
-                          {isAdmin && (
-                            <ToggleGroupItem value="admin" className="flex-1 bg-red-500/20 border-red-400/30 text-red-300 data-[state=on]:bg-red-500 data-[state=on]:text-white">
-                              <PersonIcon className="mr-2 h-4 w-4" />
-                              Admin
-                            </ToggleGroupItem>
-                          )}
-                        </ToggleGroup>
-                      </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block text-cyan-300">
+                  Choose your role *
+                </label>
+                <ToggleGroup
+                  type="single"
+                  value={role || ""}
+                  onValueChange={(value) => setRole(value as "dev" | "non-dev" | "admin" | null)}
+                  className="w-full flex flex-col sm:flex-row gap-2 sm:gap-0"
+                >
+                  <ToggleGroupItem value="dev" className="flex-1 bg-blue-500/20 border-blue-400/30 text-blue-300 data-[state=on]:bg-blue-500 data-[state=on]:text-white py-3 sm:py-2">
+                    <CodeIcon className="mr-2 h-4 w-4" />
+                    <span className="text-sm sm:text-base">Developer</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="non-dev" className="flex-1 bg-pink-500/20 border-pink-400/30 text-pink-300 data-[state=on]:bg-pink-500 data-[state=on]:text-white py-3 sm:py-2">
+                    <PersonIcon className="mr-2 h-4 w-4" />
+                    <span className="text-sm sm:text-base">Non-Developer</span>
+                  </ToggleGroupItem>
+                  {isAdmin && (
+                    <ToggleGroupItem value="admin" className="flex-1 bg-red-500/20 border-red-400/30 text-red-300 data-[state=on]:bg-red-500 data-[state=on]:text-white py-3 sm:py-2">
+                      <PersonIcon className="mr-2 h-4 w-4" />
+                      <span className="text-sm sm:text-base">Admin</span>
+                    </ToggleGroupItem>
+                  )}
+                </ToggleGroup>
+              </div>
 
               <Button 
                 onClick={handleSetup}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg py-3"
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-base sm:text-lg py-3 sm:py-3 mt-4 sm:mt-6"
                 disabled={!role || !displayName.trim()}
               >
                 Complete Profile & Enter Hackathon

@@ -11,7 +11,7 @@ export default function SplashPageLayout({
   return (
     <ConvexClientProvider>
       <div className="flex min-h-screen w-full flex-col">
-        <header className="sticky top-0 z-10 flex h-20 border-b border-cyan-400/20 bg-black/20 backdrop-blur px-4 md:px-6">
+        <header className="sticky top-0 z-10 flex h-16 sm:h-20 border-b border-cyan-400/20 bg-black/20 backdrop-blur px-3 sm:px-4 md:px-6">
           {/* Desktop Navigation */}
           <nav className="container hidden w-full justify-between gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
             <Link href="/">

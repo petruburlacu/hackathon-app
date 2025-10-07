@@ -150,22 +150,22 @@ export default function SuggestionsPage() {
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="💡 SUGGESTION BOX 💡" />
 
-      <div className="flex-1 p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex-1 p-3 sm:p-4 lg:p-6">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Create New Suggestion */}
           {!showCreateForm ? (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-              <CardContent className="p-6 text-center">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-2xl font-bold text-yellow-400 mb-4">
+              <CardContent className="p-4 sm:p-6 text-center">
+                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📝</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4">
                   Share Your Ideas & Feedback
                 </h3>
-                <p className="text-cyan-200 mb-6">
+                <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base">
                   Help us improve the hackathon experience! Submit suggestions, report bugs, or share ideas for new features.
                 </p>
                 <Button
                   onClick={() => setShowCreateForm(true)}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
                 >
                   <PlusIcon className="mr-2 h-4 w-4" />
                   Submit Suggestion
@@ -180,14 +180,14 @@ export default function SuggestionsPage() {
                   Submit New Suggestion
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 sm:p-6">
                 <div>
                   <label className="text-sm text-cyan-300 mb-2 block">Title *</label>
                   <Input
                     placeholder="Brief title for your suggestion..."
                     value={newSuggestionTitle}
                     onChange={(e) => setNewSuggestionTitle(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
                     required
                   />
                   <p className="text-xs text-gray-400 mt-1">Minimum 3 characters</p>
@@ -206,7 +206,7 @@ export default function SuggestionsPage() {
                   <p className="text-xs text-gray-400 mt-1">Minimum 10 characters</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-cyan-300 mb-2 block">Category</label>
                     <Select value={newSuggestionCategory} onValueChange={(value: any) => setNewSuggestionCategory(value)}>
@@ -223,7 +223,7 @@ export default function SuggestionsPage() {
                     </Select>
                   </div>
                   
-                  <div className="flex items-center space-x-2 pt-8">
+                  <div className="flex items-center space-x-2 pt-6 sm:pt-8">
                     <input
                       type="checkbox"
                       id="isAnonymous"
@@ -237,10 +237,10 @@ export default function SuggestionsPage() {
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     onClick={handleCreateSuggestion}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3"
                     disabled={!newSuggestionTitle.trim() || !newSuggestionDescription.trim()}
                   >
                     Submit Suggestion
@@ -248,7 +248,7 @@ export default function SuggestionsPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowCreateForm(false)}
-                    className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black"
+                    className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3"
                   >
                     Cancel
                   </Button>
@@ -259,19 +259,19 @@ export default function SuggestionsPage() {
 
           {/* Search and Filter */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex-1">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col gap-4">
+                <div className="w-full">
                   <Input
                     placeholder="Search suggestions by title or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
@@ -284,7 +284,7 @@ export default function SuggestionsPage() {
                     </SelectContent>
                   </Select>
                   <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                    <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
@@ -293,7 +293,7 @@ export default function SuggestionsPage() {
                       <SelectItem value="title">Alphabetical</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
+                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1 self-center">
                     {filteredSuggestions.length} suggestions
                   </Badge>
                 </div>
@@ -302,7 +302,7 @@ export default function SuggestionsPage() {
           </Card>
 
           {/* Suggestions List */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredSuggestions.map((suggestion) => (
               <Card key={suggestion._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>

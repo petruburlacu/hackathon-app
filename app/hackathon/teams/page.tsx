@@ -15,6 +15,7 @@ import Link from "next/link";
 import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
 
 export default function TeamsPage() {
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
   const [maxDevs, setMaxDevs] = useState(2);
@@ -73,6 +74,7 @@ export default function TeamsPage() {
       setNewTeamDescription("");
       setMaxDevs(2);
       setMaxNonDevs(2);
+      setShowCreateForm(false);
       toast.success("Team created successfully!");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -156,11 +158,32 @@ export default function TeamsPage() {
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="👥 TEAMS 👥" />
 
-      <div className="flex-1 p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex-1 p-3 sm:p-4 lg:p-6">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Create New Team */}
-          {!hackathonUser?.teamId && !userCreatedTeam && (
+          {!hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-4 sm:p-6 text-center">
+                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">👥</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                  Create Your Team
+                </h3>
+                <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base hackathon-text">
+                  Gather developers and non-developers to work together on amazing hackathon projects!
+                </p>
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                >
+                  <RocketIcon className="mr-2 h-4 w-4" />
+                  Create New Team
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
+            <Card id="create-team-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                   <RocketIcon className="h-5 w-5" />
@@ -224,57 +247,70 @@ export default function TeamsPage() {
                   </p>
                 </div>
                 
-                <Button
-                  onClick={handleCreateTeam}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold w-full"
-                >
-                  <RocketIcon className="mr-2 h-4 w-4" />
-                  Create Team
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={handleCreateTeam}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 flex-1"
+                  >
+                    <RocketIcon className="mr-2 h-4 w-4" />
+                    Create Team
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setNewTeamName("");
+                      setNewTeamDescription("");
+                      setMaxDevs(2);
+                      setMaxNonDevs(2);
+                    }}
+                    className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3 flex-1 sm:flex-none"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Search and Filter Controls */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-4">
-                  <div className="flex-1">
-                    <Input
-                      placeholder="Search teams by name or description..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="forming">⏳ Forming</SelectItem>
-                        <SelectItem value="idea-browsing">🔍 Idea Browsing</SelectItem>
-                        <SelectItem value="assembled">✅ Assembled</SelectItem>
-                        <SelectItem value="ready">🚀 Ready</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "name") => setSortBy(value)}>
-                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="votes">Most Votes</SelectItem>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="name">Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
-                      {filteredAndSortedTeams.length} teams
-                    </Badge>
-                  </div>
+                <div className="w-full">
+                  <Input
+                    placeholder="Search teams by name or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="forming">⏳ Forming</SelectItem>
+                      <SelectItem value="idea-browsing">🔍 Idea Browsing</SelectItem>
+                      <SelectItem value="assembled">✅ Assembled</SelectItem>
+                      <SelectItem value="ready">🚀 Ready</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "name") => setSortBy(value)}>
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                      <SelectItem value="votes">Most Votes</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="name">Alphabetical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1 self-center">
+                    {filteredAndSortedTeams.length} teams
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -282,7 +318,36 @@ export default function TeamsPage() {
 
           {/* Teams List */}
           {teams.length === 0 ? (
-            <GridSkeleton count={6} />
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-8 sm:p-12 text-center">
+                <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">👥</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                  No Teams Yet
+                </h3>
+                <p className="text-cyan-200 mb-6 sm:mb-8 text-sm sm:text-base hackathon-text">
+                  Be the first to create a team! Gather developers and non-developers to work together on amazing projects.
+                </p>
+                {!userCreatedTeam ? (
+                  <Button
+                    onClick={() => {
+                      // Scroll to the create form
+                      const formElement = document.getElementById('create-team-form');
+                      if (formElement) {
+                        formElement.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                  >
+                    <RocketIcon className="mr-2 h-4 w-4" />
+                    Create First Team
+                  </Button>
+                ) : (
+                  <p className="text-cyan-300 text-sm">
+                    You've already created a team! Check it out below.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedTeams.map((team: any) => (
@@ -343,15 +408,15 @@ export default function TeamsPage() {
                           <div className="text-xs text-gray-400 mb-2">
                             {ideas.find((idea: any) => idea._id === team.ideaId)?.description?.substring(0, 100)}...
                           </div>
-                          <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="flex flex-col gap-2">
                             <Button
                               size="sm"
                               onClick={() => handleRemoveIdea(team._id)}
-                              className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
                             >
                               Remove Idea
                             </Button>
-                            <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
+                            <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                               <Link href="/hackathon/ideas">Browse Ideas</Link>
                             </Button>
                           </div>
@@ -382,11 +447,11 @@ export default function TeamsPage() {
                               )}
                             </SelectContent>
                           </Select>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
+                          <div className="flex flex-col gap-2">
+                            <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
                               <Link href="/hackathon/ideas">Browse All Ideas</Link>
                             </Button>
-                            <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black flex-1">
+                            <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black py-2 px-4">
                               <Link href="/hackathon/ideas">Submit New Idea</Link>
                             </Button>
                           </div>
@@ -405,13 +470,13 @@ export default function TeamsPage() {
                         <p className="text-gray-400 text-xs">
                           As team leader, you can manage your team members and settings.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1">
+                        <div className="flex flex-col gap-2">
+                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
                             <Link href={`/hackathon/teams/${team._id}`}>
                               Manage Members
                             </Link>
                           </Button>
-                          <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
+                          <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                             <Link href={`/hackathon/teams/${team._id}`}>
                               <Pencil1Icon className="mr-1 h-4 w-4" />
                               Edit Team
@@ -447,8 +512,8 @@ export default function TeamsPage() {
                             <span className="text-sm text-gray-400">
                               Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
                             </span>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1">
+                            <div className="flex flex-col gap-2">
+                              <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                                 <Link href={`/hackathon/teams/${team._id}`}>
                                   View Details
                                 </Link>
@@ -457,7 +522,7 @@ export default function TeamsPage() {
                                 <Button
                                   size="sm"
                                   onClick={() => handleJoinTeam(team._id)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4"
                                 >
                                   <AvatarIcon className="mr-1 h-4 w-4" />
                                   Join

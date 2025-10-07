@@ -98,14 +98,14 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
   };
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Personalized Welcome Section */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-yellow-400 mb-4 hackathon-title">
+        <div className="text-center px-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
             {userProgress.isComplete ? "🚀 Ready to Hack!" : 'Get Ready to Hack!'}
           </h1>
-          <p className="text-xl text-cyan-200 mb-8 hackathon-text">
+          <p className="text-base sm:text-lg lg:text-xl text-cyan-200 mb-6 sm:mb-8 hackathon-text">
             {userProgress.isComplete ? "You're all set!" :
              hasTeam ? "Your team is getting ready. Keep participating!" :
              hasParticipated ? "Great participation! Now form or join a team." :
@@ -179,7 +179,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </Card>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg">
@@ -220,7 +220,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </div>
 
         {/* Personalized Action Cards */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {/* Next Action Card */}
           <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/30">
             <CardHeader>

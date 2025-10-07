@@ -11,9 +11,10 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
-import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
+import { FullScreenLoader } from "@/components/PixelatedLoader";
 
 export default function IdeasPage() {
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
   const [newIdeaDescription, setNewIdeaDescription] = useState("");
   const [newIdeaCategory, setNewIdeaCategory] = useState<string>("");
@@ -81,6 +82,7 @@ export default function IdeasPage() {
       setNewIdeaDescription("");
       setNewIdeaTags("");
       setNewIdeaCategory("web-app");
+      setShowCreateForm(false);
       toast.success("Idea submitted successfully!");
     } catch {
       toast.error("Failed to submit idea");
@@ -244,10 +246,30 @@ export default function IdeasPage() {
     <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="💡 IDEAS BOARD 💡" />
 
-      <div className="flex-1 p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex-1 p-3 sm:p-4 lg:p-6">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Submit New Idea */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          {!showCreateForm ? (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-4 sm:p-6 text-center">
+                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💡</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                  Share Your Ideas
+                </h3>
+                <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base hackathon-text">
+                  Have an innovative idea for the hackathon? Submit it and let the community vote on it!
+                </p>
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                >
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Submit New Idea
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card id="create-idea-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <PlusIcon className="h-5 w-5" />
@@ -306,59 +328,73 @@ export default function IdeasPage() {
                 </div>
               </div>
               
-              <Button
-                onClick={handleCreateIdea}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
-              >
-                Submit Idea
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={handleCreateIdea}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3"
+                >
+                  Submit Idea
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setNewIdeaTitle("");
+                    setNewIdeaDescription("");
+                    setNewIdeaCategory("");
+                    setNewIdeaTags("");
+                  }}
+                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3"
+                >
+                  Cancel
+                </Button>
+              </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Search and Sort Controls */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-4">
-                  <div className="flex-1">
-                    <Input
-                      placeholder="Search ideas by title, description, or tags..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {Array.from(new Set(ideas.map((idea: any) => idea.category)))
-                          .filter((category): category is string => Boolean(category))
-                          .sort()
-                          .map((category: string) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "title") => setSortBy(value)}>
-                      <SelectTrigger className="w-40 bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="votes">Most Votes</SelectItem>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="title">Alphabetical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1">
-                      {filteredAndSortedIdeas.length} ideas
-                    </Badge>
-                  </div>
+                <div className="w-full">
+                  <Input
+                    placeholder="Search ideas by title, description, or tags..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {Array.from(new Set(ideas.map((idea: any) => idea.category)))
+                        .filter((category): category is string => Boolean(category))
+                        .sort()
+                        .map((category: string) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "title") => setSortBy(value)}>
+                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
+                      <SelectItem value="votes">Most Votes</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="title">Alphabetical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1 self-center">
+                    {filteredAndSortedIdeas.length} ideas
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -366,7 +402,30 @@ export default function IdeasPage() {
 
           {/* Ideas List */}
           {ideas.length === 0 ? (
-            <GridSkeleton count={6} />
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-8 sm:p-12 text-center">
+                <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">💡</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                  No Ideas Yet
+                </h3>
+                <p className="text-cyan-200 mb-6 sm:mb-8 text-sm sm:text-base hackathon-text">
+                  Be the first to submit an innovative idea for the hackathon! Your creativity could inspire amazing projects.
+                </p>
+                <Button
+                  onClick={() => {
+                    // Scroll to the create form
+                    const formElement = document.getElementById('create-idea-form');
+                    if (formElement) {
+                      formElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                >
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Submit First Idea
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedIdeas.map((idea: any) => (
@@ -473,11 +532,11 @@ export default function IdeasPage() {
                     {/* Action buttons - organized in rows */}
                     <div className="space-y-2">
                       {/* Primary actions row */}
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black flex-1"
+                          className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4"
                           onClick={() => {
                             // TODO: Implement idea details modal or page
                             alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
@@ -490,7 +549,7 @@ export default function IdeasPage() {
                             size="sm"
                             onClick={() => handleAssignIdea(idea._id)}
                             variant="outline"
-                            className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black flex-1"
+                            className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4"
                           >
                             Assign to Team
                           </Button>
@@ -499,11 +558,11 @@ export default function IdeasPage() {
                       
                       {/* Owner actions row */}
                       {idea.authorId === hackathonUser?.userId && (
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex flex-col gap-2">
                           <Button
                             size="sm"
                             onClick={() => handleEditIdea(idea)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4"
                           >
                             <Pencil1Icon className="mr-1 h-4 w-4" />
                             Edit
@@ -511,7 +570,7 @@ export default function IdeasPage() {
                           <Button
                             size="sm"
                             onClick={() => handleDeleteIdea(idea._id)}
-                            className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
                           >
                             Delete
                           </Button>
