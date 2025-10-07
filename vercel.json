@@ -1,5 +1,0 @@
-{
-  "buildCommand": "npx convex deploy --cmd 'npm run build' --yes",
-  "framework": "nextjs",
-  "installCommand": "npm install"
-}
