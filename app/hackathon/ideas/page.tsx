@@ -401,33 +401,31 @@ export default function IdeasPage() {
           </Card>
 
           {/* Ideas List */}
-          {ideas.length === 0 ? (
+          {filteredAndSortedIdeas.length === 0 ? (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardContent className="p-8 sm:p-12 text-center">
                 <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">💡</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
-                  No Ideas Yet
+                  {searchQuery ? "No Ideas Found" : "No Ideas Yet"}
                 </h3>
                 <p className="text-cyan-200 mb-6 sm:mb-8 text-sm sm:text-base hackathon-text">
-                  Be the first to submit an innovative idea for the hackathon! Your creativity could inspire amazing projects.
+                  {searchQuery 
+                    ? `No ideas match your search for "${searchQuery}". Try a different search term.`
+                    : "Be the first to submit an innovative idea for the hackathon! Your creativity could inspire amazing projects."
+                  }
                 </p>
-                <Button
-                  onClick={() => {
-                    // Scroll to the create form
-                    const formElement = document.getElementById('create-idea-form');
-                    if (formElement) {
-                      formElement.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
-                >
-                  <PlusIcon className="mr-2 h-4 w-4" />
-                  Submit First Idea
-                </Button>
+                {searchQuery && (
+                  <Button
+                    onClick={() => setSearchQuery("")}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                  >
+                    Clear Search
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedIdeas.map((idea: any) => (
               <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
                 <CardHeader className="flex-shrink-0">
@@ -471,17 +469,19 @@ export default function IdeasPage() {
                     </p>
                   
                   {/* Team Assignment Status */}
-                  {myTeamDetails?.isLeader && myTeamDetails.team.ideaId === idea._id && (
+                  {myTeamDetails?.team && myTeamDetails.team.ideaId === idea._id && (
                     <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-400/20">
                       <div className="flex items-center justify-between">
                         <span className="text-green-400 text-xs font-medium">✅ Assigned to your team</span>
-                        <Button
-                          size="sm"
-                          onClick={handleRemoveIdea}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1"
-                        >
-                          Remove
-                        </Button>
+                        {myTeamDetails?.isLeader && (
+                          <Button
+                            size="sm"
+                            onClick={handleRemoveIdea}
+                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1"
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -544,7 +544,7 @@ export default function IdeasPage() {
                         >
                           View Details
                         </Button>
-                        {myTeamDetails?.isLeader && myTeamDetails.team.ideaId !== idea._id && (
+                        {myTeamDetails?.team && myTeamDetails.team.ideaId !== idea._id && myTeamDetails?.isLeader && (
                           <Button
                             size="sm"
                             onClick={() => handleAssignIdea(idea._id)}
@@ -584,31 +584,6 @@ export default function IdeasPage() {
             </div>
           )}
 
-          {/* Empty State */}
-          {filteredAndSortedIdeas.length === 0 && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-              <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">💡</div>
-                <h3 className="text-2xl font-bold text-yellow-400 mb-4">
-                  {searchQuery ? "No Ideas Found" : "No Ideas Yet"}
-                </h3>
-                <p className="text-cyan-200 mb-6">
-                  {searchQuery 
-                    ? `No ideas match your search for "${searchQuery}". Try a different search term.`
-                    : "Be the first to submit an innovative idea for the hackathon!"
-                  }
-                </p>
-                {searchQuery && (
-                  <Button
-                    onClick={() => setSearchQuery("")}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
-                  >
-                    Clear Search
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
 

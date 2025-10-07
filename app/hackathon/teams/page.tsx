@@ -317,17 +317,30 @@ export default function TeamsPage() {
           </Card>
 
           {/* Teams List */}
-          {teams.length === 0 ? (
+          {filteredAndSortedTeams.length === 0 ? (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardContent className="p-8 sm:p-12 text-center">
                 <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">👥</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
-                  No Teams Yet
+                  {searchQuery || statusFilter !== "all" ? "No Teams Found" : "No Teams Yet"}
                 </h3>
                 <p className="text-cyan-200 mb-6 sm:mb-8 text-sm sm:text-base hackathon-text">
-                  Be the first to create a team! Gather developers and non-developers to work together on amazing projects.
+                  {searchQuery || statusFilter !== "all" 
+                    ? "No teams match your current filters. Try adjusting your search criteria."
+                    : "Be the first to create a team! Gather developers and non-developers to work together on amazing projects."
+                  }
                 </p>
-                {!userCreatedTeam ? (
+                {(searchQuery || statusFilter !== "all") ? (
+                  <Button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                    }}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
+                  >
+                    Clear Filters
+                  </Button>
+                ) : !userCreatedTeam ? (
                   <Button
                     onClick={() => {
                       // Scroll to the create form
@@ -349,8 +362,6 @@ export default function TeamsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredAndSortedTeams.map((team: any) => (
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -536,34 +547,6 @@ export default function TeamsPage() {
             </div>
           )}
 
-          {/* Empty State */}
-          {filteredAndSortedTeams.length === 0 && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-              <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">👥</div>
-                <h3 className="text-2xl font-bold text-yellow-400 mb-4">
-                  {searchQuery || statusFilter !== "all" ? "No Teams Found" : "No Teams Yet"}
-                </h3>
-                <p className="text-cyan-200 mb-6">
-                  {searchQuery || statusFilter !== "all" 
-                    ? "No teams match your current filters. Try adjusting your search criteria."
-                    : "Be the first to create a team and start collaborating!"
-                  }
-                </p>
-                {(searchQuery || statusFilter !== "all") && (
-                  <Button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setStatusFilter("all");
-                    }}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
-                  >
-                    Clear Filters
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </main>
