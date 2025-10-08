@@ -14,6 +14,8 @@ import {
   Pencil1Icon,
   CheckIcon,
   Cross2Icon,
+  ExitIcon,
+  TrashIcon,
 } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import { useParams } from "next/navigation";
@@ -24,6 +26,8 @@ export default function TeamDetailPage() {
   const teamId = params.teamId as string;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
@@ -38,6 +42,8 @@ export default function TeamDetailPage() {
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
   const removeTeamMember = useMutation(api.hackathon.removeTeamMember);
   const updateTeam = useMutation(api.hackathon.updateTeam);
+  const leaveTeam = useMutation(api.hackathon.leaveTeam);
+  const deleteTeam = useMutation(api.hackathon.deleteTeam);
 
   // Update edit form when team details load
   React.useEffect(() => {
@@ -138,6 +144,44 @@ export default function TeamDetailPage() {
       } else {
         toast.error("Failed to remove member from team");
       }
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    if (!confirm("Are you sure you want to leave this team?")) {
+      return;
+    }
+
+    setIsLeaving(true);
+    try {
+      await leaveTeam({});
+      toast.success("Left team successfully!");
+      // Redirect to teams page after leaving
+      window.location.href = "/hackathon/teams";
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(errorMessage);
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  const handleDeleteTeam = async () => {
+    if (!confirm("Are you sure you want to delete this team? This will remove all members and cannot be undone.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteTeam({});
+      toast.success("Team deleted successfully!");
+      // Redirect to teams page after deleting
+      window.location.href = "/hackathon/teams";
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -371,6 +415,49 @@ export default function TeamDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Team Actions - Only show if user is part of this team */}
+          {hackathonUser?.teamId === teamId && (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardHeader>
+                <CardTitle className="text-yellow-400 font-mono">⚡ Team Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-cyan-200 text-sm">
+                    {hackathonUser?.userId === teamDetails.team.leaderId 
+                      ? "As the team leader, you can delete the entire team or manage team settings."
+                      : "You can leave this team if you no longer want to be part of it."
+                    }
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {hackathonUser?.userId === teamDetails.team.leaderId ? (
+                      <Button
+                        onClick={handleDeleteTeam}
+                        disabled={isDeleting}
+                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
+                      >
+                        <TrashIcon className="mr-2 h-4 w-4" />
+                        {isDeleting ? "Deleting Team..." : "Delete Team"}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleLeaveTeam}
+                        disabled={isLeaving}
+                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
+                      >
+                        <ExitIcon className="mr-2 h-4 w-4" />
+                        {isLeaving ? "Leaving..." : "Leave Team"}
+                      </Button>
+                    )}
+                    <Button asChild variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
+                      <Link href="/hackathon/my-dashboard">View My Dashboard</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Team's Idea */}
           {teamDetails.idea && (

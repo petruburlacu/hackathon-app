@@ -387,6 +387,15 @@ export default function TeamsPage() {
                       <span className="text-white">{team.currentNonDevs}/{team.maxNonDevs}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
+                      <span className="text-cyan-300">Current Idea:</span>
+                      <span className="text-white text-xs truncate max-w-[200px]">
+                        {team.ideaId 
+                          ? ideas.find((idea: any) => idea._id === team.ideaId)?.title || "Unknown Idea"
+                          : "N/A"
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-cyan-300">Status:</span>
                       <span className={`px-2 py-1 rounded text-xs font-bold ${
                         team.status === 'forming' ? 'bg-yellow-500 text-black' :
@@ -404,7 +413,7 @@ export default function TeamsPage() {
                     </div>
                   </div>
                   
-                  {/* Team Leader Controls */}
+                  {/* Team Idea Assignment - Full section only for team leaders */}
                   {team.leaderId === hackathonUser?.userId && (
                     <div className="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-400/20">
                       <h4 className="text-cyan-300 text-sm font-bold mb-2 flex items-center gap-2">
@@ -414,12 +423,11 @@ export default function TeamsPage() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <span className="text-yellow-400 text-xs font-bold">Current Idea:</span>
-                            <Badge className="bg-green-500 text-white text-xs">
-                              {ideas.find((idea: any) => idea._id === team.ideaId)?.title}
+                            <Badge className="bg-green-500 text-white text-xs max-w-full">
+                              <span className="truncate">
+                                {ideas.find((idea: any) => idea._id === team.ideaId)?.title}
+                              </span>
                             </Badge>
-                          </div>
-                          <div className="text-xs text-gray-400 mb-2">
-                            {ideas.find((idea: any) => idea._id === team.ideaId)?.description?.substring(0, 100)}...
                           </div>
                           <div className="flex flex-col gap-2">
                             <Button
@@ -521,27 +529,29 @@ export default function TeamsPage() {
                     </div>
                   )}
                   
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">
-                              Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
-                            </span>
-                            <div className="flex flex-col gap-2">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-400">
+                                Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
+                              </span>
                               <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                                 <Link href={`/hackathon/teams/${team._id}`}>
                                   View Details
                                 </Link>
                               </Button>
-                              {!hackathonUser?.teamId && team.leaderId !== hackathonUser?.userId && (
+                            </div>
+                            {!hackathonUser?.teamId && team.leaderId !== hackathonUser?.userId && (
+                              <div className="flex justify-center">
                                 <Button
                                   size="sm"
                                   onClick={() => handleJoinTeam(team._id)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4"
+                                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 w-full"
                                 >
                                   <AvatarIcon className="mr-1 h-4 w-4" />
                                   Join
                                 </Button>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                 </CardContent>
               </Card>

@@ -21,22 +21,22 @@ interface WelcomeTourProps {
 const tourSteps = [
   {
     id: "welcome",
-    title: "🚀 Welcome to Hackathon 2025!",
-    content: "Welcome to our retro-themed hackathon! This tour will guide you through the process of participating in the event.",
+    title: "🚀 Welcome to Hackathon!",
+    content: "This tour will guide you through the process of participating in the event.",
     action: "Let's get started!",
     showProgress: false,
   },
   {
     id: "ideas",
-    title: "💡 Step 1: Submit Your Ideas",
-    content: "Start by submitting innovative ideas that could become hackathon projects. You can submit multiple ideas and vote for others' ideas too!",
+    title: "💡 Step 1: Submit Your Idea(s)",
+    content: "Start by submitting ideas that could become hackathon projects. You can submit multiple ideas and vote for others' ideas too!",
     action: "Next: Learn about Teams",
     showProgress: true,
   },
   {
     id: "teams",
     title: "👥 Step 2: Form or Join a Team",
-    content: "Once you have ideas, form a team or join an existing one. Teams need 1-2 developers and 1-2 non-developers to be balanced.",
+    content: "Teams need 1-2 developers and 1-2 non-developers to be balanced.",
     action: "Next: Learn about Idea Assignment",
     showProgress: true,
   },
@@ -49,8 +49,8 @@ const tourSteps = [
   },
   {
     id: "voting",
-    title: "⭐ Step 4: Vote for Teams",
-    content: "Once teams are formed and have ideas, you can vote for your favorite teams on the leaderboard. Each person gets one vote per team.",
+    title: "⭐ Step 4: Vote",
+    content: "You can vote for ideas! Once teams are formed and have ideas, you can also vote for your favorite team on the leaderboard. Each person gets one vote.",
     action: "Next: Learn about Navigation",
     showProgress: true,
   },

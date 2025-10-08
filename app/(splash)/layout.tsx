@@ -35,9 +35,8 @@ export default function SplashPageLayout({
         <main className="flex grow flex-col">{children}</main>
         <footer className="border-t">
           <div className="container py-4 text-sm leading-loose">
-            Built with ❤️ for{" "}
-            <FooterLink href="https://www.convex.dev/">Hackathon 2025</FooterLink>.
-            Powered by Convex,{" "}
+            Built with ❤️ for Hackathon 2025. Powered by {" "}
+            <FooterLink href="https://www.convex.dev/">Convex</FooterLink>,
             <FooterLink href="https://nextjs.org/">Next.js</FooterLink> and{" "}
             <FooterLink href="https://ui.shadcn.com/">shadcn/ui</FooterLink>.
           </div>

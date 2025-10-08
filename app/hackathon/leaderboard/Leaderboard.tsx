@@ -8,12 +8,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { StarIcon } from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
+
+// Type for team object from the leaderboard
+type Team = {
+  _id: Id<"teams">;
+  name: string;
+  description?: string;
+  leaderId: Id<"users">;
+  ideaId?: Id<"ideas">;
+  status?: "forming" | "idea-browsing" | "assembled" | "ready";
+  isAssembled?: boolean;
+  maxDevs: number;
+  maxNonDevs: number;
+  currentDevs: number;
+  currentNonDevs: number;
+  createdAt: number;
+  votes: number;
+};
 
 export function Leaderboard() {
   const leaderboard = useQuery(api.hackathon.getLeaderboard) || [];
   const toggleTeamVote = useMutation(api.hackathon.toggleTeamVote);
   const voteStatus = useQuery(api.hackathon.getUserVoteStatus);
-  const [isVoting, setIsVoting] = useState<string | null>(null);
+  const [isVoting, setIsVoting] = useState<Id<"teams"> | null>(null);
 
   // Global error handler for uncaught errors
   useEffect(() => {
@@ -52,7 +70,7 @@ export function Leaderboard() {
     };
   }, []);
 
-  const handleToggleVote = async (teamId: string) => {
+  const handleToggleVote = async (teamId: Id<"teams">) => {
     if (isVoting === teamId) {
       console.log("Already voting for this team, ignoring click");
       return;
@@ -65,7 +83,7 @@ export function Leaderboard() {
     // Create a wrapper function to catch any errors
     const safeVote = async () => {
       try {
-        const result = await toggleTeamVote({ teamId: teamId as any });
+        const result = await toggleTeamVote({ teamId });
         return result;
       } catch (error) {
         console.error("Error in safeVote:", error);
@@ -105,7 +123,7 @@ export function Leaderboard() {
     }
   };
 
-  const hasVotedForTeam = (teamId: string) => {
+  const hasVotedForTeam = (teamId: Id<"teams">) => {
     if (!voteStatus) {
       console.log("Vote status still loading...");
       return false; // Still loading
@@ -113,7 +131,7 @@ export function Leaderboard() {
     
     // Convert teamId to string to ensure proper comparison
     const teamIdStr = String(teamId);
-    const hasVoted = voteStatus.teamVotes?.some((votedTeamId: string) => String(votedTeamId) === teamIdStr) || false;
+    const hasVoted = voteStatus.teamVotes?.some((votedTeamId: Id<"teams">) => votedTeamId === teamId) || false;
     
     console.log(`Checking team ${teamIdStr}:`, {
       teamVotes: voteStatus.teamVotes,
@@ -124,15 +142,15 @@ export function Leaderboard() {
   };
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
-          <CardContent className="p-8 text-center">
-            <h1 className="text-4xl font-bold text-yellow-400 font-mono mb-4">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 font-mono mb-3 sm:mb-4">
               🏆 TEAM LEADERBOARD 🏆
             </h1>
-            <p className="text-cyan-200 text-lg">
+            <p className="text-cyan-200 text-base sm:text-lg">
               Vote for your favorite teams! The most popular teams win!
             </p>
           </CardContent>
@@ -140,7 +158,7 @@ export function Leaderboard() {
 
         {/* Leaderboard */}
         <div className="space-y-4">
-          {leaderboard.map((team: any, index: number) => (
+          {leaderboard.map((team: Team, index: number) => (
             <Card 
               key={team._id} 
               className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 transition-all hover:scale-[1.02] ${
@@ -149,11 +167,11 @@ export function Leaderboard() {
                 index === 2 ? 'border-orange-400/60 bg-gradient-to-r from-orange-500/10 to-red-500/10' : ''
               }`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-4 sm:gap-6">
                     {/* Rank */}
-                    <div className={`text-4xl font-bold ${
+                    <div className={`text-3xl sm:text-4xl font-bold ${
                       index === 0 ? 'text-yellow-400' : 
                       index === 1 ? 'text-gray-300' : 
                       index === 2 ? 'text-orange-400' : 'text-cyan-300'
@@ -163,13 +181,13 @@ export function Leaderboard() {
 
                     {/* Team Info */}
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-yellow-400 font-mono mb-2">
+                      <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 font-mono mb-2">
                         {team.name}
                       </h3>
                       {team.description && (
-                        <p className="text-cyan-200 mb-3">{team.description}</p>
+                        <p className="text-cyan-200 mb-3 text-sm sm:text-base">{team.description}</p>
                       )}
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
                         <span className="text-cyan-300">
                           👥 {team.currentDevs} devs, {team.currentNonDevs} non-devs
                         </span>
@@ -183,8 +201,8 @@ export function Leaderboard() {
                   </div>
 
                   {/* Vote Section */}
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-pink-400 mb-2">
+                  <div className="text-center sm:text-right">
+                    <div className="text-2xl sm:text-3xl font-bold text-pink-400 mb-2">
                       {team.votes}
                     </div>
                     <div className="text-sm text-gray-400 mb-3">votes</div>
@@ -192,7 +210,7 @@ export function Leaderboard() {
                       size="sm"
                       onClick={() => handleToggleVote(team._id)}
                       disabled={isVoting === team._id}
-                      className={`transition-all duration-300 transform hover:scale-105 ${
+                      className={`transition-all duration-300 transform hover:scale-105 py-2 px-4 ${
                         hasVotedForTeam(team._id)
                           ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
                           : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"

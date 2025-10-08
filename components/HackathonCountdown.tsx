@@ -49,7 +49,7 @@ export function HackathonCountdown() {
             HACKATHON STARTED!
           </h2>
           <p className="text-red-200 text-lg">
-            The coding has begun! Join the action now!
+            The event has begun! Join the action now!
           </p>
         </CardContent>
       </Card>
@@ -65,7 +65,7 @@ export function HackathonCountdown() {
         <CardContent className="text-center">
           <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">⏰</div>
           <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-4 retro-gradient-text countdown-font px-2">
-            COUNTDOWN TO HACKATHON
+            COUNTDOWN TO EVENT
           </h2>
           <p className="text-yellow-200 text-sm sm:text-lg lg:text-2xl mb-6 sm:mb-10 font-mono hackathon-text px-2">
             December 8th, 2025 at 10:00 AM UTC

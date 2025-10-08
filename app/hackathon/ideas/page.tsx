@@ -257,7 +257,7 @@ export default function IdeasPage() {
                   Share Your Ideas
                 </h3>
                 <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base hackathon-text">
-                  Have an innovative idea for the hackathon? Submit it and let the community vote on it!
+                  Have an idea for the hackathon? Submit it and let the community vote on it!
                 </p>
                 <Button
                   onClick={() => setShowCreateForm(true)}
