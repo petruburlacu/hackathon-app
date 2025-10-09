@@ -3,12 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HackathonCountdown } from "@/components/HackathonCountdown";
 import {
-  CodeIcon,
   PersonIcon,
   RocketIcon,
   StarIcon,
-  BadgeIcon,
-  LightningBoltIcon,
 } from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 
@@ -41,40 +38,94 @@ export const HackathonHome = () => {
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="flex flex-col gap-8 bg-black/20 backdrop-blur-sm p-6 sm:p-8 lg:p-12 rounded-2xl border border-cyan-400/20 mx-4">
+        {/* Features Banner */}
+        <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-cyan-400/20 mx-4">
           <h2 className="mb-4 text-center text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 font-mono hackathon-title">
             FEATURES
           </h2>
           <div className="text-center text-base sm:text-lg text-cyan-200 mb-8 hackathon-text">
             Everything you need for an epic experience
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon={<RocketIcon className="h-8 w-8" />}
-              title="Submit Ideas"
-              description="Share your ideas and get votes from the community in real-time."
-              color="from-blue-500 to-cyan-500"
-            />
-            <FeatureCard
-              icon={<PersonIcon className="h-8 w-8" />}
-              title="Form Teams"
-              description="Create or join teams with balanced dev/non-dev roles."
-              color="from-purple-500 to-pink-500"
-            />
-            <FeatureCard
-              icon={<StarIcon className="h-8 w-8" />}
-              title="Vote & Compete"
-              description="Vote for your favorite ideas and teams. Track popularity and see who's leading the pack"
-              color="from-yellow-500 to-orange-500"
-            />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center p-4 bg-black/20 rounded-lg border border-cyan-400/20">
+              <div className="mx-auto mb-3 p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center justify-center w-12 h-12">
+                <RocketIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-yellow-400 font-bold hackathon-title text-lg mb-2">Submit Ideas</h3>
+              <p className="text-cyan-200 text-sm hackathon-text">Share your ideas and get votes from the community in real-time.</p>
+            </div>
+            <div className="text-center p-4 bg-black/20 rounded-lg border border-purple-400/20">
+              <div className="mx-auto mb-3 p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center w-12 h-12">
+                <PersonIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-yellow-400 font-bold hackathon-title text-lg mb-2">Form Teams</h3>
+              <p className="text-cyan-200 text-sm hackathon-text">Create or join teams with balanced dev/non-dev roles.</p>
+            </div>
+            <div className="text-center p-4 bg-black/20 rounded-lg border border-yellow-400/20">
+              <div className="mx-auto mb-3 p-3 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center w-12 h-12">
+                <StarIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-yellow-400 font-bold hackathon-title text-lg mb-2">Vote & Compete</h3>
+              <p className="text-cyan-200 text-sm hackathon-text">Vote for your favorite ideas and teams. Track popularity and see who's leading the pack.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Judging Criteria Section */}
+        <div className="mt-16 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-yellow-400/20 mx-4">
+          <h3 className="text-xl sm:text-2xl font-bold text-center text-yellow-300 mb-6 font-mono">
+            JUDGING CRITERIA
+          </h3>
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+            <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">
+              <div className="h-6 bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">33%</span>
+              </div>
+              <div className="p-3 sm:p-4">
+                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-white"></div>
+                  </div>
+                </div>
+                <div className="text-green-400 font-bold hackathon-title text-sm sm:text-base mb-1">Viability of POC</div>
+                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How well can this idea be built into a working proof of concept?</div>
+              </div>
+            </div>
+            <div className="text-center bg-black/20 rounded-lg border border-blue-400/20 overflow-hidden">
+              <div className="h-6 bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">33%</span>
+              </div>
+              <div className="p-3 sm:p-4">
+                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-white"></div>
+                  </div>
+                </div>
+                <div className="text-blue-400 font-bold hackathon-title text-sm sm:text-base mb-1">Cross-team Collaboration</div>
+                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How effectively did dev and non-dev team members work together?</div>
+              </div>
+            </div>
+            <div className="text-center bg-black/20 rounded-lg border border-purple-400/20 overflow-hidden">
+              <div className="h-6 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">33%</span>
+              </div>
+              <div className="p-3 sm:p-4">
+                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-white"></div>
+                  </div>
+                </div>
+                <div className="text-purple-400 font-bold hackathon-title text-sm sm:text-base mb-1">Business Alignment</div>
+                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How well does this solution align with business goals and needs?</div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Rules Section */}
         <div className="mt-16 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-pink-400/20 mx-4">
           <h3 className="text-xl sm:text-2xl font-bold text-center text-pink-300 mb-6 font-mono">
-            🎮 GENERAL RULES 🎮
+            GENERAL RULES
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <RuleCard
@@ -87,11 +138,12 @@ export const HackathonHome = () => {
               ]}
             />
             <RuleCard
-              title="Voting System"
+              title="Voting & Awards"
               rules={[
                 "Vote for ideas (1 vote per idea)",
                 "Vote for teams (only 1 vote per user)",
-                "Most voted team wins the popularity contest!"
+                "🏆 Judge Awards: 1st & 2nd place",
+                "👥 Audience Choice Award: Most voted team"
               ]}
             />
           </div>
@@ -112,31 +164,6 @@ export const HackathonHome = () => {
   );
 };
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-  color,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  color: string;
-}) {
-  return (
-    <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
-      <CardHeader className="text-center flex flex-col items-center">
-        <div className={`mx-auto mb-4 p-4 rounded-full bg-gradient-to-r ${color} text-white flex items-center justify-center`}>
-          {icon}
-        </div>
-        <CardTitle className="text-yellow-400 font-mono text-xl hackathon-title text-center">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-cyan-200 text-center hackathon-text">{description}</p>
-      </CardContent>
-    </Card>
-  );
-}
 
 function RuleCard({
   title,
@@ -163,3 +190,4 @@ function RuleCard({
     </Card>
   );
 }
+

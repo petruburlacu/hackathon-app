@@ -219,6 +219,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           </Card>
         </div>
 
+
         {/* Personalized Action Cards */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {/* Next Action Card */}
@@ -308,6 +309,77 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardContent>
           </Card>
         </div>
+
+        {/* Judging Criteria - Simplified */}
+        <Card className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border-yellow-400/20">
+          <CardHeader>
+            <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg sm:text-xl">
+              JUDGING CRITERIA
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Awards Card */}
+            <Card className="bg-black/20 backdrop-blur-sm border-yellow-400/30">
+              <CardContent className="py-3 px-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
+                  <div className="text-yellow-400 font-bold hackathon-title text-sm">
+                    🏆 Judge&apos;s Awards: 1st & 2nd place
+                  </div>
+                  <div className="text-yellow-400 hidden sm:inline">•</div>
+                  <div className="text-yellow-400 font-bold hackathon-title text-sm">
+                    👥 Audience Choice: Most voted team
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Criteria Cards */}
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+              <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">
+                <div className="h-6 bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">33%</span>
+                </div>
+                <div className="p-3 sm:p-4">
+                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="w-3 h-3 rounded-full bg-white"></div>
+                    </div>
+                  </div>
+                  <div className="text-green-400 font-bold hackathon-title text-sm sm:text-base mb-1">Viability of POC</div>
+                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Can it be built?</div>
+                </div>
+              </div>
+              <div className="text-center bg-black/20 rounded-lg border border-blue-400/20 overflow-hidden">
+                <div className="h-6 bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">33%</span>
+                </div>
+                <div className="p-3 sm:p-4">
+                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="w-3 h-3 rounded-full bg-white"></div>
+                    </div>
+                  </div>
+                  <div className="text-blue-400 font-bold hackathon-title text-sm sm:text-base mb-1">Team Collaboration</div>
+                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Dev + Non-dev teamwork</div>
+                </div>
+              </div>
+              <div className="text-center bg-black/20 rounded-lg border border-purple-400/20 overflow-hidden">
+                <div className="h-6 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">33%</span>
+                </div>
+                <div className="p-3 sm:p-4">
+                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="w-3 h-3 rounded-full bg-white"></div>
+                    </div>
+                  </div>
+                  <div className="text-purple-400 font-bold hackathon-title text-sm sm:text-base mb-1">Business Alignment</div>
+                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Solves real problems</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Top Ideas Preview */}
         {topIdeas.length > 0 && (
