@@ -29,6 +29,12 @@ export default function IdeasPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState<string>("");
   const [editTags, setEditTags] = useState("");
+  
+  // Loading states
+  const [isCreatingIdea, setIsCreatingIdea] = useState(false);
+  const [isUpdatingIdea, setIsUpdatingIdea] = useState(false);
+  const [isDeletingIdea, setIsDeletingIdea] = useState(false);
+  const [isVoting, setIsVoting] = useState<string | null>(null);
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -50,7 +56,21 @@ export default function IdeasPage() {
   }
 
   // Simple admin check - in a real app, you'd have proper role-based access
-  const isAdmin = viewer.email === "admin@hackathon.com";
+  const isAdmin = viewer?.email === "admin@hackathon.com";
+
+  // Debug function to help identify the issue
+  const debugAuthorInfo = (idea: any) => {
+    console.log("Debug Author Info:", {
+      ideaId: idea._id,
+      ideaTitle: idea.title,
+      authorId: idea.authorId,
+      authorIdType: typeof idea.authorId,
+      viewerId: viewer?._id,
+      viewerIdType: typeof viewer?._id,
+      viewerEmail: viewer?.email,
+      match: viewer && String(idea.authorId) === String(viewer._id)
+    });
+  };
 
   const handleCreateIdea = async () => {
     if (!newIdeaTitle.trim() || !newIdeaDescription.trim()) {
@@ -71,6 +91,7 @@ export default function IdeasPage() {
     // Parse tags from comma-separated string
     const tags = newIdeaTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
+    setIsCreatingIdea(true);
     try {
       await createIdea({
         title: newIdeaTitle.trim(),
@@ -86,6 +107,8 @@ export default function IdeasPage() {
       toast.success("Idea submitted successfully!");
     } catch {
       toast.error("Failed to submit idea");
+    } finally {
+      setIsCreatingIdea(false);
     }
   };
 
@@ -116,6 +139,7 @@ export default function IdeasPage() {
     });
 
   const handleToggleIdeaVote = async (ideaId: string) => {
+    setIsVoting(ideaId);
     try {
       const result = await toggleIdeaVote({ ideaId: ideaId as any });
       if (result.action === "added") {
@@ -125,6 +149,8 @@ export default function IdeasPage() {
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to toggle vote");
+    } finally {
+      setIsVoting(null);
     }
   };
 
@@ -331,9 +357,17 @@ export default function IdeasPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={handleCreateIdea}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3"
+                  disabled={isCreatingIdea}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit Idea
+                  {isCreatingIdea ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      Submitting...
+                    </div>
+                  ) : (
+                    "Submit Idea"
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -344,7 +378,8 @@ export default function IdeasPage() {
                     setNewIdeaCategory("");
                     setNewIdeaTags("");
                   }}
-                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3"
+                  disabled={isCreatingIdea}
+                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3 disabled:opacity-50"
                 >
                   Cancel
                 </Button>
@@ -513,19 +548,37 @@ export default function IdeasPage() {
                   <div className="mt-auto space-y-3 pt-4 border-t border-cyan-400/20">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-400">
-                        by {idea.authorId === hackathonUser?.userId ? "You" : "Anonymous"}
+                        by {viewer && String(idea.authorId) === String(viewer._id) ? "You" : "Anonymous"}
+                        {isAdmin && (
+                          <button 
+                            onClick={() => debugAuthorInfo(idea)}
+                            className="ml-2 text-xs text-yellow-400 hover:text-yellow-300"
+                          >
+                            Debug
+                          </button>
+                        )}
                       </span>
                       <Button
                         size="sm"
                         onClick={() => handleToggleIdeaVote(idea._id)}
-                        className={`transition-all duration-300 transform hover:scale-105 ${
+                        disabled={isVoting === idea._id}
+                        className={`transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
                           hasVotedForIdea(idea._id)
                             ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
                             : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
                         }`}
                       >
-                        <StarIcon className="mr-1 h-4 w-4" />
-                        {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
+                        {isVoting === idea._id ? (
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                            Voting...
+                          </div>
+                        ) : (
+                          <>
+                            <StarIcon className="mr-1 h-4 w-4" />
+                            {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
+                          </>
+                        )}
                       </Button>
                     </div>
                     

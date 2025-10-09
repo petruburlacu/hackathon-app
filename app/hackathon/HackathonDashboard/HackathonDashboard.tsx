@@ -27,6 +27,7 @@ interface HackathonUser {
 }
 
 export function HackathonDashboard({ hackathonUser }: { hackathonUser: HackathonUser | null | undefined }) {
+  const viewer = useQuery(api.users.viewer);
   const [activeTab, setActiveTab] = useState<"ideas" | "teams" | "leaderboard">("ideas");
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
   const [newIdeaDescription, setNewIdeaDescription] = useState("");
@@ -208,7 +209,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                   <p className="text-cyan-200 mb-4">{idea.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-400">
-                      by {idea.authorId === hackathonUser.userId ? "You" : "Anonymous"}
+                      by {viewer && String(idea.authorId) === String(viewer._id) ? "You" : "Anonymous"}
                     </span>
                     <Button
                       size="sm"

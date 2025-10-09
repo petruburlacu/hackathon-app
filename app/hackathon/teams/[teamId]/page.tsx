@@ -472,7 +472,7 @@ export default function TeamDetailPage() {
                   <div className="flex gap-2">
                     <Badge className="bg-pink-500 text-white">{teamDetails.idea.votes} votes</Badge>
                     <Badge className="bg-blue-500 text-white">
-                      {teamDetails.idea.authorId === viewer._id ? "Your Idea" : "External Idea"}
+                      {String(teamDetails.idea.authorId) === String(viewer._id) ? "Your Idea" : "External Idea"}
                     </Badge>
                   </div>
                 </div>

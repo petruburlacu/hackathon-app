@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getAuthUserId, getAuthSessionId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -1025,7 +1025,8 @@ export const getMyTeamDetails = query({
         const user = await ctx.db.get(member.userId);
         return {
           ...member,
-          userName: user?.name || "Unknown",
+          userName: member.displayName || user?.email || "Unknown",
+          userEmail: user?.email || "Unknown",
         };
       })
     );
@@ -1131,7 +1132,7 @@ export const getTeamDetails = query({
         const user = await ctx.db.get(member.userId);
         return {
           ...member,
-          userName: user?.name || "Unknown",
+          userName: member.displayName || user?.email || "Unknown",
           userEmail: user?.email || "Unknown",
         };
       })
@@ -1372,5 +1373,93 @@ export const deleteSuggestion = mutation({
 
     // Delete the suggestion
     await ctx.db.delete(args.suggestionId);
+  },
+});
+
+// Session Management Functions
+export const enforceSingleSession = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const currentSessionId = await getAuthSessionId(ctx);
+    if (!currentSessionId) {
+      throw new Error("No active session found");
+    }
+
+    // Get all active sessions for this user
+    const sessions = await ctx.db
+      .query("authSessions")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    // If there are multiple sessions, delete all except the current one
+    let sessionsDeleted = 0;
+    for (const session of sessions) {
+      if (session._id !== currentSessionId) {
+        await ctx.db.delete(session._id);
+        sessionsDeleted++;
+      }
+    }
+
+    // Log the session enforcement for security monitoring
+    console.log(`Security: Enforced single session for user ${userId}, deleted ${sessionsDeleted} concurrent sessions`);
+    
+    return { success: true, sessionsDeleted };
+  },
+});
+
+export const getActiveSessions = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return null;
+    }
+
+    const currentSessionId = await getAuthSessionId(ctx);
+    if (!currentSessionId) {
+      return [];
+    }
+
+    // Get all active sessions for this user
+    const sessions = await ctx.db
+      .query("authSessions")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    return sessions.map(session => ({
+      sessionId: session._id,
+      createdAt: session._creationTime,
+      isCurrent: session._id === currentSessionId,
+    }));
+  },
+});
+
+export const logoutAllSessions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    // Get all active sessions for this user and delete them
+    const sessions = await ctx.db
+      .query("authSessions")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    let sessionsDeleted = 0;
+    for (const session of sessions) {
+      await ctx.db.delete(session._id);
+      sessionsDeleted++;
+    }
+
+    console.log(`Security: User ${userId} logged out from all ${sessionsDeleted} sessions`);
+    return { success: true, sessionsDeleted };
   },
 });

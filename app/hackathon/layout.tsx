@@ -1,5 +1,6 @@
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { HackathonProfileSetup } from "@/components/HackathonProfileSetup";
+import { SessionManager } from "@/components/SessionManager";
 
 export default function HackathonLayout({
   children,
@@ -8,6 +9,7 @@ export default function HackathonLayout({
 }) {
   return (
     <ConvexClientProvider>
+      <SessionManager />
       <HackathonProfileSetup>
         {children}
       </HackathonProfileSetup>

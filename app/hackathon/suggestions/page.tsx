@@ -329,7 +329,7 @@ export default function SuggestionsPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-400">
                       by {suggestion.isAnonymous ? "Anonymous" : 
-                           suggestion.authorId === viewer._id ? "You" : "Anonymous"}
+                           String(suggestion.authorId) === String(viewer._id) ? "You" : "Anonymous"}
                     </span>
                     <div className="flex gap-2">
                       <Button
@@ -344,7 +344,7 @@ export default function SuggestionsPage() {
                         <StarIcon className="mr-1 h-4 w-4" />
                         {hasVotedForSuggestion(suggestion._id) ? "Voted" : "Vote"}
                       </Button>
-                      {(suggestion.authorId === viewer._id || isAdmin) && (
+                      {(String(suggestion.authorId) === String(viewer._id) || isAdmin) && (
                         <Button
                           size="sm"
                           onClick={() => handleDeleteSuggestion(suggestion._id)}

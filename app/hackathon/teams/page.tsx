@@ -386,14 +386,14 @@ export default function TeamsPage() {
                       <span className="text-cyan-300">Non-Developers:</span>
                       <span className="text-white">{team.currentNonDevs}/{team.maxNonDevs}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-cyan-300">Current Idea:</span>
-                      <span className="text-white text-xs truncate max-w-[200px]">
+                    <div className="text-sm">
+                      <div className="text-cyan-300 mb-1">Current Idea:</div>
+                      <div className="text-white text-xs truncate" title={team.ideaId ? ideas.find((idea: any) => idea._id === team.ideaId)?.title || "Unknown Idea" : "N/A"}>
                         {team.ideaId 
                           ? ideas.find((idea: any) => idea._id === team.ideaId)?.title || "Unknown Idea"
                           : "N/A"
                         }
-                      </span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-cyan-300">Status:</span>

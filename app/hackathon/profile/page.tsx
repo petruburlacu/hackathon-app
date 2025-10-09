@@ -14,10 +14,13 @@ import Link from "next/link";
 export default function ProfilePage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState("");
+  const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const updateHackathonUser = useMutation(api.hackathon.updateHackathonUser);
+  const getActiveSessions = useQuery(api.hackathon.getActiveSessions);
+  const logoutAllSessions = useMutation(api.hackathon.logoutAllSessions);
 
   // Initialize edit fields when hackathonUser loads
   React.useEffect(() => {
@@ -49,6 +52,23 @@ export default function ProfilePage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast.error(errorMessage);
+    }
+  };
+
+  const handleLogoutAllSessions = async () => {
+    setIsLoggingOutAll(true);
+    try {
+      await logoutAllSessions();
+      toast.success("All sessions logged out successfully! You will be redirected to sign in.");
+      // Redirect to sign in page after a short delay
+      setTimeout(() => {
+        window.location.href = "/signin";
+      }, 2000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to logout all sessions: ${errorMessage}`);
+    } finally {
+      setIsLoggingOutAll(false);
     }
   };
 
@@ -175,6 +195,62 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <span className="text-cyan-300 font-medium">Status:</span>
                   <Badge className="bg-green-500 text-white">Active</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Session Management */}
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <CardHeader>
+              <CardTitle className="text-yellow-400 font-mono">🔒 Session Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
+                  <h4 className="text-cyan-300 font-medium mb-2">Active Sessions</h4>
+                  <p className="text-white text-sm mb-3">
+                    For security, only one active session is allowed per account. 
+                    If you log in from another device, previous sessions will be automatically terminated.
+                  </p>
+                  {getActiveSessions && getActiveSessions.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-green-400 text-sm">
+                        ✅ {getActiveSessions.length} active session(s)
+                      </p>
+                      <div className="text-xs text-gray-400">
+                        Current session: {getActiveSessions.find(s => s.isCurrent)?.sessionId?.substring(0, 8)}...
+                      </div>
+                      {getActiveSessions.length > 1 && (
+                        <div className="text-yellow-400 text-xs">
+                          ⚠️ Multiple sessions detected - will be terminated on next login
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-sm">No active sessions found</p>
+                  )}
+                </div>
+                
+                <div className="bg-red-900/20 p-4 rounded-lg border border-red-400/20">
+                  <h4 className="text-red-400 font-medium mb-2">⚠️ Security Actions</h4>
+                  <p className="text-white text-sm mb-3">
+                    Log out from all devices and sessions. This will terminate your current session and any other active sessions.
+                  </p>
+                  <Button
+                    onClick={handleLogoutAllSessions}
+                    disabled={isLoggingOutAll}
+                    className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                  >
+                    {isLoggingOutAll ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Logging out...
+                      </div>
+                    ) : (
+                      "🚪 Logout All Sessions"
+                    )}
+                  </Button>
                 </div>
               </div>
             </CardContent>
