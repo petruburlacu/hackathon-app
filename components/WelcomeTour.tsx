@@ -81,9 +81,9 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
   const [currentStep, setCurrentStep] = useState(0);
 
   const handleClose = useCallback(() => {
-    // Don't mark as completed when manually closed - allow resuming
-    // Just save the current step and close
+    // Mark that user has seen the tour (even if not completed)
     if (typeof window !== 'undefined') {
+      localStorage.setItem("hackathon-tour-seen", "true");
       localStorage.setItem("hackathon-tour-step", currentStep.toString());
     }
     onClose();
@@ -125,6 +125,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
       // Finish tour - mark as completed and close
       if (typeof window !== 'undefined') {
         localStorage.setItem("hackathon-tour-completed", "true");
+        localStorage.setItem("hackathon-tour-seen", "true");
         localStorage.removeItem("hackathon-tour-step"); // Clear saved step
       }
       onClose(); // Close the tour

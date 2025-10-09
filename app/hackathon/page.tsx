@@ -21,7 +21,10 @@ export default function HackathonPage() {
   }
 
   // Determine if user should see the tour (new users who haven't completed it)
-  const shouldShowTour = hackathonUser && typeof window !== 'undefined' && !localStorage.getItem("hackathon-tour-completed");
+  // Only show automatically for users who haven't seen it before AND haven't manually closed it
+  const hasCompletedTour = typeof window !== 'undefined' && localStorage.getItem("hackathon-tour-completed");
+  const hasSeenTour = typeof window !== 'undefined' && localStorage.getItem("hackathon-tour-seen");
+  const shouldShowTour = hackathonUser && !hasCompletedTour && !hasSeenTour;
   
   // Calculate user progress for the tour
   const userProgress = {
@@ -52,7 +55,7 @@ export default function HackathonPage() {
         isVisible={showTour || shouldShowTour || false}
         onClose={() => {
           setShowTour(false);
-          // Don't mark as completed when manually closed - allow resuming
+          // Tour component handles localStorage marking internally
         }}
         userProgress={userProgress}
       />
