@@ -440,8 +440,8 @@ export const createTeam = mutation({
       name: args.name,
       description: args.description,
       leaderId: userId,
-      maxDevs: args.maxDevs,
-      maxNonDevs: args.maxNonDevs,
+      maxDevs: 6,
+      maxNonDevs: 6,
       currentDevs: 0,
       currentNonDevs: 0,
       createdAt: Date.now(),
@@ -498,30 +498,13 @@ export const updateTeam = mutation({
       throw new Error("Team name must be at least 3 characters long");
     }
 
-    // Validate member limits
-    if (args.maxDevs < 1 || args.maxDevs > 2) {
-      throw new Error("Max developers must be between 1 and 2");
-    }
-
-    if (args.maxNonDevs < 1 || args.maxNonDevs > 2) {
-      throw new Error("Max non-developers must be between 1 and 2");
-    }
-
-    // Check if new limits would violate current member counts
-    if (args.maxDevs < team.currentDevs) {
-      throw new Error(`Cannot reduce max developers below current count (${team.currentDevs})`);
-    }
-
-    if (args.maxNonDevs < team.currentNonDevs) {
-      throw new Error(`Cannot reduce max non-developers below current count (${team.currentNonDevs})`);
-    }
-
     // Update the team
     await ctx.db.patch(args.teamId, {
       name: args.name.trim(),
       description: args.description?.trim() || undefined,
-      maxDevs: args.maxDevs,
-      maxNonDevs: args.maxNonDevs,
+      // Fixed total capacity; role-specific caps are no longer enforced
+      maxDevs: 6,
+      maxNonDevs: 6,
     });
 
     return args.teamId;
@@ -566,13 +549,10 @@ export const joinTeam = mutation({
       throw new Error("Team not found");
     }
 
-    // Check if team has space for this role
-    if (hackathonUser.role === "dev" && team.currentDevs >= team.maxDevs) {
-      throw new Error("Team is full for developers");
-    }
-
-    if (hackathonUser.role === "non-dev" && team.currentNonDevs >= team.maxNonDevs) {
-      throw new Error("Team is full for non-developers");
+    // Check if team has space (total members up to 6)
+    const totalMembers = team.currentDevs + team.currentNonDevs;
+    if (totalMembers >= 6) {
+      throw new Error("Team is full");
     }
 
     // Add user to team

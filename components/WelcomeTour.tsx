@@ -36,7 +36,7 @@ const tourSteps = [
   {
     id: "teams",
     title: "👥 Step 2: Form or Join a Team",
-    content: "Teams need 1-2 developers and 1-2 non-developers to be balanced.",
+    content: "Teams can have up to 6 members total — any mix of roles.",
     action: "Next: Learn about Idea Assignment",
     showProgress: true,
   },

@@ -59,7 +59,7 @@ export const HackathonHome = () => {
                 <PersonIcon className="h-6 w-6" />
               </div>
               <h3 className="text-yellow-400 font-bold hackathon-title text-lg mb-2">Form Teams</h3>
-              <p className="text-cyan-200 text-sm hackathon-text">Create or join teams with balanced dev/non-dev roles.</p>
+              <p className="text-cyan-200 text-sm hackathon-text">Create or join teams of up to 6 people (any mix).</p>
             </div>
             <div className="text-center p-4 bg-black/20 rounded-lg border border-yellow-400/20">
               <div className="mx-auto mb-3 p-3 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center w-12 h-12">
@@ -131,8 +131,7 @@ export const HackathonHome = () => {
             <RuleCard
               title="Team Formation"
               rules={[
-                "Teams need 1-2 Developers",
-                "Teams need 1-2 Non-Developers", 
+                "Teams can have up to 6 members total",
                 "Each person can only join 1 team",
                 "Teams must select an idea to be assembled"
               ]}

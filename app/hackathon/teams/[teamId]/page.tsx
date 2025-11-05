@@ -90,8 +90,8 @@ export default function TeamDetailPage() {
         teamId: teamId as any,
         name: editForm.name.trim(),
         description: editForm.description.trim() || undefined,
-        maxDevs: editForm.maxDevs,
-        maxNonDevs: editForm.maxNonDevs,
+        maxDevs: 6,
+        maxNonDevs: 6,
       });
       setIsEditing(false);
       toast.success("Team updated successfully!");
@@ -247,36 +247,11 @@ export default function TeamDetailPage() {
                           placeholder="Describe your team's vision and goals..."
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm text-cyan-300 mb-2 block">Max Developers</label>
-                          <Select 
-                            value={editForm.maxDevs.toString()} 
-                            onValueChange={(value) => setEditForm(prev => ({ ...prev, maxDevs: parseInt(value) }))}
-                          >
-                            <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                              <SelectItem value="1">1 Developer</SelectItem>
-                              <SelectItem value="2">2 Developers</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <label className="text-sm text-cyan-300 mb-2 block">Max Non-Developers</label>
-                          <Select 
-                            value={editForm.maxNonDevs.toString()} 
-                            onValueChange={(value) => setEditForm(prev => ({ ...prev, maxNonDevs: parseInt(value) }))}
-                          >
-                            <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                              <SelectItem value="1">1 Non-Developer</SelectItem>
-                              <SelectItem value="2">2 Non-Developers</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      <div>
+                        <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
+                        <div className="flex items-center gap-2 p-2 bg-black/20 border border-cyan-400/30 rounded-md">
+                          <Badge className="bg-cyan-500 text-white">Max Members: 6</Badge>
+                          <span className="text-xs text-gray-400">Any mix of roles</span>
                         </div>
                       </div>
                       <div className="flex gap-2">

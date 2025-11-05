@@ -58,10 +58,7 @@ export default function TeamsPage() {
       return;
     }
 
-    if (maxDevs < 1 || maxDevs > 2 || maxNonDevs < 1 || maxNonDevs > 2) {
-      toast.error("Developer and Non-Developer slots must be between 1 and 2");
-      return;
-    }
+    // No role-specific slot restrictions; total team size is enforced server-side
 
     try {
       await createTeam({
