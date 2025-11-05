@@ -68,7 +68,7 @@ export function HackathonCountdown() {
             COUNTDOWN TO EVENT
           </h2>
           <p className="text-yellow-200 text-sm sm:text-lg lg:text-2xl mb-6 sm:mb-10 font-mono hackathon-text px-2">
-            December 8th, 2025 at 10:00 AM UTC
+            December 9th, 2025 at 10:00 AM UTC
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-10">

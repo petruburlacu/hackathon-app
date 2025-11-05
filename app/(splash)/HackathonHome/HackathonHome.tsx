@@ -142,7 +142,7 @@ export const HackathonHome = () => {
               rules={[
                 "Vote for ideas (1 vote per idea)",
                 "Vote for teams (only 1 vote per user)",
-                "🏆 Judge Awards: 1st & 2nd place",
+                "🏆 Judge Awards: 1st place",
                 "👥 Audience Choice Award: Most voted team"
               ]}
             />
