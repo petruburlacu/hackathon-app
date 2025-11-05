@@ -11,6 +11,7 @@ import { useState } from "react";
 
 export default function HackathonPage() {
   const [showTour, setShowTour] = useState(false);
+  const [tourDismissed, setTourDismissed] = useState(false);
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
@@ -24,7 +25,7 @@ export default function HackathonPage() {
   // Only show automatically for users who haven't seen it before AND haven't manually closed it
   const hasCompletedTour = typeof window !== 'undefined' && localStorage.getItem("hackathon-tour-completed");
   const hasSeenTour = typeof window !== 'undefined' && localStorage.getItem("hackathon-tour-seen");
-  const shouldShowTour = hackathonUser && !hasCompletedTour && !hasSeenTour;
+  const shouldShowTour = hackathonUser && !hasCompletedTour && !hasSeenTour && !tourDismissed;
   
   // Calculate user progress for the tour
   const userProgress = {
@@ -55,6 +56,7 @@ export default function HackathonPage() {
         isVisible={showTour || shouldShowTour || false}
         onClose={() => {
           setShowTour(false);
+          setTourDismissed(true);
           // Tour component handles localStorage marking internally
         }}
         userProgress={userProgress}

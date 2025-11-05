@@ -188,7 +188,13 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
         }
       }}
     >
-      <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white relative mx-2 sm:mx-4">
+      <Card 
+        className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white relative mx-2 sm:mx-4"
+        onClick={(e) => {
+          // Prevent clicks inside the card from closing the tour
+          e.stopPropagation();
+        }}
+      >
         <CardHeader className="relative p-4 sm:p-6">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-yellow-400 font-mono text-lg sm:text-xl leading-tight flex-1">
@@ -197,7 +203,10 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClose();
+              }}
               className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10 flex-shrink-0"
               aria-label="Close tour"
             >
@@ -253,7 +262,10 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 pt-2 sm:pt-4">
             <Button
               variant="outline"
-              onClick={handlePrevious}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevious();
+              }}
               disabled={currentStep === 0}
               className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50 py-2 sm:py-2 text-sm sm:text-base order-2 sm:order-1"
             >
@@ -265,7 +277,8 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
               {currentStep > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setCurrentStep(0);
                     // Save current step for resuming
                     if (typeof window !== 'undefined') {
@@ -279,7 +292,10 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
               )}
               
               <Button
-                onClick={handleNext}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNext();
+                }}
                 className={`font-bold py-3 sm:py-2 text-sm sm:text-base ${
                   isLastStep 
                     ? 'bg-green-500 hover:bg-green-600 text-white px-4 sm:px-8' 
@@ -302,7 +318,8 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
             {tourSteps.map((_, index) => (
               <button
                 key={index}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setCurrentStep(index);
                   // Save current step for resuming
                   if (typeof window !== 'undefined') {
