@@ -18,8 +18,7 @@ export default function TeamsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
-  const [maxDevs, setMaxDevs] = useState(2);
-  const [maxNonDevs, setMaxNonDevs] = useState(2);
+  // Role-specific caps removed; total team size is fixed at 6
   
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,13 +63,11 @@ export default function TeamsPage() {
       await createTeam({
         name: newTeamName.trim(),
         description: newTeamDescription.trim() || undefined,
-        maxDevs,
-        maxNonDevs,
+        maxDevs: 6,
+        maxNonDevs: 6,
       });
       setNewTeamName("");
       setNewTeamDescription("");
-      setMaxDevs(2);
-      setMaxNonDevs(2);
       setShowCreateForm(false);
       toast.success("Team created successfully!");
     } catch (error: unknown) {
@@ -211,30 +208,11 @@ export default function TeamsPage() {
                   <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-cyan-300 mb-2 block">Max Developers (1-2)</label>
-                    <Select value={maxDevs.toString()} onValueChange={(value) => setMaxDevs(parseInt(value))}>
-                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="1">1 Developer</SelectItem>
-                        <SelectItem value="2">2 Developers</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-sm text-cyan-300 mb-2 block">Max Non-Developers (1-2)</label>
-                    <Select value={maxNonDevs.toString()} onValueChange={(value) => setMaxNonDevs(parseInt(value))}>
-                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="1">1 Non-Developer</SelectItem>
-                        <SelectItem value="2">2 Non-Developers</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
+                  <div className="flex items-center gap-2 p-2 bg-black/20 border border-cyan-400/30 rounded-md">
+                    <Badge className="bg-cyan-500 text-white">Max Members: 6</Badge>
+                    <span className="text-xs text-gray-400">Any mix of roles</span>
                   </div>
                 </div>
                 
@@ -258,8 +236,6 @@ export default function TeamsPage() {
                       setShowCreateForm(false);
                       setNewTeamName("");
                       setNewTeamDescription("");
-                      setMaxDevs(2);
-                      setMaxNonDevs(2);
                     }}
                     className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3 flex-1 sm:flex-none"
                   >

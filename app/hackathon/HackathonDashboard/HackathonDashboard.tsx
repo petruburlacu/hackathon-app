@@ -33,8 +33,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   const [newIdeaDescription, setNewIdeaDescription] = useState("");
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
-  const [maxDevs, setMaxDevs] = useState(2);
-  const [maxNonDevs, setMaxNonDevs] = useState(2);
+  // Role-specific caps removed; total team size is fixed at 6
 
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
@@ -95,8 +94,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       await createTeam({
         name: newTeamName,
         description: newTeamDescription,
-        maxDevs,
-        maxNonDevs,
+        maxDevs: 6,
+        maxNonDevs: 6,
       });
       setNewTeamName("");
       setNewTeamDescription("");
@@ -256,28 +255,11 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                   onChange={(e) => setNewTeamDescription(e.target.value)}
                   className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-cyan-300 mb-2 block">Max Developers</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="2"
-                      value={maxDevs}
-                      onChange={(e) => setMaxDevs(parseInt(e.target.value))}
-                      className="bg-black/20 border-cyan-400/30 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-cyan-300 mb-2 block">Max Non-Developers</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="2"
-                      value={maxNonDevs}
-                      onChange={(e) => setMaxNonDevs(parseInt(e.target.value))}
-                      className="bg-black/20 border-cyan-400/30 text-white"
-                    />
+                <div>
+                  <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
+                  <div className="flex items-center gap-2 p-2 bg-black/20 border border-cyan-400/30 rounded-md">
+                    <Badge className="bg-cyan-500 text-white">Max Members: 6</Badge>
+                    <span className="text-xs text-gray-400">Any mix of roles</span>
                   </div>
                 </div>
                 <Button
