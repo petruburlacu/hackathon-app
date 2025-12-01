@@ -100,4 +100,11 @@ export default defineSchema({
   }).index("by_suggestion", ["suggestionId"])
     .index("by_user", ["userId"])
     .index("by_suggestion_user", ["suggestionId", "userId"]),
+  
+  // Site-wide settings (single document used)
+  settings: defineTable({
+    enableIdeaSubmissions: v.boolean(),
+    enableTeamSubmissions: v.boolean(),
+    updatedAt: v.number(),
+  }),
 });

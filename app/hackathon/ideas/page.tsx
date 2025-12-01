@@ -14,6 +14,8 @@ import { HackathonNav } from "@/components/HackathonNav";
 import { FullScreenLoader } from "@/components/PixelatedLoader";
 
 export default function IdeasPage() {
+  const settings = useQuery(api.hackathon.getSettings);
+  const ideaSubmissionsEnabled = settings?.enableIdeaSubmissions ?? true;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
   const [newIdeaDescription, setNewIdeaDescription] = useState("");
@@ -21,7 +23,7 @@ export default function IdeasPage() {
   const [newIdeaTags, setNewIdeaTags] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "title">("votes");
+  const [sortBy, setSortBy] = useState<"newest" | "votes" | "title">("title");
   
   // Edit state
   const [editingIdea, setEditingIdea] = useState<any>(null);
@@ -73,6 +75,10 @@ export default function IdeasPage() {
   };
 
   const handleCreateIdea = async () => {
+    if (!ideaSubmissionsEnabled) {
+      toast.error("Idea submissions are currently closed");
+      return;
+    }
     if (!newIdeaTitle.trim() || !newIdeaDescription.trim()) {
       toast.error("Please fill in both title and description");
       return;
@@ -275,7 +281,7 @@ export default function IdeasPage() {
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Submit New Idea */}
-          {!showCreateForm ? (
+          {ideaSubmissionsEnabled && !showCreateForm ? (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💡</div>
@@ -294,7 +300,7 @@ export default function IdeasPage() {
                 </Button>
               </CardContent>
             </Card>
-          ) : (
+          ) : ideaSubmissionsEnabled ? (
             <Card id="create-idea-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
@@ -386,6 +392,18 @@ export default function IdeasPage() {
               </div>
             </CardContent>
           </Card>
+          ) : (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl sm:text-6xl mb-3">⛔</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
+                  Idea submissions are closed
+                </h3>
+                <p className="text-cyan-200 text-sm">
+                  You can still browse, search, and vote on existing ideas.
+                </p>
+              </CardContent>
+            </Card>
           )}
 
           {/* Search and Sort Controls */}

@@ -16,8 +16,8 @@ export function HackathonCountdown() {
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
-    // Target date: December 8th, 2025 at 10:00 AM UTC (definitely in the future)
-    const targetDate = new Date("2025-12-08T10:00:00Z").getTime();
+    // Target date: December 9th, 2025 at 10:00 AM UTC
+    const targetDate = new Date("2025-12-09T10:00:00Z").getTime();
 
     const timer = setInterval(() => {
       const now = new Date().getTime();

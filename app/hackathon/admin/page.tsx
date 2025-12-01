@@ -46,12 +46,14 @@ export default function AdminPage() {
   const viewer = useQuery(api.users.viewer);
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
+  const settings = useQuery(api.hackathon.getSettings);
 
   const seedData = useMutation(api.seed.seedHackathonData);
   const clearData = useMutation(api.seed.clearHackathonData);
   // const migrateTeamStatuses = useMutation(api.hackathon.migrateTeamStatuses);
   const adminDeleteIdea = useMutation(api.hackathon.adminDeleteIdea);
   const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
+  const updateSettings = useMutation(api.hackathon.updateSettings);
 
   if (!viewer) {
     return (
@@ -131,6 +133,19 @@ export default function AdminPage() {
       toast.error("Failed to migrate team statuses");
     }
   };
+  
+  const handleToggleSubmissions = async (type: "ideas" | "teams", value: boolean) => {
+    try {
+      await updateSettings({
+        enableIdeaSubmissions: type === "ideas" ? value : (settings?.enableIdeaSubmissions ?? true),
+        enableTeamSubmissions: type === "teams" ? value : (settings?.enableTeamSubmissions ?? true),
+      });
+      toast.success(`${type === "ideas" ? "Ideas" : "Teams"} submissions ${value ? "enabled" : "disabled"}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update settings";
+      toast.error(errorMessage);
+    }
+  };
 
   const handleAdminDeleteIdea = async (ideaId: Id<"ideas">) => {
     if (!confirm("Are you sure you want to admin delete this idea? This will remove it from all teams and cannot be undone.")) {
@@ -181,6 +196,69 @@ export default function AdminPage() {
                   <div className="text-3xl font-bold text-cyan-300">{teams.length}</div>
                   <div className="text-gray-400">Teams Created</div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submission Controls */}
+          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <CardHeader>
+              <CardTitle className="text-yellow-400 font-mono">🚦 Submission Controls</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="flex items-center justify-between bg-black/20 border border-cyan-400/10 rounded p-3">
+                  <div>
+                    <div className="text-yellow-300 font-semibold">Idea Submissions</div>
+                    <div className="text-gray-400 text-sm">Allow users to submit new ideas</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={settings?.enableIdeaSubmissions ? "default" : "outline"}
+                      className={settings?.enableIdeaSubmissions ? "bg-green-500 hover:bg-green-600 text-white" : "border-green-400 text-green-400"}
+                      onClick={() => handleToggleSubmissions("ideas", true)}
+                    >
+                      Enable
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={!settings?.enableIdeaSubmissions ? "default" : "outline"}
+                      className={!settings?.enableIdeaSubmissions ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-400 text-red-400"}
+                      onClick={() => handleToggleSubmissions("ideas", false)}
+                    >
+                      Disable
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between bg-black/20 border border-cyan-400/10 rounded p-3">
+                  <div>
+                    <div className="text-yellow-300 font-semibold">Team Creation</div>
+                    <div className="text-gray-400 text-sm">Allow users to create new teams</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={settings?.enableTeamSubmissions ? "default" : "outline"}
+                      className={settings?.enableTeamSubmissions ? "bg-green-500 hover:bg-green-600 text-white" : "border-green-400 text-green-400"}
+                      onClick={() => handleToggleSubmissions("teams", true)}
+                    >
+                      Enable
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={!settings?.enableTeamSubmissions ? "default" : "outline"}
+                      className={!settings?.enableTeamSubmissions ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-400 text-red-400"}
+                      onClick={() => handleToggleSubmissions("teams", false)}
+                    >
+                      Disable
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">
+                Changes take effect immediately across the app. Server-side checks enforce these rules.
               </div>
             </CardContent>
           </Card>

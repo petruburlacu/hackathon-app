@@ -15,6 +15,9 @@ import Link from "next/link";
 import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
 
 export default function TeamsPage() {
+  const settings = useQuery(api.hackathon.getSettings);
+  const teamSubmissionsEnabled = settings?.enableTeamSubmissions ?? true;
+  const ideaSubmissionsEnabled = settings?.enableIdeaSubmissions ?? true;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
@@ -23,7 +26,7 @@ export default function TeamsPage() {
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "name">("votes");
+  const [sortBy, setSortBy] = useState<"newest" | "votes" | "name">("name");
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -47,6 +50,10 @@ export default function TeamsPage() {
   const isAdmin = viewer.email === "admin@hackathon.com";
 
   const handleCreateTeam = async () => {
+    if (!teamSubmissionsEnabled) {
+      toast.error("Team creation is currently closed");
+      return;
+    }
     if (!newTeamName.trim()) {
       toast.error("Please enter a team name");
       return;
@@ -155,7 +162,7 @@ export default function TeamsPage() {
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Create New Team */}
-          {!hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
+          {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
             <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">👥</div>
@@ -176,7 +183,7 @@ export default function TeamsPage() {
             </Card>
           )}
           
-          {!hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
+          {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
             <Card id="create-team-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
@@ -242,6 +249,20 @@ export default function TeamsPage() {
                     Cancel
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && (
+            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl sm:text-6xl mb-3">⛔</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
+                  Team creation is closed
+                </h3>
+                <p className="text-cyan-200 text-sm">
+                  You can still browse, search, and join existing teams if available.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -445,9 +466,11 @@ export default function TeamsPage() {
                             <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
                               <Link href="/hackathon/ideas">Browse All Ideas</Link>
                             </Button>
-                            <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black py-2 px-4">
-                              <Link href="/hackathon/ideas">Submit New Idea</Link>
-                            </Button>
+                            {ideaSubmissionsEnabled && (
+                              <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black py-2 px-4">
+                                <Link href="/hackathon/ideas">Submit New Idea</Link>
+                              </Button>
+                            )}
                           </div>
                         </div>
                       )}

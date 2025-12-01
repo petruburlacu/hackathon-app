@@ -92,6 +92,13 @@ export const createIdea = mutation({
     tags: v.optional(v.array(v.string())), // Made optional
   },
   handler: async (ctx, args) => {
+    // Prefer DB settings; fallback to env when unset
+    const settings = await ctx.db.query("settings").first();
+    const ideaSubmissionsEnabledDb = settings?.enableIdeaSubmissions;
+    const ideaSubmissionsEnabledEnv =
+      (process.env.ENABLE_IDEA_SUBMISSIONS ?? process.env.NEXT_PUBLIC_ENABLE_IDEA_SUBMISSIONS ?? "true") !== "false";
+    const ideaSubmissionsEnabled = ideaSubmissionsEnabledDb ?? ideaSubmissionsEnabledEnv;
+    if (!ideaSubmissionsEnabled) throw new Error("Idea submissions are currently closed");
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -406,6 +413,13 @@ export const createTeam = mutation({
     maxNonDevs: v.number(),
   },
   handler: async (ctx, args) => {
+    // Prefer DB settings; fallback to env when unset
+    const settings = await ctx.db.query("settings").first();
+    const teamCreationEnabledDb = settings?.enableTeamSubmissions;
+    const teamCreationEnabledEnv =
+      (process.env.ENABLE_TEAM_SUBMISSIONS ?? process.env.NEXT_PUBLIC_ENABLE_TEAM_SUBMISSIONS ?? "true") !== "false";
+    const teamCreationEnabled = teamCreationEnabledDb ?? teamCreationEnabledEnv;
+    if (!teamCreationEnabled) throw new Error("Team creation is currently closed");
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -953,6 +967,53 @@ export const getLeaderboard = query({
       .collect();
 
     return teams.sort((a, b) => b.votes - a.votes);
+  },
+});
+
+// Settings: read current submission toggles (defaults enabled)
+export const getSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db.query("settings").first();
+    return {
+      enableIdeaSubmissions: settings?.enableIdeaSubmissions ?? true,
+      enableTeamSubmissions: settings?.enableTeamSubmissions ?? true,
+      updatedAt: settings?.updatedAt ?? Date.now(),
+    };
+  },
+});
+
+// Settings: update submission toggles (admin only)
+export const updateSettings = mutation({
+  args: {
+    enableIdeaSubmissions: v.boolean(),
+    enableTeamSubmissions: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+    const user = await ctx.db.get(userId);
+    if (!user || user.email !== "admin@hackathon.com") {
+      throw new Error("Admin access required");
+    }
+
+    const existing = await ctx.db.query("settings").first();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        enableIdeaSubmissions: args.enableIdeaSubmissions,
+        enableTeamSubmissions: args.enableTeamSubmissions,
+        updatedAt: Date.now(),
+      });
+      return existing._id;
+    }
+    const newId = await ctx.db.insert("settings", {
+      enableIdeaSubmissions: args.enableIdeaSubmissions,
+      enableTeamSubmissions: args.enableTeamSubmissions,
+      updatedAt: Date.now(),
+    });
+    return newId;
   },
 });
 

@@ -34,6 +34,9 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
   // Role-specific caps removed; total team size is fixed at 6
+  const settings = useQuery(api.hackathon.getSettings);
+  const ideaSubmissionsEnabled = settings?.enableIdeaSubmissions ?? true;
+  const teamSubmissionsEnabled = settings?.enableTeamSubmissions ?? true;
 
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
@@ -64,6 +67,10 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   }
 
   const handleCreateIdea = async () => {
+    if (!ideaSubmissionsEnabled) {
+      toast.error("Idea submissions are currently closed");
+      return;
+    }
     if (!newIdeaTitle.trim() || !newIdeaDescription.trim()) {
       toast.error("Please fill in both title and description");
       return;
@@ -85,6 +92,10 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   };
 
   const handleCreateTeam = async () => {
+    if (!teamSubmissionsEnabled) {
+      toast.error("Team creation is currently closed");
+      return;
+    }
     if (!newTeamName.trim()) {
       toast.error("Please enter a team name");
       return;
@@ -185,9 +196,10 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
               />
               <Button
                 onClick={handleCreateIdea}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                disabled={!ideaSubmissionsEnabled}
+                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Submit Idea
+                {ideaSubmissionsEnabled ? "Submit Idea" : "Submissions Closed"}
               </Button>
             </CardContent>
           </Card>
@@ -264,9 +276,10 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                 </div>
                 <Button
                   onClick={handleCreateTeam}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                  disabled={!teamSubmissionsEnabled}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Team
+                  {teamSubmissionsEnabled ? "Create Team" : "Creation Closed"}
                 </Button>
               </CardContent>
             </Card>
