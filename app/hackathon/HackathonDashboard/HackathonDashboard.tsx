@@ -260,12 +260,14 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                   value={newTeamName}
                   onChange={(e) => setNewTeamName(e.target.value)}
                   className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  maxLength={60}
                 />
                 <Input
                   placeholder="Team description (optional)..."
                   value={newTeamDescription}
                   onChange={(e) => setNewTeamDescription(e.target.value)}
                   className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                  maxLength={500}
                 />
                 <div>
                   <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
@@ -291,7 +293,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-yellow-400 font-mono text-lg">{team.name}</CardTitle>
+                    <CardTitle className="text-yellow-400 font-mono text-lg break-words line-clamp-1">{team.name}</CardTitle>
                     <Badge variant="secondary" className="bg-pink-500 text-white">
                       {team.votes} votes
                     </Badge>
@@ -299,7 +301,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                 </CardHeader>
                 <CardContent>
                   {team.description && (
-                    <p className="text-cyan-200 mb-4">{team.description}</p>
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed break-words line-clamp-3">{team.description}</p>
                   )}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">

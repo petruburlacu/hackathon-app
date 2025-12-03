@@ -2,6 +2,19 @@ import { getAuthUserId, getAuthSessionId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Basic text sanitization to prevent layout-breaking and invisible control chars
+function sanitizeText(input: string, maxLength: number): string {
+  // 1) Normalize to NFC to avoid weird composed forms
+  const normalized = input.normalize("NFC");
+  // 2) Remove control chars, formatting chars (incl. zero-width), surrogate code points,
+  //    and non-spacing/enclosing marks that create glitchy text walls
+  const stripped = normalized.replace(/[\p{Cc}\p{Cf}\p{Cs}\p{Mn}\p{Me}]/gu, "");
+  // 3) Collapse whitespace and trim
+  const compact = stripped.replace(/\s+/g, " ").trim();
+  // 4) Enforce max length
+  return compact.slice(0, Math.max(0, maxLength));
+}
+
 // User management functions
 export const createHackathonUser = mutation({
   args: {
@@ -449,10 +462,18 @@ export const createTeam = mutation({
       throw new Error("User has already created a team");
     }
 
+    // Sanitize inputs
+    const sanitizedName = sanitizeText(args.name, 60);
+    const sanitizedDescription = args.description ? sanitizeText(args.description, 500) : undefined;
+
+    if (!sanitizedName || sanitizedName.trim().length < 3) {
+      throw new Error("Team name must be at least 3 characters after sanitization");
+    }
+
     // Create team
     const teamId = await ctx.db.insert("teams", {
-      name: args.name,
-      description: args.description,
+      name: sanitizedName,
+      description: sanitizedDescription,
       leaderId: userId,
       maxDevs: 6,
       maxNonDevs: 6,
@@ -512,10 +533,18 @@ export const updateTeam = mutation({
       throw new Error("Team name must be at least 3 characters long");
     }
 
+    // Sanitize inputs
+    const sanitizedName = sanitizeText(args.name, 60);
+    const sanitizedDescription = args.description ? sanitizeText(args.description, 500) : undefined;
+
+    if (!sanitizedName || sanitizedName.trim().length < 3) {
+      throw new Error("Team name must be at least 3 characters after sanitization");
+    }
+
     // Update the team
     await ctx.db.patch(args.teamId, {
-      name: args.name.trim(),
-      description: args.description?.trim() || undefined,
+      name: sanitizedName,
+      description: sanitizedDescription,
       // Fixed total capacity; role-specific caps are no longer enforced
       maxDevs: 6,
       maxNonDevs: 6,

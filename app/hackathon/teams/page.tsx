@@ -199,6 +199,7 @@ export default function TeamsPage() {
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
                     className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+                    maxLength={60}
                   />
                   <p className="text-xs text-gray-400 mt-1">Minimum 3 characters</p>
                 </div>
@@ -211,6 +212,7 @@ export default function TeamsPage() {
                     onChange={(e) => setNewTeamDescription(e.target.value)}
                     rows={4}
                     className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                    maxLength={500}
                   />
                   <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
                 </div>
@@ -361,7 +363,7 @@ export default function TeamsPage() {
               <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-yellow-400 font-mono text-lg">{team.name}</CardTitle>
+                    <CardTitle className="text-yellow-400 font-mono text-lg break-words line-clamp-1">{team.name}</CardTitle>
                     <Badge variant="secondary" className="bg-pink-500 text-white">
                       {team.votes} votes
                     </Badge>
@@ -369,7 +371,7 @@ export default function TeamsPage() {
                 </CardHeader>
                 <CardContent>
                   {team.description && (
-                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed">{team.description}</p>
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed break-words line-clamp-3">{team.description}</p>
                   )}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
