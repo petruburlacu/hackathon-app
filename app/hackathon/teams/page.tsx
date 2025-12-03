@@ -38,6 +38,7 @@ export default function TeamsPage() {
 
   const createTeam = useMutation(api.hackathon.createTeam);
   const joinTeam = useMutation(api.hackathon.joinTeam);
+  const joinRandomTeam = useMutation(api.hackathon.joinRandomTeam);
   const assignIdeaToTeam = useMutation(api.hackathon.assignIdeaToTeam);
   const removeIdeaFromTeam = useMutation(api.hackathon.removeIdeaFromTeam);
   const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
@@ -86,6 +87,16 @@ export default function TeamsPage() {
       } else {
         toast.error("Failed to create team");
       }
+    }
+  };
+
+  const handleJoinRandomTeam = async () => {
+    try {
+      const result = await joinRandomTeam({});
+      toast.success(`Joined team: ${result?.teamName || "Success"}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(errorMessage || "Failed to join a random team");
     }
   };
 
@@ -269,10 +280,23 @@ export default function TeamsPage() {
             </Card>
           )}
 
-          {/* Search and Filter Controls */}
+          {/* Quick Actions + Search and Filter Controls */}
           <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
+                {!hackathonUser?.teamId && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleJoinRandomTeam}
+                      className="bg-green-500 hover:bg-green-600 text-white font-bold"
+                    >
+                      🎲 Join a Random Team
+                    </Button>
+                    <p className="text-xs text-gray-400 self-center">
+                      We’ll place you into an open team that has capacity for your role.
+                    </p>
+                  </div>
+                )}
                 <div className="w-full">
                   <Input
                     placeholder="Search teams by name or description..."

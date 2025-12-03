@@ -475,6 +475,7 @@ export const createTeam = mutation({
       name: sanitizedName,
       description: sanitizedDescription,
       leaderId: userId,
+    openForRandomAllocation: true,
       maxDevs: 6,
       maxNonDevs: 6,
       currentDevs: 0,
@@ -561,6 +562,98 @@ export const getTeams = query({
       .query("teams")
       .withIndex("by_votes")
       .collect();
+  },
+});
+
+// Random team allocation respecting role capacities and open flag
+export const joinRandomTeam = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const hackathonUser = await ctx.db
+      .query("hackathonUsers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!hackathonUser) {
+      throw new Error("User not registered for hackathon");
+    }
+
+    if (hackathonUser.role === "admin") {
+      throw new Error("Admins cannot join teams");
+    }
+
+    if (hackathonUser.teamId) {
+      throw new Error("User is already in a team");
+    }
+
+    // Fetch candidate teams: open for random allocation (undefined => open), and with capacity
+    const allTeams = await ctx.db.query("teams").collect();
+    const eligible = allTeams.filter((team) => {
+      const isOpen = team.openForRandomAllocation !== false;
+      const totalMembers = (team.currentDevs ?? 0) + (team.currentNonDevs ?? 0);
+      const hasTotalCapacity = totalMembers < 6;
+      if (!isOpen || !hasTotalCapacity) return false;
+      if (hackathonUser.role === "dev") {
+        return (team.currentDevs ?? 0) < (team.maxDevs ?? 0);
+      } else {
+        // non-dev
+        return (team.currentNonDevs ?? 0) < (team.maxNonDevs ?? 0);
+      }
+    });
+
+    if (eligible.length === 0) {
+      throw new Error("No open teams have capacity for your role right now");
+    }
+
+    // Randomly pick one of the eligible teams
+    const randomIndex = Math.floor(Math.random() * eligible.length);
+    const selected = eligible[randomIndex];
+
+    // Join it
+    await ctx.db.patch(hackathonUser._id, {
+      teamId: selected._id,
+    });
+
+    const newDevCount = hackathonUser.role === "dev" ? (selected.currentDevs ?? 0) + 1 : (selected.currentDevs ?? 0);
+    const newNonDevCount = hackathonUser.role === "non-dev" ? (selected.currentNonDevs ?? 0) + 1 : (selected.currentNonDevs ?? 0);
+
+    await ctx.db.patch(selected._id, {
+      currentDevs: newDevCount,
+      currentNonDevs: newNonDevCount,
+    });
+
+    return { teamId: selected._id, teamName: selected.name };
+  },
+});
+
+// Team leader can toggle whether their team is open for random allocation
+export const setTeamRandomOpen = mutation({
+  args: {
+    teamId: v.id("teams"),
+    open: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    if (team.leaderId !== userId) {
+      throw new Error("Only team leaders can update random allocation settings");
+    }
+
+    await ctx.db.patch(args.teamId, { openForRandomAllocation: args.open });
+    return { success: true, openForRandomAllocation: args.open };
   },
 });
 

@@ -40,6 +40,8 @@ export default defineSchema({
     description: v.optional(v.string()),
     leaderId: v.id("users"),
     ideaId: v.optional(v.id("ideas")),
+    // When undefined, treat as true (open for random allocation by default)
+    openForRandomAllocation: v.optional(v.boolean()),
     status: v.optional(v.union(
       v.literal("forming"),
       v.literal("idea-browsing"),

@@ -44,6 +44,7 @@ export default function TeamDetailPage() {
   const updateTeam = useMutation(api.hackathon.updateTeam);
   const leaveTeam = useMutation(api.hackathon.leaveTeam);
   const deleteTeam = useMutation(api.hackathon.deleteTeam);
+  const setTeamRandomOpen = useMutation(api.hackathon.setTeamRandomOpen);
 
   // Update edit form when team details load
   React.useEffect(() => {
@@ -342,6 +343,56 @@ export default function TeamDetailPage() {
                   </div>
                 </div>
               </div>
+              {/* Random Allocation Settings (Leader only) */}
+              {hackathonUser?.userId === teamDetails.team.leaderId && (
+                <div className="mt-6 p-4 bg-black/20 rounded-lg border border-cyan-400/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-cyan-300 text-sm font-bold">Random Team Allocation</h4>
+                      <p className="text-gray-400 text-xs">
+                        Allow users to be randomly allocated to your team.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant={(teamDetails.team.openForRandomAllocation ?? true) ? "default" : "outline"}
+                        className={(teamDetails.team.openForRandomAllocation ?? true) ? "bg-green-500 hover:bg-green-600 text-white" : "border-green-400 text-green-400 hover:bg-green-400 hover:text-black"}
+                        onClick={async () => {
+                          try {
+                            await setTeamRandomOpen({ teamId: teamId as any, open: true });
+                            toast.success("Team opened for random allocation");
+                          } catch (e: any) {
+                            toast.error(e?.message || "Failed to update");
+                          }
+                        }}
+                      >
+                        Open
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={(teamDetails.team.openForRandomAllocation ?? true) ? "outline" : "default"}
+                        className={(teamDetails.team.openForRandomAllocation ?? true) ? "border-red-400 text-red-400 hover:bg-red-400 hover:text-black" : "bg-red-500 hover:bg-red-600 text-white"}
+                        onClick={async () => {
+                          try {
+                            await setTeamRandomOpen({ teamId: teamId as any, open: false });
+                            toast.success("Team closed for random allocation");
+                          } catch (e: any) {
+                            toast.error(e?.message || "Failed to update");
+                          }
+                        }}
+                      >
+                        Closed
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs">
+                    <Badge className={(teamDetails.team.openForRandomAllocation ?? true) ? "bg-green-600 text-white" : "bg-red-600 text-white"}>
+                      {(teamDetails.team.openForRandomAllocation ?? true) ? "Open for random allocation" : "Closed to random allocation"}
+                    </Badge>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
