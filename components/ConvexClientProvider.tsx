@@ -35,11 +35,7 @@ export default function ConvexClientProvider({
   }, []);
 
   return (
-    <ConvexAuthNextjsProvider
-      client={convex}
-      // Pass explicitly to avoid internal defaulting/warnings if env mangled
-      deploymentUrl={process.env.NEXT_PUBLIC_CONVEX_URL}
-    >
+    <ConvexAuthNextjsProvider client={convex}>
       {children}
     </ConvexAuthNextjsProvider>
   );
