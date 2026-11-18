@@ -64,7 +64,7 @@ export default function AdminPage() {
   }
 
   // Admin check - only allow admin@hackathon.com
-  const isAdmin = viewer.email === "admin@hackathon.com";
+  const isAdmin = viewer.isAdmin;
   
   if (!isAdmin) {
     return (

@@ -58,7 +58,7 @@ export default function IdeasPage() {
   }
 
   // Simple admin check - in a real app, you'd have proper role-based access
-  const isAdmin = viewer?.email === "admin@hackathon.com";
+  const isAdmin = viewer?.isAdmin ?? false;
 
   // Debug function to help identify the issue
   const debugAuthorInfo = (idea: any) => {
@@ -69,7 +69,7 @@ export default function IdeasPage() {
       authorIdType: typeof idea.authorId,
       viewerId: viewer?._id,
       viewerIdType: typeof viewer?._id,
-      viewerEmail: viewer?.email,
+      viewerUsername: viewer?.username,
       match: viewer && String(idea.authorId) === String(viewer._id)
     });
   };

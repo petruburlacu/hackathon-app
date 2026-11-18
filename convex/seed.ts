@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { isAdmin } from "./users";
 
 // Sample hackathon ideas
 const sampleIdeas = [
@@ -50,9 +51,7 @@ export const seedHackathonData = mutation({
       throw new Error("Must be authenticated to seed data");
     }
 
-    // Get user info to check admin status
-    const user = await ctx.db.get(userId);
-    if (!user || user.email !== "admin@hackathon.com") {
+    if (!(await isAdmin(ctx, userId))) {
       throw new Error("Admin access required");
     }
 
@@ -100,9 +99,7 @@ export const clearHackathonData = mutation({
       throw new Error("Must be authenticated to clear data");
     }
 
-    // Get user info to check admin status
-    const user = await ctx.db.get(userId);
-    if (!user || user.email !== "admin@hackathon.com") {
+    if (!(await isAdmin(ctx, userId))) {
       throw new Error("Admin access required");
     }
 

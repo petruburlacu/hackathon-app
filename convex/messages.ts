@@ -1,6 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getUsername } from "./users";
 
 export const list = query({
   args: {},
@@ -9,10 +10,10 @@ export const list = query({
     const messages = await ctx.db.query("messages").order("desc").take(100);
     // Add the author's name to each message.
     return Promise.all(
-      messages.map(async (message) => {
-        const { name, email } = (await ctx.db.get(message.userId))!;
-        return { ...message, author: name ?? email! };
-      }),
+      messages.map(async (message) => ({
+        ...message,
+        author: (await getUsername(ctx, message.userId)) ?? "Unknown",
+      })),
     );
   },
 });

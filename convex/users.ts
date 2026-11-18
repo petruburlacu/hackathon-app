@@ -1,5 +1,39 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query } from "./_generated/server";
+import { v } from "convex/values";
+import { components } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { internalMutation, query, type QueryCtx } from "./_generated/server";
+
+const ADMIN_USERNAME = "admin@hackathon.com";
+
+export async function getUsername(
+  ctx: Pick<QueryCtx, "runQuery">,
+  userId: Id<"users">,
+): Promise<string | null> {
+  return await ctx.runQuery(components.authUsername.public.getUsername, {
+    userId,
+  });
+}
+
+export async function isAdmin(
+  ctx: Pick<QueryCtx, "runQuery">,
+  userId: Id<"users">,
+): Promise<boolean> {
+  return (await getUsername(ctx, userId)) === ADMIN_USERNAME;
+}
+
+export const createUser = internalMutation({
+  args: {
+    method: v.object({
+      name: v.literal("usernamePassword"),
+      profile: v.object({}),
+    }),
+  },
+  returns: v.id("users"),
+  handler: async (ctx) => {
+    return await ctx.db.insert("users", {});
+  },
+});
 
 export const viewer = query({
   args: {},
@@ -12,6 +46,7 @@ export const viewer = query({
     if (user === null) {
       return null;
     }
-    return user;
+    const username = await getUsername(ctx, userId);
+    return { ...user, username, isAdmin: username === ADMIN_USERNAME };
   },
 });

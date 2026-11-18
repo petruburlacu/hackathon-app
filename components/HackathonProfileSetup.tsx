@@ -30,7 +30,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
   }, [hackathonUser]);
 
   // Check if user is admin
-  const isAdmin = viewer?.email === "admin@hackathon.com";
+  const isAdmin = viewer?.isAdmin ?? false;
 
   const handleSetup = async () => {
     if (!role) {
