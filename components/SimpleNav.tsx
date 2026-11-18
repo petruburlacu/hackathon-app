@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function SimpleNav() {
   return (
-    <nav className="flex items-center justify-between p-3 sm:p-4 bg-black/20 backdrop-blur-sm border-b border-cyan-400/20">
+    <nav className="flex items-center justify-between p-3 sm:p-4 bg-black/20 backdrop-blur-xs border-b border-cyan-400/20">
       <div className="flex items-center gap-2 sm:gap-4">
         <Link href="/" className="text-lg sm:text-2xl font-bold text-yellow-400 font-mono">
           🚀 Hackathon 2025

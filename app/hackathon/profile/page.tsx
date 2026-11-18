@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
@@ -73,19 +73,19 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="⚙️ PROFILE MANAGEMENT ⚙️" />
 
       <div className="flex-1 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Profile Header */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono text-2xl">👤 Your Profile</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-black">
+                <div className="w-16 h-16 bg-linear-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-black">
                   {hackathonUser?.displayName?.charAt(0)?.toUpperCase() || viewer.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
                 <div>
@@ -102,7 +102,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Profile Management */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-yellow-400 font-mono">⚙️ Edit Profile</CardTitle>
@@ -176,7 +176,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Account Information */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">🔐 Account Information</CardTitle>
             </CardHeader>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Session Management */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">🔒 Session Management</CardTitle>
             </CardHeader>
@@ -257,7 +257,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Quick Actions */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">🚀 Quick Actions</CardTitle>
             </CardHeader>

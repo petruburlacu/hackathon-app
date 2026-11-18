@@ -39,7 +39,7 @@ export default function SuggestionsPage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
@@ -147,14 +147,14 @@ export default function SuggestionsPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="💡 SUGGESTION BOX 💡" />
 
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Create New Suggestion */}
           {!showCreateForm ? (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📝</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4">
@@ -173,7 +173,7 @@ export default function SuggestionsPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                   <PlusIcon className="h-5 w-5" />
@@ -200,7 +200,7 @@ export default function SuggestionsPage() {
                     value={newSuggestionDescription}
                     onChange={(e) => setNewSuggestionDescription(e.target.value)}
                     rows={4}
-                    className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                    className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
                     required
                   />
                   <p className="text-xs text-gray-400 mt-1">Minimum 10 characters</p>
@@ -258,7 +258,7 @@ export default function SuggestionsPage() {
           )}
 
           {/* Search and Filter */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
                 <div className="w-full">
@@ -304,7 +304,7 @@ export default function SuggestionsPage() {
           {/* Suggestions List */}
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredSuggestions.map((suggestion) => (
-              <Card key={suggestion._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
+              <Card key={suggestion._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg">{suggestion.title}</CardTitle>
@@ -362,7 +362,7 @@ export default function SuggestionsPage() {
 
           {/* Empty State */}
           {filteredSuggestions.length === 0 && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-12 text-center">
                 <div className="text-6xl mb-4">💡</div>
                 <h3 className="text-2xl font-bold text-yellow-400 mb-4">

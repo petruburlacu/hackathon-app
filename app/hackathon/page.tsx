@@ -37,7 +37,7 @@ export default function HackathonPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav 
         title="⚖️ TRIAL BY CODE ⚖️"
         showTour={true}

@@ -38,7 +38,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
   ];
 
   return (
-    <header className="sticky top-0 z-10 border-b border-cyan-400/20 bg-black/20 backdrop-blur px-4 md:px-6">
+    <header className="sticky top-0 z-10 border-b border-cyan-400/20 bg-black/20 backdrop-blur-sm px-4 md:px-6">
       {/* Desktop Navigation */}
       <nav className="hidden md:flex h-20 w-full justify-between gap-6 text-lg font-medium md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
         <Link href="/hackathon">

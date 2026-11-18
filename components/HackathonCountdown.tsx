@@ -42,7 +42,7 @@ export function HackathonCountdown() {
 
   if (isExpired) {
     return (
-      <Card className="bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-sm border-red-400/30 p-8 rounded-2xl">
+      <Card className="bg-linear-to-r from-red-500/20 to-orange-500/20 backdrop-blur-xs border-red-400/30 p-8 rounded-2xl">
         <CardContent className="text-center">
           <div className="text-6xl mb-4">🚀</div>
           <h2 className="text-3xl font-bold text-red-400 font-mono mb-2">
@@ -59,9 +59,9 @@ export function HackathonCountdown() {
   return (
     <div className="relative countdown-pulse">
       {/* Background Glow Effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl scale-110"></div>
+      <div className="absolute inset-0 bg-linear-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl scale-110"></div>
       
-      <Card className="relative bg-gradient-to-r from-yellow-500/30 to-orange-500/30 backdrop-blur-sm border-yellow-400/50 p-4 sm:p-8 lg:p-12 rounded-3xl countdown-glow shadow-2xl">
+      <Card className="relative bg-linear-to-r from-yellow-500/30 to-orange-500/30 backdrop-blur-xs border-yellow-400/50 p-4 sm:p-8 lg:p-12 rounded-3xl countdown-glow shadow-2xl">
         <CardContent className="text-center">
           <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">⏰</div>
           <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-4 retro-gradient-text countdown-font px-2">
@@ -79,7 +79,7 @@ export function HackathonCountdown() {
           </div>
           
           <div className="mt-4 sm:mt-8 text-center">
-            <Link href="/hackathon" className="inline-block px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm sm:text-lg lg:text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all hackathon-title cursor-pointer">
+            <Link href="/hackathon" className="inline-block px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-linear-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm sm:text-lg lg:text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all hackathon-title cursor-pointer">
               🚀 Enter Hackathon 🚀
             </Link>
           </div>
@@ -91,8 +91,8 @@ export function HackathonCountdown() {
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="bg-black/50 backdrop-blur-sm border border-yellow-400/30 rounded-xl p-3 sm:p-4 lg:p-6 hover:border-yellow-400/60 transition-all hover:scale-110 hover:shadow-lg">
-      <div className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-3 retro-glow countdown-font break-words">
+    <div className="bg-black/50 backdrop-blur-xs border border-yellow-400/30 rounded-xl p-3 sm:p-4 lg:p-6 hover:border-yellow-400/60 transition-all hover:scale-110 hover:shadow-lg">
+      <div className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-3 retro-glow countdown-font wrap-break-word">
         {value.toString().padStart(2, '0')}
       </div>
       <div className="text-cyan-300 text-xs sm:text-sm lg:text-lg font-mono uppercase tracking-wider hackathon-text">

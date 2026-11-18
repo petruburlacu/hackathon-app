@@ -51,7 +51,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
   if (!hackathonUser) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20 p-8">
+        <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20 p-8">
           <CardContent className="text-center">
             <h3 className="text-xl font-bold text-yellow-400 mb-4">Registration Required</h3>
             <p className="text-cyan-200 mb-4">
@@ -153,7 +153,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
           type="single"
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as typeof activeTab)}
-          className="bg-black/20 backdrop-blur-sm p-1 rounded-lg border border-cyan-400/20"
+          className="bg-black/20 backdrop-blur-xs p-1 rounded-lg border border-cyan-400/20"
         >
           <ToggleGroupItem value="ideas" className="data-[state=on]:bg-yellow-400 data-[state=on]:text-black">
             <StarIcon className="mr-2 h-4 w-4" />
@@ -174,7 +174,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       {activeTab === "ideas" && (
         <div className="space-y-6">
           {/* Submit New Idea */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <PlusIcon className="h-5 w-5" />
@@ -207,7 +207,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
           {/* Ideas List */}
           <div className="grid gap-4 md:grid-cols-2">
             {ideas.map((idea) => (
-              <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
+              <Card key={idea._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg">{idea.title}</CardTitle>
@@ -247,7 +247,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
         <div className="space-y-6">
           {/* Create New Team */}
           {!hackathonUser.teamId && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                   <RocketIcon className="h-5 w-5" />
@@ -290,10 +290,10 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
           {/* Teams List */}
           <div className="grid gap-4 md:grid-cols-2">
             {teams.map((team) => (
-              <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all">
+              <Card key={team._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-yellow-400 font-mono text-lg break-words line-clamp-1">{team.name}</CardTitle>
+                    <CardTitle className="text-yellow-400 font-mono text-lg wrap-break-word line-clamp-1">{team.name}</CardTitle>
                     <Badge variant="secondary" className="bg-pink-500 text-white">
                       {team.votes} votes
                     </Badge>
@@ -301,7 +301,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                 </CardHeader>
                 <CardContent>
                   {team.description && (
-                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed break-words line-clamp-3">{team.description}</p>
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed wrap-break-word line-clamp-3">{team.description}</p>
                   )}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
@@ -338,7 +338,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       {/* Leaderboard Tab */}
       {activeTab === "leaderboard" && (
         <div className="space-y-6">
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono text-center text-2xl">
                 🏆 TEAM LEADERBOARD 🏆
@@ -348,8 +348,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
           <div className="space-y-4">
             {leaderboard.map((team, index: number) => (
-              <Card key={team._id} className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 ${
-                index === 0 ? 'border-yellow-400/60 bg-gradient-to-r from-yellow-500/10 to-orange-500/10' : ''
+              <Card key={team._id} className={`bg-black/40 backdrop-blur-xs border-cyan-400/20 ${
+                index === 0 ? 'border-yellow-400/60 bg-linear-to-r from-yellow-500/10 to-orange-500/10' : ''
               }`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

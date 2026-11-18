@@ -167,14 +167,14 @@ export default function TeamsPage() {
     });
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="👥 TEAMS 👥" />
 
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Create New Team */}
           {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">👥</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
@@ -195,7 +195,7 @@ export default function TeamsPage() {
           )}
           
           {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
-            <Card id="create-team-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card id="create-team-form" className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                   <RocketIcon className="h-5 w-5" />
@@ -222,7 +222,7 @@ export default function TeamsPage() {
                     value={newTeamDescription}
                     onChange={(e) => setNewTeamDescription(e.target.value)}
                     rows={4}
-                    className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                    className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
                     maxLength={500}
                   />
                   <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
@@ -267,7 +267,7 @@ export default function TeamsPage() {
           )}
           
           {!teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3">⛔</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
@@ -281,7 +281,7 @@ export default function TeamsPage() {
           )}
 
           {/* Quick Actions + Search and Filter Controls */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
                 {!hackathonUser?.teamId && (
@@ -338,7 +338,7 @@ export default function TeamsPage() {
 
           {/* Teams List */}
           {filteredAndSortedTeams.length === 0 ? (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-8 sm:p-12 text-center">
                 <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">👥</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
@@ -384,10 +384,10 @@ export default function TeamsPage() {
           ) : (
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedTeams.map((team: any) => (
-              <Card key={team._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
+              <Card key={team._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-yellow-400 font-mono text-lg break-words line-clamp-1">{team.name}</CardTitle>
+                    <CardTitle className="text-yellow-400 font-mono text-lg wrap-break-word line-clamp-1">{team.name}</CardTitle>
                     <Badge variant="secondary" className="bg-pink-500 text-white">
                       {team.votes} votes
                     </Badge>
@@ -395,7 +395,7 @@ export default function TeamsPage() {
                 </CardHeader>
                 <CardContent>
                   {team.description && (
-                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed break-words line-clamp-3">{team.description}</p>
+                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed wrap-break-word line-clamp-3">{team.description}</p>
                   )}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
