@@ -1,70 +1,109 @@
-# Welcome to your Convex + Next.js + Convex Auth app
+# ⚖️ Trial by Code — Hackathon Platform
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+Web app for running an internal hackathon: participants sign up, submit and vote on ideas, form teams, and follow a live leaderboard. Admins control when idea and team submissions are open.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+**Stack:** [Next.js 16](https://nextjs.org/) (App Router) · [Convex](https://www.convex.dev/) (database + backend functions) · [Convex Auth v2](https://docs.convex.dev/auth/convex-auth) (username/password) · [Tailwind CSS 4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) · hosted on [Vercel](https://vercel.com/).
 
-- Convex as your backend (database, server logic)
-- [Convex Auth](https://labs.convex.dev/auth) for your authentication implementation
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/) for building great looking accessible UI fast
+Want to contribute? See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## Get started
+## Quick start
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+Prerequisites: **Node.js 24.15+** (`nvm install` reads [`.nvmrc`](./.nvmrc)) and npm.
 
-```
-npm install
+```sh
+git clone git@github.com:petruburlacu/hackathon-app.git
+cd hackathon-app
+npm ci
 npm run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+The first `npm run dev` runs `npx convex dev`, which asks where to run the backend:
+
+- **Start without an account (run Convex locally)**: the quickest option. Convex runs a local backend on your machine, and its data lives in `.convex/local/` (gitignored).
+- **Log in / create a project**: a free personal cloud dev deployment, useful if you want to share a URL.
+
+The CLI writes `.env.local` (`CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`) and pushes the functions in `convex/`. Then `npm run dev` starts Next.js on <http://localhost:3000> and the Convex watcher together, and opens the Convex dashboard.
+
+You don't need any auth keys or other env vars for local development.
+
+### Create your first users
+
+1. Go to <http://localhost:3000/signin> and choose **Join the hackathon**.
+2. Sign up with the username `admin@hackathon.com` to get the admin role. Any other username is a regular participant.
+3. Passwords need at least 10 characters and can't be a common password.
+4. As admin, the **Admin** page can seed sample ideas and toggle submissions.
+
+> The admin account is identified only by its username (see `ADMIN_USERNAME` in [`convex/users.ts`](./convex/users.ts)). On a fresh deployment, **register the admin account before sharing the URL**, because whoever claims that username first becomes admin.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Convex dev watcher + `next dev` |
+| `npm run build` | Production Next.js build |
+| `npm run lint` | ESLint (flat config, `eslint-config-next`) |
+| `npm run typecheck` | `tsc` for the Next.js app **and** the `convex/` project |
+
+Run `lint` and `typecheck` before opening a PR.
+
+## Project layout
 
 ```
-npm create convex@latest -- -t nextjs-convexauth-shadcn
+app/                 Next.js routes
+  (splash)/          public landing page
+  signin/            sign-in / sign-up page
+  hackathon/         the app (protected): ideas, teams, leaderboard, admin, profile…
+  auth/              Convex Auth SSR route handlers (sign-in, refresh, sign-out)
+components/          shared React components (ui/ = shadcn primitives)
+convex/              backend: schema.ts, functions (hackathon.ts, users.ts, …), auth wiring
+  convex.config.ts   mounts the Convex Auth components
+lib/                 convexAuth.ts / serverAuth.ts (Next.js auth helpers), utils
+proxy.ts             Next.js proxy: redirects signed-out users away from /hackathon
 ```
 
-## The app
+How auth works: Convex Auth v2 keeps auth data in Convex **components**, not in your own tables. The username lives in the `authUsername` component, so use `getUsername()`/`isAdmin()` from `convex/users.ts` and don't read fields off the `users` table. The browser only holds a short-lived access token. The refresh token lives in an httpOnly cookie set by the `app/auth/*` routes.
 
-The app is a basic multi-user chat. Walkthrough of the source code:
+## Configuration
 
-- [convex/auth.ts](./convex/auth.ts) configures the available authentication methods
-- [convex/messages.ts](./convex/messages.ts) is the chat backend implementation
-- [middleware.ts](./middleware.ts) determines which pages require sign-in
-- [app/layout.tsx](./app/layout.tsx) is the main app layout
-- [app/(splash)/page.tsx](<./app/(splash)/page.tsx>) is the splash page (doesn't require sign-in)
-- [app/product/layout.tsx](./app/product/layout.tsx) is the "product" layout for the [product page](./app/product/page.tsx) (requires sign-in)
-- [app/signin/page.tsx](./app/signin/page.tsx) is the sign-in page
-- [app/product/Chat/Chat.tsx](./app/product/Chat/Chat.tsx) is the chat frontend
+| Where | Variable | Purpose |
+|---|---|---|
+| Convex deployment env (optional) | `ENABLE_IDEA_SUBMISSIONS`, `ENABLE_TEAM_SUBMISSIONS` | Default for submissions when the admin hasn't set them in the app (`"false"` closes them). Admin settings in the database win. |
+| Vercel | `CONVEX_DEPLOY_KEY` | Lets the Vercel build deploy Convex functions (see below). |
 
-## Configuring other authentication methods
+`NEXT_PUBLIC_CONVEX_URL` is set for you: by `convex dev` locally, and by `convex deploy` on Vercel.
 
-To configure different authentication methods, see [Configuration](https://labs.convex.dev/auth/config) in the Convex Auth docs.
+## Deployment (Vercel + Convex)
 
-## Learn more
+Production is a Vercel project linked to this repo plus a Convex **production** deployment.
 
-To learn more about developing your project with Convex, check out:
+1. In the [Convex dashboard](https://dashboard.convex.dev), open the project → **Production** → *Settings* → **Generate Production Deploy Key**.
+2. In Vercel → *Project Settings* → *Environment Variables*, add `CONVEX_DEPLOY_KEY` with that key, scoped to **Production** only.
+3. In Vercel → *Build & Development Settings*, set the **Build Command** to:
+   ```sh
+   npx convex deploy --cmd 'npm run build'
+   ```
+   This pushes `convex/` to production and then builds Next.js with `NEXT_PUBLIC_CONVEX_URL` pointing at it.
+4. Optional, for PR previews: generate a **Preview Deploy Key** in Convex and add it as `CONVEX_DEPLOY_KEY` scoped to **Preview**. Each PR then gets its own throwaway backend.
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
+Don't put the production key in the Preview scope. If you do, every PR build deploys its functions to production.
 
-## Join the community
+## Starting a new hackathon with a clean database
 
-Join thousands of developers building full-stack apps with Convex:
+Easiest and safest way: create a **new Convex project** and point Vercel at it. The old project stays around as an archive until you delete it.
 
-## Deploy on Vercel
+1. Create a new project in the [Convex dashboard](https://dashboard.convex.dev). Or run `npx convex dev --configure new` locally, which also switches your `.env.local` to it.
+2. Generate a production deploy key for the new project and replace `CONVEX_DEPLOY_KEY` in Vercel (Production).
+3. Redeploy on Vercel. The first build creates the schema and installs the auth components.
+4. Register `admin@hackathon.com` right away (see above), then seed or configure from the Admin page.
+5. When you no longer need the old Convex project, delete it from its dashboard *Settings*.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Update the event details too: the countdown date and the "Hackathon 2025" labels are hardcoded in `components/HackathonCountdown.tsx`, `components/SimpleNav.tsx` and `app/(splash)/`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Docker (optional)
 
-## Deploy on Vercel
+There's a standalone-output [`Dockerfile`](./Dockerfile) (Node 24) if you need to run it outside Vercel:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-# Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+```sh
+docker build --build-arg NEXT_PUBLIC_CONVEX_URL=https://<deployment>.convex.cloud -t hackathon-app .
+docker run -p 3000:3000 hackathon-app
+```
