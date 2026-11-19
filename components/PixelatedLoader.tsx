@@ -29,7 +29,7 @@ export function PixelatedLoader({ size = "md", text, className = "" }: Pixelated
 
       {/* Justice-themed Loading Bar */}
       <div className="w-48 h-3 bg-black/30 border border-yellow-400/30 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-yellow-400 to-red-500 rounded-full animate-pulse"></div>
+        <div className="h-full bg-linear-to-r from-yellow-400 to-red-500 rounded-full animate-pulse"></div>
       </div>
     </div>
   );
@@ -38,7 +38,7 @@ export function PixelatedLoader({ size = "md", text, className = "" }: Pixelated
 // Full Screen Loading Component
 export function FullScreenLoader({ text = "Loading..." }: { text?: string }) {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center z-50">
       <div className="text-center">
         <PixelatedLoader size="lg" text={text} />
         <div className="mt-8 text-yellow-300 font-mono text-sm">
@@ -61,7 +61,7 @@ export function InlineLoader({ text, className }: { text?: string; className?: s
 // Card Loading Skeleton
 export function CardSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 rounded-lg p-6 animate-pulse ${className}`}>
+    <div className={`bg-black/40 backdrop-blur-xs border-cyan-400/20 rounded-lg p-6 animate-pulse ${className}`}>
       <div className="flex items-center gap-3 mb-4">
         <div className="w-8 h-8 bg-yellow-400/30 rounded-full"></div>
         <div className="h-4 bg-yellow-400/30 rounded w-32"></div>

@@ -180,7 +180,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
 
   return (
     <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-xs z-9999 flex items-center justify-center p-2 sm:p-4"
       onClick={(e) => {
         // Close when clicking on the backdrop
         if (e.target === e.currentTarget) {
@@ -207,7 +207,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
                 e.stopPropagation();
                 handleClose();
               }}
-              className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10 flex-shrink-0"
+              className="text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-full p-2 z-10 shrink-0"
               aria-label="Close tour"
             >
               <Cross2Icon className="h-4 w-4" />
@@ -217,7 +217,7 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
           {/* Progress Bar */}
           <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
             <div
-              className="bg-gradient-to-r from-cyan-400 to-yellow-400 h-2 rounded-full transition-all duration-300"
+              className="bg-linear-to-r from-cyan-400 to-yellow-400 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
             />
           </div>

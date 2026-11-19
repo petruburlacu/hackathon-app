@@ -145,7 +145,7 @@ export function Leaderboard() {
     <div className="flex-1 p-3 sm:p-4 lg:p-6">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+        <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
           <CardContent className="p-6 sm:p-8 text-center">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 font-mono mb-3 sm:mb-4">
               🏆 TEAM LEADERBOARD 🏆
@@ -161,10 +161,10 @@ export function Leaderboard() {
           {leaderboard.map((team: Team, index: number) => (
             <Card 
               key={team._id} 
-              className={`bg-black/40 backdrop-blur-sm border-cyan-400/20 transition-all hover:scale-[1.02] ${
-                index === 0 ? 'border-yellow-400/60 bg-gradient-to-r from-yellow-500/10 to-orange-500/10' : 
-                index === 1 ? 'border-gray-400/60 bg-gradient-to-r from-gray-500/10 to-slate-500/10' :
-                index === 2 ? 'border-orange-400/60 bg-gradient-to-r from-orange-500/10 to-red-500/10' : ''
+              className={`bg-black/40 backdrop-blur-xs border-cyan-400/20 transition-all hover:scale-[1.02] ${
+                index === 0 ? 'border-yellow-400/60 bg-linear-to-r from-yellow-500/10 to-orange-500/10' : 
+                index === 1 ? 'border-gray-400/60 bg-linear-to-r from-gray-500/10 to-slate-500/10' :
+                index === 2 ? 'border-orange-400/60 bg-linear-to-r from-orange-500/10 to-red-500/10' : ''
               }`}
             >
               <CardContent className="p-4 sm:p-6">
@@ -243,7 +243,7 @@ export function Leaderboard() {
 
         {/* Empty State */}
         {leaderboard.length === 0 && (
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardContent className="p-12 text-center">
               <div className="text-6xl mb-4">🏆</div>
               <h3 className="text-2xl font-bold text-yellow-400 mb-4">

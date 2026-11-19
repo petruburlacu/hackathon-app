@@ -59,7 +59,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
   // If user doesn't have a hackathon profile, show setup form
   if (showSetup) {
     return (
-      <div className="flex min-h-screen w-full container my-auto mx-auto bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
+      <div className="flex min-h-screen w-full container my-auto mx-auto bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
         <div className="max-w-[500px] mx-auto flex flex-col my-auto gap-4 sm:gap-6 pb-8 w-full">
           <div className="text-center">
             <div className="inline-block px-3 sm:px-4 py-2 bg-yellow-400 text-black font-bold text-base sm:text-lg rounded-lg mb-4 sm:mb-6 transform -rotate-2 shadow-lg">
@@ -73,7 +73,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
             </p>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-2xl border border-cyan-400/20">
+          <div className="bg-black/40 backdrop-blur-xs p-4 sm:p-6 lg:p-8 rounded-2xl border border-cyan-400/20">
             <div className="space-y-4 sm:space-y-6">
               <div>
                 <label htmlFor="displayName" className="text-sm font-medium text-cyan-300 mb-2 block">

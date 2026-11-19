@@ -103,7 +103,7 @@ export default function TeamDetailPage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
@@ -111,7 +111,7 @@ export default function TeamDetailPage() {
 
   if (!teamDetails) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-red-400 text-xl">Team not found</div>
       </div>
     );
@@ -207,7 +207,7 @@ export default function TeamDetailPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="👥 TEAM DETAILS 👥" />
 
       <div className="flex-1 p-6">
@@ -223,7 +223,7 @@ export default function TeamDetailPage() {
           </div>
 
           {/* Team Header */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -244,7 +244,7 @@ export default function TeamDetailPage() {
                           value={editForm.description}
                           onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                           rows={3}
-                          className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50 text-lg"
+                          className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50 text-lg"
                           placeholder="Describe your team's vision and goals..."
                         />
                       </div>
@@ -397,7 +397,7 @@ export default function TeamDetailPage() {
           </Card>
 
           {/* Team Members */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">👥 Team Members</CardTitle>
             </CardHeader>
@@ -444,7 +444,7 @@ export default function TeamDetailPage() {
 
           {/* Team Actions - Only show if user is part of this team */}
           {hackathonUser?.teamId === teamId && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono">⚡ Team Actions</CardTitle>
               </CardHeader>
@@ -487,7 +487,7 @@ export default function TeamDetailPage() {
 
           {/* Team's Idea */}
           {teamDetails.idea && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono">💡 Selected Idea</CardTitle>
               </CardHeader>
@@ -507,7 +507,7 @@ export default function TeamDetailPage() {
           )}
 
           {/* Status Management */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">⚙️ Team Status Management</CardTitle>
             </CardHeader>

@@ -29,7 +29,7 @@ export default function MyDashboardPage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
@@ -66,13 +66,13 @@ export default function MyDashboardPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="👤 MY DASHBOARD 👤" />
 
       <div className="flex-1 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Profile Summary */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-yellow-400 font-mono">👤 Profile Summary</CardTitle>
@@ -104,7 +104,7 @@ export default function MyDashboardPage() {
           </Card>
 
           {/* My Ideas */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-yellow-400 font-mono">💡 My Ideas</CardTitle>
@@ -153,7 +153,7 @@ export default function MyDashboardPage() {
           </Card>
 
           {/* My Team */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">👥 My Team</CardTitle>
             </CardHeader>

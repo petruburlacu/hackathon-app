@@ -10,14 +10,14 @@ export default function LeaderboardPage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="🏆 LEADERBOARD 🏆" />
       <Leaderboard />
     </main>

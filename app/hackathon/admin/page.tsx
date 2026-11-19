@@ -57,7 +57,7 @@ export default function AdminPage() {
 
   if (!viewer) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-yellow-400 text-xl">Loading...</div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function AdminPage() {
   
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-center">
           <div className="text-red-400 text-2xl font-bold mb-4">🚫 Access Denied</div>
           <div className="text-cyan-200 text-lg">You don&apos;t have admin privileges</div>
@@ -176,13 +176,13 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="🛠️ ADMIN PANEL 🛠️" />
 
       <div className="flex-1 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Current Stats */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">📊 Current Hackathon Stats</CardTitle>
             </CardHeader>
@@ -201,7 +201,7 @@ export default function AdminPage() {
           </Card>
 
           {/* Submission Controls */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">🚦 Submission Controls</CardTitle>
             </CardHeader>
@@ -264,7 +264,7 @@ export default function AdminPage() {
           </Card>
 
           {/* Admin Actions */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">🌱 Data Management</CardTitle>
             </CardHeader>
@@ -315,7 +315,7 @@ export default function AdminPage() {
 
           {/* Sample Ideas Preview */}
           {ideas.length > 0 && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono">💡 Current Ideas</CardTitle>
               </CardHeader>
@@ -351,7 +351,7 @@ export default function AdminPage() {
 
           {/* Teams Preview */}
           {teams.length > 0 && (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono">👥 Current Teams</CardTitle>
               </CardHeader>

@@ -275,14 +275,14 @@ export default function IdeasPage() {
   };
 
   return (
-    <main className="flex min-h-screen grow flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="💡 IDEAS BOARD 💡" />
 
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Submit New Idea */}
           {ideaSubmissionsEnabled && !showCreateForm ? (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💡</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
@@ -301,7 +301,7 @@ export default function IdeasPage() {
               </CardContent>
             </Card>
           ) : ideaSubmissionsEnabled ? (
-            <Card id="create-idea-form" className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card id="create-idea-form" className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
                 <PlusIcon className="h-5 w-5" />
@@ -320,7 +320,7 @@ export default function IdeasPage() {
                 value={newIdeaDescription}
                 onChange={(e) => setNewIdeaDescription(e.target.value)}
                 rows={6}
-                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
               />
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -393,7 +393,7 @@ export default function IdeasPage() {
             </CardContent>
           </Card>
           ) : (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3">⛔</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
@@ -407,7 +407,7 @@ export default function IdeasPage() {
           )}
 
           {/* Search and Sort Controls */}
-          <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
                 <div className="w-full">
@@ -455,7 +455,7 @@ export default function IdeasPage() {
 
           {/* Ideas List */}
           {filteredAndSortedIdeas.length === 0 ? (
-            <Card className="bg-black/40 backdrop-blur-sm border-cyan-400/20">
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-8 sm:p-12 text-center">
                 <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">💡</div>
                 <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
@@ -480,8 +480,8 @@ export default function IdeasPage() {
           ) : (
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedIdeas.map((idea: any) => (
-              <Card key={idea._id} className="bg-black/40 backdrop-blur-sm border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
-                <CardHeader className="flex-shrink-0">
+              <Card key={idea._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
+                <CardHeader className="shrink-0">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg">{idea.title}</CardTitle>
                     <div className="flex gap-2">
@@ -660,7 +660,7 @@ export default function IdeasPage() {
 
       {/* Edit Idea Modal */}
       {editingIdea && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white">
             <CardHeader className="relative">
               <div className="flex items-center justify-between">
@@ -689,7 +689,7 @@ export default function IdeasPage() {
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={6}
-                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
               />
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
