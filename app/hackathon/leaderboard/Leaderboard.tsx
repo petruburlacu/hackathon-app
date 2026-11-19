@@ -151,7 +151,7 @@ export function Leaderboard() {
               🏆 TEAM LEADERBOARD 🏆
             </h1>
             <p className="text-cyan-200 text-base sm:text-lg">
-              Vote for your favorite teams! Audience choice award goes to the most voted team!
+              Vote for your favorite teams!
             </p>
           </CardContent>
         </Card>

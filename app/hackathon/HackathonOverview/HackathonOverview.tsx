@@ -318,21 +318,6 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Awards Card */}
-            <Card className="bg-black/20 backdrop-blur-xs border-yellow-400/30">
-              <CardContent className="py-3 px-4">
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
-                  <div className="text-yellow-400 font-bold hackathon-title text-sm">
-                    🏆 Judge&apos;s Awards: 1st & 2nd place
-                  </div>
-                  <div className="text-yellow-400 hidden sm:inline">•</div>
-                  <div className="text-yellow-400 font-bold hackathon-title text-sm">
-                    👥 Audience Choice: Most voted team
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Criteria Cards */}
             <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
               <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">

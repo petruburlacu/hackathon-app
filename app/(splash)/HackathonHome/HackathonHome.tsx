@@ -134,12 +134,10 @@ export const HackathonHome = () => {
               ]}
             />
             <RuleCard
-              title="Voting & Awards"
+              title="Voting"
               rules={[
                 "Vote for ideas (1 vote per idea)",
-                "Vote for teams (only 1 vote per user)",
-                "🏆 Judge Awards: 1st place",
-                "👥 Audience Choice Award: Most voted team"
+                "Vote for teams (only 1 vote per user)"
               ]}
             />
           </div>
