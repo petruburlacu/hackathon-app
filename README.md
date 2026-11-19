@@ -97,7 +97,7 @@ Easiest and safest way: create a **new Convex project** and point Vercel at it. 
 4. Register `admin@hackathon.com` right away (see above), then seed or configure from the Admin page.
 5. When you no longer need the old Convex project, delete it from its dashboard *Settings*.
 
-Update the event details too: the countdown date and the "Hackathon 2025" labels are hardcoded in `components/HackathonCountdown.tsx`, `components/SimpleNav.tsx` and `app/(splash)/`.
+Update the event details too: the event name and start date live in [`lib/event.ts`](./lib/event.ts).
 
 ## Docker (optional)
 
