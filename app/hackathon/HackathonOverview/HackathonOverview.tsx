@@ -318,6 +318,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* TODO(awards): restore an awards banner here once this year's awards are decided (removed in #8). */}
             {/* Criteria Cards */}
             <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
               <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">

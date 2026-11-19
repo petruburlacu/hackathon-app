@@ -150,6 +150,7 @@ export function Leaderboard() {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 font-mono mb-3 sm:mb-4">
               🏆 TEAM LEADERBOARD 🏆
             </h1>
+            {/* TODO(awards): say what the most voted team wins once decided (removed in #8). */}
             <p className="text-cyan-200 text-base sm:text-lg">
               Vote for your favorite teams!
             </p>
