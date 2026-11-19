@@ -133,13 +133,12 @@ export const HackathonHome = () => {
                 "Teams must select an idea to be assembled"
               ]}
             />
+            {/* TODO(awards): add this year's award rules here once decided (removed in #8). */}
             <RuleCard
-              title="Voting & Awards"
+              title="Voting"
               rules={[
                 "Vote for ideas (1 vote per idea)",
-                "Vote for teams (only 1 vote per user)",
-                "🏆 Judge Awards: 1st place",
-                "👥 Audience Choice Award: Most voted team"
+                "Vote for teams (only 1 vote per user)"
               ]}
             />
           </div>
