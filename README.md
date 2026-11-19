@@ -29,11 +29,22 @@ You don't need any auth keys or other env vars for local development.
 ### Create your first users
 
 1. Go to <http://localhost:3000/signin> and choose **Join the hackathon**.
-2. Sign up with the username `admin@hackathon.com` to get the admin role. Any other username is a regular participant.
+2. Sign up with the username `admin@hackathon.com` to get the admin role. Any other username is a regular participant (see *Admins* below to change who is admin).
 3. Passwords need at least 10 characters and can't be a common password.
 4. As admin, the **Admin** page can seed sample ideas and toggle submissions.
 
-> The admin account is identified only by its username (see `ADMIN_USERNAME` in [`convex/users.ts`](./convex/users.ts)). On a fresh deployment, **register the admin account before sharing the URL**, because whoever claims that username first becomes admin.
+> Admins are identified only by username. On a fresh deployment, **register every admin account before sharing the URL**, because whoever claims an admin username first becomes admin.
+
+### Admins
+
+By default the only admin is `admin@hackathon.com`. To use your own accounts instead, set `ADMIN_USERNAMES` on the Convex deployment to a comma-separated list (matching ignores case):
+
+```sh
+npx convex env set ADMIN_USERNAMES "alice@opus2.com,bob@opus2.com"          # dev
+npx convex env set --prod ADMIN_USERNAMES "alice@opus2.com,bob@opus2.com"   # production
+```
+
+Once it is set, `admin@hackathon.com` is no longer an admin unless you include it. Only list usernames that are already registered by the right person.
 
 ## Scripts
 
@@ -68,6 +79,7 @@ How auth works: Convex Auth v2 keeps auth data in Convex **components**, not in 
 | Where | Variable | Purpose |
 |---|---|---|
 | Convex deployment env (optional) | `ENABLE_IDEA_SUBMISSIONS`, `ENABLE_TEAM_SUBMISSIONS` | Default for submissions when the admin hasn't set them in the app (`"false"` closes them). Admin settings in the database win. |
+| Convex deployment env (optional) | `ADMIN_USERNAMES` | Comma-separated admin usernames. Defaults to `admin@hackathon.com`. See [Admins](#admins). |
 | Vercel | `CONVEX_DEPLOY_KEY` | Lets the Vercel build deploy Convex functions (see below). |
 
 `NEXT_PUBLIC_CONVEX_URL` is set for you: by `convex dev` locally, and by `convex deploy` on Vercel.
