@@ -4,7 +4,18 @@ import { components } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, query, type QueryCtx } from "./_generated/server";
 
-const ADMIN_USERNAME = "admin@hackathon.com";
+const DEFAULT_ADMIN_USERNAMES = ["admin@hackathon.com"];
+
+function adminUsernames(): string[] {
+  const configured = process.env.ADMIN_USERNAMES?.split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean);
+  return configured?.length ? configured : DEFAULT_ADMIN_USERNAMES;
+}
+
+function isAdminUsername(username: string | null): boolean {
+  return username !== null && adminUsernames().includes(username.toLowerCase());
+}
 
 export async function getUsername(
   ctx: Pick<QueryCtx, "runQuery">,
@@ -19,7 +30,7 @@ export async function isAdmin(
   ctx: Pick<QueryCtx, "runQuery">,
   userId: Id<"users">,
 ): Promise<boolean> {
-  return (await getUsername(ctx, userId)) === ADMIN_USERNAME;
+  return isAdminUsername(await getUsername(ctx, userId));
 }
 
 export const createUser = internalMutation({
@@ -47,6 +58,6 @@ export const viewer = query({
       return null;
     }
     const username = await getUsername(ctx, userId);
-    return { ...user, username, isAdmin: username === ADMIN_USERNAME };
+    return { ...user, username, isAdmin: isAdminUsername(username) };
   },
 });
