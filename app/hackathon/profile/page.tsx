@@ -86,13 +86,13 @@ export default function ProfilePage() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-linear-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl font-bold text-black">
-                  {hackathonUser?.displayName?.charAt(0)?.toUpperCase() || viewer.name?.charAt(0)?.toUpperCase() || "?"}
+                  {hackathonUser?.displayName?.charAt(0)?.toUpperCase() || viewer.username?.charAt(0)?.toUpperCase() || "?"}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">
                     {hackathonUser?.displayName || "Not set"}
                   </h2>
-                  <p className="text-cyan-300">{viewer.email}</p>
+                  <p className="text-cyan-300">{viewer.username}</p>
                   <Badge className={`mt-2 ${hackathonUser?.role === 'dev' ? 'bg-blue-500' : 'bg-pink-500'} text-white`}>
                     {hackathonUser?.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
                   </Badge>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                       <h4 className="text-cyan-300 font-medium mb-2">Email</h4>
-                      <p className="text-white">{viewer.email}</p>
+                      <p className="text-white">{viewer.username}</p>
                     </div>
                   </div>
                 </div>

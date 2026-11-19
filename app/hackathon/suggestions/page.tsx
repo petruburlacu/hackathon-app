@@ -46,7 +46,7 @@ export default function SuggestionsPage() {
   }
 
   // Admin check - only allow admin@hackathon.com
-  const isAdmin = viewer.email === "admin@hackathon.com";
+  const isAdmin = viewer.isAdmin;
 
   const handleCreateSuggestion = async () => {
     if (!newSuggestionTitle.trim()) {

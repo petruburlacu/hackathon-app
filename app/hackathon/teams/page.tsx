@@ -48,7 +48,7 @@ export default function TeamsPage() {
   }
 
   // Admin check - only allow admin@hackathon.com
-  const isAdmin = viewer.email === "admin@hackathon.com";
+  const isAdmin = viewer.isAdmin;
 
   const handleCreateTeam = async () => {
     if (!teamSubmissionsEnabled) {

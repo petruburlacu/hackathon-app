@@ -27,7 +27,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
   }
 
   // Simple admin check - in a real app, you'd have proper role-based access
-  const isAdmin = viewer.email === "admin@hackathon.com";
+  const isAdmin = viewer.isAdmin;
 
   const navItems = [
     { href: "/hackathon", label: "Dashboard", current: pathname === "/hackathon" },
@@ -79,7 +79,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
               🎯 Take Tour
             </Button>
           )}
-          <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.name}</UserMenu>
+          <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.username}</UserMenu>
         </div>
       </nav>
       
@@ -107,7 +107,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
                 🎯
               </Button>
             )}
-            <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.name}</UserMenu>
+            <UserMenu isAdmin={isAdmin} hackathonUser={hackathonUser}>{viewer.username}</UserMenu>
             
             {/* Mobile Menu Toggle */}
             <Button

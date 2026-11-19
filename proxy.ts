@@ -1,26 +1,21 @@
+import type { NextRequest } from "next/server";
 import {
-  convexAuthNextjsMiddleware,
-  createRouteMatcher,
-  nextjsMiddlewareRedirect,
-} from "@convex-dev/auth/nextjs/server";
+  convexAuthNextjsProxy,
+  nextjsProxyRedirect,
+} from "@/lib/convexAuth";
 
-// Environment validation for middleware
-console.log("🔍 Middleware Environment Check:");
-console.log("=================================");
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("CONVEX_SITE_URL:", process.env.CONVEX_SITE_URL ? "✅ Set" : "❌ Missing");
-console.log("=================================");
+const isSignInPage = (request: NextRequest) =>
+  request.nextUrl.pathname === "/signin";
+const isProtectedRoute = (request: NextRequest) =>
+  /^\/(hackathon|product)(\/|$)/.test(request.nextUrl.pathname);
 
-const isSignInPage = createRouteMatcher(["/signin"]);
-const isProtectedRoute = createRouteMatcher(["/hackathon(.*)", "/product(.*)"]);
-
-export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+export default convexAuthNextjsProxy(async (request, { isAuthenticated }) => {
   try {
-    if (isSignInPage(request) && (await convexAuth.isAuthenticated())) {
-      return nextjsMiddlewareRedirect(request, "/hackathon");
+    if (isSignInPage(request) && (await isAuthenticated())) {
+      return nextjsProxyRedirect(request, "/hackathon");
     }
-    if (isProtectedRoute(request) && !(await convexAuth.isAuthenticated())) {
-      return nextjsMiddlewareRedirect(request, "/signin");
+    if (isProtectedRoute(request) && !(await isAuthenticated())) {
+      return nextjsProxyRedirect(request, "/signin");
     }
   } catch (error) {
     console.error("🚨 Middleware Authentication Error:");
@@ -30,13 +25,13 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     
     // If it's a protected route and auth fails, redirect to signin
     if (isProtectedRoute(request)) {
-      return nextjsMiddlewareRedirect(request, "/signin");
+      return nextjsProxyRedirect(request, "/signin");
     }
   }
 });
 
 export const config = {
-  // The following matcher runs middleware on all routes
-  // except static assets.
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  // Skip static assets, Next internals and the /auth route handlers
+  // (they manage their own cookies).
+  matcher: ["/((?!auth(?:/|$)|_next|.*\\..*).*)"],
 };

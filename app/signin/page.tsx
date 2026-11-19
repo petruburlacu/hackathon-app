@@ -3,15 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SimpleNav } from "@/components/SimpleNav";
-import { useAuthActions } from "@convex-dev/auth/react";
+import {
+  useSignInWithUsernamePassword,
+  useSignUpWithUsernamePassword,
+} from "@convex-dev/auth/methods/username-password/react";
+import { DEFAULT_MIN_PASSWORD_LENGTH } from "@convex-dev/auth/methods/username-password";
+import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import { useState } from "react";
 
 export default function SignInPage() {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{username?: string; password?: string}>({});
-  const { signIn } = useAuthActions();
+  const { signIn, pending: signInPending } = useSignInWithUsernamePassword(api.auth);
+  const { signUp, pending: signUpPending } = useSignUpWithUsernamePassword(api.auth);
+  const isLoading = signInPending || signUpPending;
+  const router = useRouter();
 
   const validateForm = (username: string, password: string) => {
     const newErrors: {username?: string; password?: string} = {};
@@ -24,8 +32,8 @@ export default function SignInPage() {
     
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (isSignUp && password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (isSignUp && password.length < DEFAULT_MIN_PASSWORD_LENGTH) {
+      newErrors.password = `Password must be at least ${DEFAULT_MIN_PASSWORD_LENGTH} characters`;
     }
     
     setErrors(newErrors);
@@ -46,37 +54,54 @@ export default function SignInPage() {
       return;
     }
 
-    setIsLoading(true);
+    const result = isSignUp
+      ? await signUp({ username, password })
+      : await signIn({ username, password });
 
-    try {
-      // For password provider, we need to specify the flow parameter
-      const flow = isSignUp ? "signUp" : "signIn";
-      await signIn("password", { email: username, password, flow });
-      
+    if (result.status === "complete") {
       toast.success(isSignUp ? "Account created successfully!" : "Signed in successfully!");
-      
-      // Note: Hackathon profile will be created when user first visits hackathon page
-    } catch (error: any) {
-      console.error(error);
-      
-      // Better error handling with specific messages
-      let errorMessage = isSignUp ? "Failed to create account" : "Failed to sign in";
-      
-      if (error?.message) {
-        if (error.message.includes("already exists")) {
-          errorMessage = "An account with this username already exists";
-        } else if (error.message.includes("invalid credentials")) {
-          errorMessage = "Invalid username or password";
-        } else if (error.message.includes("password")) {
-          errorMessage = "Password requirements not met";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      router.push("/hackathon");
+      return;
+    }
+
+    const { userError } = result;
+    switch (userError.error) {
+      case "USERNAME_TAKEN":
+        toast.error("An account with this username already exists");
+        return;
+      case "INVALID_CREDENTIALS":
+      case "USER_NOT_FOUND":
+        toast.error("Invalid username or password");
+        return;
+      case "RATE_LIMITED":
+        toast.error(
+          `Too many attempts. Try again in ${Math.ceil(userError.retryAfterMs / 1000)}s`,
+        );
+        return;
+      case "PASSWORD_TOO_SHORT":
+        toast.error(`Password must be at least ${userError.minimumLength} characters`);
+        return;
+      case "PASSWORD_TOO_LONG":
+        toast.error(`Password must be at most ${userError.maximumLength} characters`);
+        return;
+      case "PASSWORD_TOO_COMMON":
+        toast.error("This password is too common. Please choose a different one");
+        return;
+      case "PASSWORD_HAS_SURROUNDING_WHITESPACE":
+        toast.error("Password can't start or end with whitespace");
+        return;
+      case "USERNAME_TOO_SHORT":
+      case "USERNAME_TOO_LONG":
+      case "USERNAME_HAS_SURROUNDING_WHITESPACE":
+      case "USERNAME_HAS_INVALID_CHARACTERS":
+        toast.error("That username is invalid");
+        return;
+      case "OTHER_ERROR":
+        console.error(userError.cause);
+        toast.error(isSignUp ? "Failed to create account" : "Failed to sign in");
+        return;
+      default:
+        userError satisfies never;
     }
   };
 
@@ -124,7 +149,7 @@ export default function SignInPage() {
                 autoComplete={isSignUp ? "new-password" : "current-password"}
                 data-1p-ignore={false}
                 data-lpignore={false}
-                placeholder={isSignUp ? "Create a password (min 6 characters)" : "Enter your password"}
+                placeholder={isSignUp ? `Create a password (min ${DEFAULT_MIN_PASSWORD_LENGTH} characters)` : "Enter your password"}
                 className={`mt-1 bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full ${
                   errors.password ? 'border-red-400' : ''
                 }`}

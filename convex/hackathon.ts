@@ -1,5 +1,7 @@
-import { getAuthUserId, getAuthSessionId } from "@convex-dev/auth/server";
-import { mutation, query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { components } from "./_generated/api";
+import { getUsername, isAdmin } from "./users";
+import { mutation, query, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 
 // Basic text sanitization to prevent layout-breaking and invisible control chars
@@ -27,14 +29,8 @@ export const createHackathonUser = mutation({
       throw new Error("Not signed in");
     }
 
-    // Get user info to check if they're admin
-    const user = await ctx.db.get(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     // Only allow admin role for admin@hackathon.com
-    if (args.role === "admin" && user.email !== "admin@hackathon.com") {
+    if (args.role === "admin" && !(await isAdmin(ctx, userId))) {
       throw new Error("Admin role can only be assigned to admin@hackathon.com");
     }
 
@@ -379,9 +375,7 @@ export const adminDeleteIdea = mutation({
       throw new Error("Not signed in");
     }
 
-    // Get user info to check admin status
-    const user = await ctx.db.get(userId);
-    if (!user || user.email !== "admin@hackathon.com") {
+    if (!(await isAdmin(ctx, userId))) {
       throw new Error("Admin access required");
     }
 
@@ -1030,9 +1024,7 @@ export const adminDeleteTeam = mutation({
       throw new Error("Not signed in");
     }
 
-    // Get user info to check admin status
-    const user = await ctx.db.get(userId);
-    if (!user || user.email !== "admin@hackathon.com") {
+    if (!(await isAdmin(ctx, userId))) {
       throw new Error("Admin access required");
     }
 
@@ -1116,8 +1108,7 @@ export const updateSettings = mutation({
     if (userId === null) {
       throw new Error("Not signed in");
     }
-    const user = await ctx.db.get(userId);
-    if (!user || user.email !== "admin@hackathon.com") {
+    if (!(await isAdmin(ctx, userId))) {
       throw new Error("Admin access required");
     }
 
@@ -1185,17 +1176,21 @@ export const getMyTeamDetails = query({
     // Get user details for each member
     const membersWithDetails = await Promise.all(
       members.map(async (member) => {
-        const user = await ctx.db.get(member.userId);
+        const username = await getUsername(ctx, member.userId);
         return {
           ...member,
-          userName: member.displayName || user?.email || "Unknown",
-          userEmail: user?.email || "Unknown",
+          userName: member.displayName || username || "Unknown",
+          userEmail: username || "Unknown",
         };
       })
     );
 
     // Get team leader details
-    const leader = await ctx.db.get(team.leaderId);
+    const leaderUser = await ctx.db.get(team.leaderId);
+    const leader = leaderUser && {
+      ...leaderUser,
+      username: await getUsername(ctx, team.leaderId),
+    };
 
     // Get assigned idea details
     let idea = null;
@@ -1292,17 +1287,21 @@ export const getTeamDetails = query({
     // Get user details for each member
     const membersWithDetails = await Promise.all(
       members.map(async (member) => {
-        const user = await ctx.db.get(member.userId);
+        const username = await getUsername(ctx, member.userId);
         return {
           ...member,
-          userName: member.displayName || user?.email || "Unknown",
-          userEmail: user?.email || "Unknown",
+          userName: member.displayName || username || "Unknown",
+          userEmail: username || "Unknown",
         };
       })
     );
 
     // Get team leader details
-    const leader = await ctx.db.get(team.leaderId);
+    const leaderUser = await ctx.db.get(team.leaderId);
+    const leader = leaderUser && {
+      ...leaderUser,
+      username: await getUsername(ctx, team.leaderId),
+    };
 
     // Get assigned idea details
     let idea = null;
@@ -1519,8 +1518,7 @@ export const deleteSuggestion = mutation({
     }
 
     // Only allow deletion by author or admin
-    const user = await ctx.db.get(userId);
-    if (suggestion.authorId !== userId && (!user || user.email !== "admin@hackathon.com")) {
+    if (suggestion.authorId !== userId && !(await isAdmin(ctx, userId))) {
       throw new Error("Only the author or admin can delete suggestions");
     }
 
@@ -1540,6 +1538,11 @@ export const deleteSuggestion = mutation({
 });
 
 // Session Management Functions
+// In Convex Auth v2 the access token's subject is the session id.
+async function getCurrentSessionId(ctx: QueryCtx) {
+  return (await ctx.auth.getUserIdentity())?.subject ?? null;
+}
+
 export const enforceSingleSession = mutation({
   args: {},
   handler: async (ctx) => {
@@ -1548,29 +1551,27 @@ export const enforceSingleSession = mutation({
       throw new Error("User not authenticated");
     }
 
-    const currentSessionId = await getAuthSessionId(ctx);
+    const currentSessionId = await getCurrentSessionId(ctx);
     if (!currentSessionId) {
       throw new Error("No active session found");
     }
 
-    // Get all active sessions for this user
-    const sessions = await ctx.db
-      .query("authSessions")
-      .withIndex("userId", (q) => q.eq("userId", userId))
-      .collect();
-
-    // If there are multiple sessions, delete all except the current one
-    let sessionsDeleted = 0;
-    for (const session of sessions) {
-      if (session._id !== currentSessionId) {
-        await ctx.db.delete(session._id);
-        sessionsDeleted++;
-      }
-    }
+    const sessions = await ctx.runQuery(components.auth.public.listSessions, {
+      userId,
+    });
+    const revoked = await ctx.runMutation(
+      components.auth.public.revokeSessions,
+      {
+        sessionIds: sessions
+          .map((session) => session.sessionId)
+          .filter((sessionId) => sessionId !== currentSessionId),
+      },
+    );
+    const sessionsDeleted = revoked.length;
 
     // Log the session enforcement for security monitoring
     console.log(`Security: Enforced single session for user ${userId}, deleted ${sessionsDeleted} concurrent sessions`);
-    
+
     return { success: true, sessionsDeleted };
   },
 });
@@ -1583,21 +1584,19 @@ export const getActiveSessions = query({
       return null;
     }
 
-    const currentSessionId = await getAuthSessionId(ctx);
+    const currentSessionId = await getCurrentSessionId(ctx);
     if (!currentSessionId) {
       return [];
     }
 
-    // Get all active sessions for this user
-    const sessions = await ctx.db
-      .query("authSessions")
-      .withIndex("userId", (q) => q.eq("userId", userId))
-      .collect();
+    const sessions = await ctx.runQuery(components.auth.public.listSessions, {
+      userId,
+    });
 
-    return sessions.map(session => ({
-      sessionId: session._id,
-      createdAt: session._creationTime,
-      isCurrent: session._id === currentSessionId,
+    return sessions.map((session) => ({
+      sessionId: session.sessionId,
+      createdAt: session.creationTime,
+      isCurrent: session.sessionId === currentSessionId,
     }));
   },
 });
@@ -1610,17 +1609,14 @@ export const logoutAllSessions = mutation({
       throw new Error("User not authenticated");
     }
 
-    // Get all active sessions for this user and delete them
-    const sessions = await ctx.db
-      .query("authSessions")
-      .withIndex("userId", (q) => q.eq("userId", userId))
-      .collect();
-
-    let sessionsDeleted = 0;
-    for (const session of sessions) {
-      await ctx.db.delete(session._id);
-      sessionsDeleted++;
-    }
+    const sessions = await ctx.runQuery(components.auth.public.listSessions, {
+      userId,
+    });
+    const revoked = await ctx.runMutation(
+      components.auth.public.revokeSessions,
+      { sessionIds: sessions.map((session) => session.sessionId) },
+    );
+    const sessionsDeleted = revoked.length;
 
     console.log(`Security: User ${userId} logged out from all ${sessionsDeleted} sessions`);
     return { success: true, sessionsDeleted };

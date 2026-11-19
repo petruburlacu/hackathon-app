@@ -336,8 +336,7 @@ export default function TeamDetailPage() {
                         <span className="text-white font-bold">👑</span>
                       </div>
                       <div>
-                        <div className="text-purple-400 font-bold">{teamDetails.leader?.name}</div>
-                        <div className="text-gray-400 text-sm">{teamDetails.leader?.email}</div>
+                        <div className="text-gray-400 text-sm">{teamDetails.leader?.username}</div>
                       </div>
                     </div>
                   </div>
