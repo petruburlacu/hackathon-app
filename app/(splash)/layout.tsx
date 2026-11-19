@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { EVENT_NAME } from "@/lib/event";
 
 export default function SplashPageLayout({
   children,
@@ -14,7 +15,7 @@ export default function SplashPageLayout({
           {/* Desktop Navigation */}
           <nav className="container hidden w-full justify-between gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
             <Link href="/">
-              <h1 className="text-xl font-bold text-yellow-400 font-mono">🚀 HACKATHON 2025</h1>
+              <h1 className="text-xl font-bold text-yellow-400 font-mono">🚀 {EVENT_NAME.toUpperCase()}</h1>
             </Link>
             <div className="flex items-center gap-4">
               <SplashPageNav />
@@ -24,7 +25,7 @@ export default function SplashPageLayout({
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center justify-between w-full">
             <Link href="/">
-              <h1 className="text-lg font-bold text-yellow-400 font-mono">🚀 HACKATHON 2025</h1>
+              <h1 className="text-lg font-bold text-yellow-400 font-mono">🚀 {EVENT_NAME.toUpperCase()}</h1>
             </Link>
             <div className="flex items-center gap-2">
               <SplashPageNav />
@@ -34,7 +35,7 @@ export default function SplashPageLayout({
         <main className="flex grow flex-col">{children}</main>
         <footer className="border-t">
           <div className="container py-4 text-sm leading-loose">
-            Built with ❤️ for Hackathon 2025. Powered by {" "}
+            Built with ❤️ for {EVENT_NAME}. Powered by {" "}
             <FooterLink href="https://www.convex.dev/">Convex</FooterLink>,
             <FooterLink href="https://nextjs.org/">Next.js</FooterLink> and{" "}
             <FooterLink href="https://ui.shadcn.com/">shadcn/ui</FooterLink>.

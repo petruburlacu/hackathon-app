@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import { EVENT_START, EVENT_START_LABEL } from "@/lib/event";
 
 interface TimeLeft {
   days: number;
@@ -16,8 +17,7 @@ export function HackathonCountdown() {
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
-    // Target date: December 9th, 2025 at 10:00 AM UTC
-    const targetDate = new Date("2025-12-09T10:00:00Z").getTime();
+    const targetDate = EVENT_START.getTime();
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -68,7 +68,7 @@ export function HackathonCountdown() {
             COUNTDOWN TO EVENT
           </h2>
           <p className="text-yellow-200 text-sm sm:text-lg lg:text-2xl mb-6 sm:mb-10 font-mono hackathon-text px-2">
-            December 9th, 2025 at 10:00 AM UTC
+            {EVENT_START_LABEL}
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-10">

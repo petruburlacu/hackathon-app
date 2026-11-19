@@ -15,9 +15,6 @@ export const HackathonHome = () => {
       {/* Hero Section */}
       <div className="container mb-20 flex grow flex-col justify-center">
         <div className="text-center mb-16">
-          {/* <div className="inline-block px-6 py-3 bg-yellow-400 text-black font-bold text-xl rounded-lg mb-8 transform -rotate-2 shadow-lg hackathon-title">
-            🚀 Hackathon 2025 🚀
-          </div> */}
           <h1 className="mb-8 mt-16 flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-none tracking-tight text-white px-4">
             <span className="bg-linear-to-r from-yellow-400 via-pink-500 to-purple-500 bg-clip-text text-transparent hackathon-title">
             &lt;/&gt; TRIAL BY CODE &lt;/&gt;
