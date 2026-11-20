@@ -15,6 +15,7 @@ import type * as messages from "../messages.js";
 import type * as seed from "../seed.js";
 import type * as submissions from "../submissions.js";
 import type * as users from "../users.js";
+import type * as voting from "../voting.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   submissions: typeof submissions;
   users: typeof users;
+  voting: typeof voting;
 }>;
 
 /**

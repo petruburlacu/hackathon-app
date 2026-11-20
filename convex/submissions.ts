@@ -16,7 +16,7 @@ function isFresh(lock: Doc<"editLocks">, now: number): boolean {
   return now - lock.heartbeatAt <= LOCK_TTL_MS;
 }
 
-async function requireUserId(ctx: QueryCtx): Promise<Id<"users">> {
+export async function requireUserId(ctx: QueryCtx): Promise<Id<"users">> {
   const userId = await getAuthUserId(ctx);
   if (userId === null) {
     throw new ConvexError("Not signed in");
@@ -24,7 +24,7 @@ async function requireUserId(ctx: QueryCtx): Promise<Id<"users">> {
   return userId;
 }
 
-async function getTeamIdOf(ctx: QueryCtx, userId: Id<"users">): Promise<Id<"teams"> | undefined> {
+export async function getTeamIdOf(ctx: QueryCtx, userId: Id<"users">): Promise<Id<"teams"> | undefined> {
   const profile = await ctx.db
     .query("hackathonUsers")
     .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -440,6 +440,13 @@ export async function deleteSubmissionCascade(ctx: MutationCtx, teamId: Id<"team
   for (const row of [...contentRows, ...versions]) {
     await ctx.db.delete(row._id);
   }
-  // Extension point (Task 10): delete this submission's pointVotes here, before the summary row.
+  // Deleting the summary row drops its totals with it; other submissions' totals don't include these votes.
+  const votes = await ctx.db
+    .query("pointVotes")
+    .withIndex("by_submission", (q) => q.eq("submissionId", submission._id))
+    .collect();
+  for (const vote of votes) {
+    await ctx.db.delete(vote._id);
+  }
   await ctx.db.delete(submission._id);
 }
