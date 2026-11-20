@@ -1,7 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { assertCanEdit, getImageRow, requireMyTeam } from "./submissions";
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -76,6 +77,35 @@ export const registerUpload = mutation({
     }
     await ctx.db.insert("submissionImages", { teamId, storageId: args.storageId });
     return { storageId: args.storageId };
+  },
+});
+
+const ORPHAN_AGE_MS = 60 * 60 * 1000;
+const SWEEP_BATCH = 200;
+
+// Uploads that never reached registerUpload (closed tab, failed call). Safe because every file in
+// storage is a submission image; anything else stored here later needs a row or it gets swept.
+// Walks _storage in batches,
+// chaining itself with a cursor so each mutation stays small.
+export const deleteOrphanUploads = internalMutation({
+  args: { cursor: v.optional(v.string()), cutoff: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const cutoff = args.cutoff ?? Date.now() - ORPHAN_AGE_MS;
+    const page = await ctx.db.system
+      .query("_storage")
+      .withIndex("by_creation_time", (q) => q.lt("_creationTime", cutoff))
+      .paginate({ cursor: args.cursor ?? null, numItems: SWEEP_BATCH });
+    for (const file of page.page) {
+      if (!(await getImageRow(ctx, file._id))) {
+        await ctx.storage.delete(file._id);
+      }
+    }
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(0, internal.images.deleteOrphanUploads, {
+        cursor: page.continueCursor,
+        cutoff,
+      });
+    }
   },
 });
 

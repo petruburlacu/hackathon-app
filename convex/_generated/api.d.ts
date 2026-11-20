@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as eventClock from "../eventClock.js";
 import type * as hackathon from "../hackathon.js";
 import type * as images from "../images.js";
@@ -27,6 +28,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  crons: typeof crons;
   eventClock: typeof eventClock;
   hackathon: typeof hackathon;
   images: typeof images;
