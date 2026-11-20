@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CodeIcon, PersonIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 interface HackathonProfileSetupProps {
   children: React.ReactNode;
@@ -52,7 +53,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
       toast.success("Hackathon profile created successfully!");
     } catch (error) {
       console.error("Failed to create hackathon profile:", error);
-      toast.error("Failed to create hackathon profile. Please try again.");
+      toast.error(getErrorMessage(error, "Failed to create hackathon profile. Please try again."));
     }
   };
 

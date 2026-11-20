@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -50,8 +51,7 @@ export default function ProfilePage() {
       setIsEditingProfile(false);
       toast.success("Profile updated successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to update profile"));
     }
   };
 
@@ -65,8 +65,7 @@ export default function ProfilePage() {
         window.location.href = "/signin";
       }, 2000);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Failed to logout all sessions: ${errorMessage}`);
+      toast.error(getErrorMessage(error, "Failed to log out all sessions"));
     } finally {
       setIsLoggingOutAll(false);
     }

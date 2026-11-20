@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventPhase, nextPhaseChangeAt, type EventTimes } from "./eventPhase";
+import { eventPhase, nextPhaseChangeAt, teamsLocked, type EventTimes } from "./eventPhase";
 
 const times: EventTimes = {
   eventStartAt: Date.parse("2026-12-02T10:00:00Z"),
@@ -36,5 +36,17 @@ describe("nextPhaseChangeAt", () => {
 
   it("returns null once voting has closed", () => {
     expect(nextPhaseChangeAt(times, times.votingClosesAt)).toBeNull();
+  });
+});
+
+describe("teamsLocked", () => {
+  it("keeps teams open until submissions close", () => {
+    expect(teamsLocked("before")).toBe(false);
+    expect(teamsLocked("submissions")).toBe(false);
+  });
+
+  it("locks teams from the submission deadline onwards", () => {
+    expect(teamsLocked("voting")).toBe(true);
+    expect(teamsLocked("closed")).toBe(true);
   });
 });

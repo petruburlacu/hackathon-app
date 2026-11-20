@@ -21,6 +21,8 @@ import {
 import { HackathonNav } from "@/components/HackathonNav";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
+import { useTeamsLocked } from "@/lib/useTeamsLocked";
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -39,6 +41,7 @@ export default function TeamDetailPage() {
   const viewer = useQuery(api.users.viewer);
   const teamDetails = useQuery(api.hackathon.getTeamDetails, { teamId: teamId as any });
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
+  const locked = useTeamsLocked();
 
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
   const removeTeamMember = useMutation(api.hackathon.removeTeamMember);
@@ -98,8 +101,8 @@ export default function TeamDetailPage() {
       });
       setIsEditing(false);
       toast.success("Team updated successfully!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update team"));
     }
   };
 
@@ -124,8 +127,8 @@ export default function TeamDetailPage() {
     try {
       await updateTeamStatus({ teamId: teamId as any, status: newStatus as any });
       toast.success("Team status updated successfully!");
-    } catch {
-      toast.error("Failed to update team status");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update team status"));
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -140,14 +143,8 @@ export default function TeamDetailPage() {
       const remove = viewer.isAdmin ? adminRemoveTeamMember : removeTeamMember;
       await remove({ teamId: teamId as any, memberUserId: memberUserId as any });
       toast.success("Member removed from team successfully!");
-    } catch (error: any) {
-      if (error.message?.includes("Only team leaders can remove members")) {
-        toast.error("Only team leaders can remove members");
-      } else if (error.message?.includes("Team leader cannot remove themselves")) {
-        toast.error("Team leader cannot remove themselves");
-      } else {
-        toast.error(getErrorMessage(error, "Failed to remove member from team"));
-      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to remove member from team"));
     }
   };
 
@@ -162,8 +159,8 @@ export default function TeamDetailPage() {
       toast.success("Left team successfully!");
       // Redirect to teams page after leaving
       window.location.href = "/hackathon/teams";
-    } catch (error: any) {
-      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to leave team"));
     } finally {
       setIsLeaving(false);
     }
@@ -180,8 +177,8 @@ export default function TeamDetailPage() {
       toast.success("Team deleted successfully!");
       // Redirect to teams page after deleting
       window.location.href = "/hackathon/teams";
-    } catch (error: any) {
-      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to delete team"));
     } finally {
       setIsDeleting(false);
     }
@@ -359,8 +356,8 @@ export default function TeamDetailPage() {
                           try {
                             await setTeamRandomOpen({ teamId: teamId as any, open: true });
                             toast.success("Team opened for random allocation");
-                          } catch (e: any) {
-                            toast.error(e?.message || "Failed to update");
+                          } catch (error) {
+                            toast.error(getErrorMessage(error, "Failed to update"));
                           }
                         }}
                       >
@@ -374,8 +371,8 @@ export default function TeamDetailPage() {
                           try {
                             await setTeamRandomOpen({ teamId: teamId as any, open: false });
                             toast.success("Team closed for random allocation");
-                          } catch (e: any) {
-                            toast.error(e?.message || "Failed to update");
+                          } catch (error) {
+                            toast.error(getErrorMessage(error, "Failed to update"));
                           }
                         }}
                       >
@@ -422,7 +419,7 @@ export default function TeamDetailPage() {
                       {member.userId === teamDetails.team.leaderId && (
                         <Badge className="bg-purple-500 text-white">Leader</Badge>
                       )}
-                      {(viewer.isAdmin || hackathonUser?.userId === teamDetails.team.leaderId) && member.userId !== teamDetails.team.leaderId && (
+                      {(viewer.isAdmin || (!locked && hackathonUser?.userId === teamDetails.team.leaderId)) && member.userId !== teamDetails.team.leaderId && (
                         <Button
                           size="sm"
                           onClick={() => handleRemoveMember(member.userId)}
@@ -446,14 +443,18 @@ export default function TeamDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-cyan-200 text-sm">
-                    {hackathonUser?.userId === teamDetails.team.leaderId 
-                      ? "As the team leader, you can delete the entire team or manage team settings."
-                      : "You can leave this team if you no longer want to be part of it."
-                    }
-                  </p>
+                  {locked ? (
+                    <TeamsLockedNotice />
+                  ) : (
+                    <p className="text-cyan-200 text-sm">
+                      {hackathonUser?.userId === teamDetails.team.leaderId
+                        ? "As the team leader, you can delete the entire team or manage team settings."
+                        : "You can leave this team if you no longer want to be part of it."
+                      }
+                    </p>
+                  )}
                   <div className="flex flex-col sm:flex-row gap-3">
-                    {hackathonUser?.userId === teamDetails.team.leaderId ? (
+                    {locked ? null : hackathonUser?.userId === teamDetails.team.leaderId ? (
                       <Button
                         onClick={handleDeleteTeam}
                         disabled={isDeleting}

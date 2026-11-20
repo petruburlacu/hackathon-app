@@ -6,11 +6,12 @@ import { ConvexError, v } from "convex/values";
 import { loadEventTimes } from "./eventClock";
 import { deleteSubmissionCascade } from "./submissions";
 import { sanitizeText } from "../lib/sanitizeText";
+import { TEAMS_LOCKED_MESSAGE } from "../lib/eventPhase";
 
 export async function assertTeamsUnlocked(ctx: MutationCtx): Promise<void> {
   const { submissionsCloseAt } = await loadEventTimes(ctx);
   if (Date.now() >= submissionsCloseAt) {
-    throw new ConvexError("Teams are locked after the submission deadline");
+    throw new ConvexError(TEAMS_LOCKED_MESSAGE);
   }
 }
 
@@ -23,12 +24,12 @@ export const createHackathonUser = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Only allow admin role for admin@hackathon.com
     if (args.role === "admin" && !(await isAdmin(ctx, userId))) {
-      throw new Error("Admin role can only be assigned to admin@hackathon.com");
+      throw new ConvexError("Admin role can only be assigned to admin@hackathon.com");
     }
 
     // Check if user already exists
@@ -38,7 +39,7 @@ export const createHackathonUser = mutation({
       .first();
 
     if (existingUser) {
-      throw new Error("User already registered for hackathon");
+      throw new ConvexError("User already registered for hackathon");
     }
 
     return await ctx.db.insert("hackathonUsers", {
@@ -71,7 +72,7 @@ export const updateHackathonUser = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const hackathonUser = await ctx.db
@@ -80,7 +81,7 @@ export const updateHackathonUser = mutation({
       .first();
 
     if (!hackathonUser) {
-      throw new Error("Hackathon user not found");
+      throw new ConvexError("Hackathon user not found");
     }
 
     await ctx.db.patch(hackathonUser._id, {
@@ -104,10 +105,10 @@ export const createIdea = mutation({
     const ideaSubmissionsEnabledEnv =
       (process.env.ENABLE_IDEA_SUBMISSIONS ?? process.env.NEXT_PUBLIC_ENABLE_IDEA_SUBMISSIONS ?? "true") !== "false";
     const ideaSubmissionsEnabled = ideaSubmissionsEnabledDb ?? ideaSubmissionsEnabledEnv;
-    if (!ideaSubmissionsEnabled) throw new Error("Idea submissions are currently closed");
+    if (!ideaSubmissionsEnabled) throw new ConvexError("Idea submissions are currently closed");
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
         const ideaId = await ctx.db.insert("ideas", {
@@ -146,17 +147,17 @@ export const updateIdea = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) {
-      throw new Error("Idea not found");
+      throw new ConvexError("Idea not found");
     }
 
     // Check if user is the author of the idea
     if (idea.authorId !== userId) {
-      throw new Error("Only the idea author can edit their idea");
+      throw new ConvexError("Only the idea author can edit their idea");
     }
 
     // Check if any teams are using this idea
@@ -166,7 +167,7 @@ export const updateIdea = mutation({
       .collect();
 
     if (teamsUsingIdea.length > 0) {
-      throw new Error("Cannot edit idea that is being used by teams. Teams must first remove this idea.");
+      throw new ConvexError("Cannot edit idea that is being used by teams. Teams must first remove this idea.");
     }
 
         await ctx.db.patch(args.ideaId, {
@@ -185,7 +186,7 @@ export const voteForIdea = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Check if user already voted for this idea
@@ -195,7 +196,7 @@ export const voteForIdea = mutation({
       .first();
 
     if (existingVote) {
-      throw new Error("You have already voted for this idea");
+      throw new ConvexError("You have already voted for this idea");
     }
 
     // Create vote record
@@ -222,7 +223,7 @@ export const toggleIdeaVote = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Check if user already voted for this idea
@@ -233,7 +234,7 @@ export const toggleIdeaVote = mutation({
 
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) {
-      throw new Error("Idea not found");
+      throw new ConvexError("Idea not found");
     }
 
     if (existingVote) {
@@ -317,17 +318,17 @@ export const deleteIdea = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) {
-      throw new Error("Idea not found");
+      throw new ConvexError("Idea not found");
     }
 
     // Check if user is the author of the idea
     if (idea.authorId !== userId) {
-      throw new Error("Only the idea author can delete their idea");
+      throw new ConvexError("Only the idea author can delete their idea");
     }
 
     // Check if any teams are using this idea
@@ -337,7 +338,7 @@ export const deleteIdea = mutation({
       .collect();
 
     if (teamsUsingIdea.length > 0) {
-      throw new Error("Cannot delete idea that is being used by teams. Teams must first remove this idea.");
+      throw new ConvexError("Cannot delete idea that is being used by teams. Teams must first remove this idea.");
     }
 
     // Delete all votes for this idea
@@ -362,16 +363,16 @@ export const adminDeleteIdea = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     if (!(await isAdmin(ctx, userId))) {
-      throw new Error("Admin access required");
+      throw new ConvexError("Admin access required");
     }
 
     const idea = await ctx.db.get(args.ideaId);
     if (!idea) {
-      throw new Error("Idea not found");
+      throw new ConvexError("Idea not found");
     }
 
     // Remove idea from any teams using it
@@ -417,10 +418,10 @@ export const createTeam = mutation({
     const teamCreationEnabledEnv =
       (process.env.ENABLE_TEAM_SUBMISSIONS ?? process.env.NEXT_PUBLIC_ENABLE_TEAM_SUBMISSIONS ?? "true") !== "false";
     const teamCreationEnabled = teamCreationEnabledDb ?? teamCreationEnabledEnv;
-    if (!teamCreationEnabled) throw new Error("Team creation is currently closed");
+    if (!teamCreationEnabled) throw new ConvexError("Team creation is currently closed");
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Check if user is already in a team
@@ -430,11 +431,11 @@ export const createTeam = mutation({
       .first();
 
     if (!hackathonUser) {
-      throw new Error("User not registered for hackathon");
+      throw new ConvexError("User not registered for hackathon");
     }
 
     if (hackathonUser.teamId) {
-      throw new Error("User is already in a team");
+      throw new ConvexError("User is already in a team");
     }
 
     // Check if user has already created a team
@@ -444,7 +445,7 @@ export const createTeam = mutation({
       .first();
 
     if (existingTeam) {
-      throw new Error("User has already created a team");
+      throw new ConvexError("User has already created a team");
     }
 
     // Sanitize inputs
@@ -452,7 +453,7 @@ export const createTeam = mutation({
     const sanitizedDescription = args.description ? sanitizeText(args.description, 500) : undefined;
 
     if (!sanitizedName || sanitizedName.trim().length < 3) {
-      throw new Error("Team name must be at least 3 characters after sanitization");
+      throw new ConvexError("Team name must be at least 3 characters after sanitization");
     }
 
     // Create team
@@ -495,27 +496,27 @@ export const updateTeam = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Get the team
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can update team details");
+      throw new ConvexError("Only team leaders can update team details");
     }
 
     // Validate team name
     if (!args.name.trim()) {
-      throw new Error("Team name cannot be empty");
+      throw new ConvexError("Team name cannot be empty");
     }
 
     if (args.name.trim().length < 3) {
-      throw new Error("Team name must be at least 3 characters long");
+      throw new ConvexError("Team name must be at least 3 characters long");
     }
 
     // Sanitize inputs
@@ -523,7 +524,7 @@ export const updateTeam = mutation({
     const sanitizedDescription = args.description ? sanitizeText(args.description, 500) : undefined;
 
     if (!sanitizedName || sanitizedName.trim().length < 3) {
-      throw new Error("Team name must be at least 3 characters after sanitization");
+      throw new ConvexError("Team name must be at least 3 characters after sanitization");
     }
 
     // Update the team
@@ -553,7 +554,7 @@ export const joinRandomTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const hackathonUser = await ctx.db
@@ -562,15 +563,15 @@ export const joinRandomTeam = mutation({
       .first();
 
     if (!hackathonUser) {
-      throw new Error("User not registered for hackathon");
+      throw new ConvexError("User not registered for hackathon");
     }
 
     if (hackathonUser.role === "admin") {
-      throw new Error("Admins cannot join teams");
+      throw new ConvexError("Admins cannot join teams");
     }
 
     if (hackathonUser.teamId) {
-      throw new Error("User is already in a team");
+      throw new ConvexError("User is already in a team");
     }
 
     // Fetch candidate teams: open for random allocation (undefined => open), and with capacity
@@ -589,7 +590,7 @@ export const joinRandomTeam = mutation({
     });
 
     if (eligible.length === 0) {
-      throw new Error("No open teams have capacity for your role right now");
+      throw new ConvexError("No open teams have capacity for your role right now");
     }
 
     // Randomly pick one of the eligible teams
@@ -622,16 +623,16 @@ export const setTeamRandomOpen = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can update random allocation settings");
+      throw new ConvexError("Only team leaders can update random allocation settings");
     }
 
     await ctx.db.patch(args.teamId, { openForRandomAllocation: args.open });
@@ -647,7 +648,7 @@ export const joinTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const hackathonUser = await ctx.db
@@ -656,22 +657,22 @@ export const joinTeam = mutation({
       .first();
 
     if (!hackathonUser) {
-      throw new Error("User not registered for hackathon");
+      throw new ConvexError("User not registered for hackathon");
     }
 
     if (hackathonUser.teamId) {
-      throw new Error("User is already in a team");
+      throw new ConvexError("User is already in a team");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if team has space (total members up to 6)
     const totalMembers = team.currentDevs + team.currentNonDevs;
     if (totalMembers >= 6) {
-      throw new Error("Team is full");
+      throw new ConvexError("Team is full");
     }
 
     // Add user to team
@@ -699,22 +700,22 @@ export const removeTeamMember = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can remove members");
+      throw new ConvexError("Only team leaders can remove members");
     }
 
     // Don't allow removing the team leader
     if (args.memberUserId === team.leaderId) {
-      throw new Error("Team leader cannot remove themselves");
+      throw new ConvexError("Team leader cannot remove themselves");
     }
 
     // Find the member to remove
@@ -724,7 +725,7 @@ export const removeTeamMember = mutation({
       .first();
 
     if (!memberToRemove || memberToRemove.teamId !== args.teamId) {
-      throw new Error("Member not found in this team");
+      throw new ConvexError("Member not found in this team");
     }
 
     // Remove member from team
@@ -751,7 +752,7 @@ export const adminRemoveTeamMember = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     if (!(await isAdmin(ctx, userId))) {
@@ -793,17 +794,17 @@ export const assignIdeaToTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can assign ideas");
+      throw new ConvexError("Only team leaders can assign ideas");
     }
 
     // Update team with idea
@@ -821,17 +822,17 @@ export const removeIdeaFromTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can remove ideas");
+      throw new ConvexError("Only team leaders can remove ideas");
     }
 
     // Remove idea from team
@@ -847,7 +848,7 @@ export const leaveTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const hackathonUser = await ctx.db
@@ -856,17 +857,17 @@ export const leaveTeam = mutation({
       .first();
 
     if (!hackathonUser || !hackathonUser.teamId) {
-      throw new Error("User is not in a team");
+      throw new ConvexError("User is not in a team");
     }
 
     const team = await ctx.db.get(hackathonUser.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Don't allow team leader to leave (they should delete the team instead)
     if (team.leaderId === userId) {
-      throw new Error("Team leaders cannot leave their team. Delete the team instead.");
+      throw new ConvexError("Team leaders cannot leave their team. Delete the team instead.");
     }
 
     // Remove user from team
@@ -891,7 +892,7 @@ export const deleteTeam = mutation({
     await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const hackathonUser = await ctx.db
@@ -900,17 +901,17 @@ export const deleteTeam = mutation({
       .first();
 
     if (!hackathonUser || !hackathonUser.teamId) {
-      throw new Error("User is not in a team");
+      throw new ConvexError("User is not in a team");
     }
 
     const team = await ctx.db.get(hackathonUser.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can delete their team");
+      throw new ConvexError("Only team leaders can delete their team");
     }
 
     // Remove all team members from the team
@@ -937,16 +938,16 @@ export const adminDeleteTeam = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     if (!(await isAdmin(ctx, userId))) {
-      throw new Error("Admin access required");
+      throw new ConvexError("Admin access required");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Remove all team members from the team
@@ -1000,10 +1001,10 @@ export const updateSettings = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
     if (!(await isAdmin(ctx, userId))) {
-      throw new Error("Admin access required");
+      throw new ConvexError("Admin access required");
     }
 
     const existing = await ctx.db.query("settings").first();
@@ -1133,17 +1134,17 @@ export const updateTeamStatus = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
-      throw new Error("Team not found");
+      throw new ConvexError("Team not found");
     }
 
     // Check if user is the team leader
     if (team.leaderId !== userId) {
-      throw new Error("Only team leaders can update team status");
+      throw new ConvexError("Only team leaders can update team status");
     }
 
     await ctx.db.patch(args.teamId, {
@@ -1219,15 +1220,15 @@ export const createSuggestion = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     if (args.title.trim().length < 3) {
-      throw new Error("Title must be at least 3 characters long");
+      throw new ConvexError("Title must be at least 3 characters long");
     }
 
     if (args.description.trim().length < 10) {
-      throw new Error("Description must be at least 10 characters long");
+      throw new ConvexError("Description must be at least 10 characters long");
     }
 
     return await ctx.db.insert("suggestions", {
@@ -1294,7 +1295,7 @@ export const voteForSuggestion = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Check if user already voted for this suggestion
@@ -1304,12 +1305,12 @@ export const voteForSuggestion = mutation({
       .first();
 
     if (existingVote) {
-      throw new Error("You have already voted for this suggestion");
+      throw new ConvexError("You have already voted for this suggestion");
     }
 
     const suggestion = await ctx.db.get(args.suggestionId);
     if (!suggestion) {
-      throw new Error("Suggestion not found");
+      throw new ConvexError("Suggestion not found");
     }
 
     // Create vote record
@@ -1333,7 +1334,7 @@ export const toggleSuggestionVote = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     // Check if user already voted for this suggestion
@@ -1344,7 +1345,7 @@ export const toggleSuggestionVote = mutation({
 
     const suggestion = await ctx.db.get(args.suggestionId);
     if (!suggestion) {
-      throw new Error("Suggestion not found");
+      throw new ConvexError("Suggestion not found");
     }
 
     if (existingVote) {
@@ -1393,17 +1394,17 @@ export const deleteSuggestion = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
 
     const suggestion = await ctx.db.get(args.suggestionId);
     if (!suggestion) {
-      throw new Error("Suggestion not found");
+      throw new ConvexError("Suggestion not found");
     }
 
     // Only allow deletion by author or admin
     if (suggestion.authorId !== userId && !(await isAdmin(ctx, userId))) {
-      throw new Error("Only the author or admin can delete suggestions");
+      throw new ConvexError("Only the author or admin can delete suggestions");
     }
 
     // Delete all votes for this suggestion
@@ -1457,7 +1458,7 @@ export const logoutAllSessions = mutation({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("User not authenticated");
+      throw new ConvexError("User not authenticated");
     }
 
     const sessions = await ctx.runQuery(components.auth.public.listSessions, {

@@ -14,11 +14,14 @@ import { RocketIcon, AvatarIcon, StarIcon, Pencil1Icon } from "@radix-ui/react-i
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
 import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
+import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
+import { useTeamsLocked } from "@/lib/useTeamsLocked";
 
 export default function TeamsPage() {
   const settings = useQuery(api.hackathon.getSettings);
   const teamSubmissionsEnabled = settings?.enableTeamSubmissions ?? true;
   const ideaSubmissionsEnabled = settings?.enableIdeaSubmissions ?? true;
+  const locked = useTeamsLocked();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
@@ -79,15 +82,8 @@ export default function TeamsPage() {
       setNewTeamDescription("");
       setShowCreateForm(false);
       toast.success("Team created successfully!");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      if (errorMessage.includes("already created a team")) {
-        toast.error("You have already created a team");
-      } else if (errorMessage.includes("already in a team")) {
-        toast.error("You are already in a team");
-      } else {
-        toast.error(getErrorMessage(error, "Failed to create team"));
-      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to create team"));
     }
   };
 
@@ -95,8 +91,8 @@ export default function TeamsPage() {
     try {
       const result = await joinRandomTeam({});
       toast.success(`Joined team: ${result?.teamName || "Success"}`);
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Failed to join a random team"));
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to join a random team"));
     }
   };
 
@@ -136,8 +132,7 @@ export default function TeamsPage() {
       await adminDeleteTeam({ teamId: teamId as any });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to delete team"));
     }
   };
 
@@ -169,8 +164,16 @@ export default function TeamsPage() {
 
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+          {locked && (
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+              <CardContent className="p-4 sm:p-6">
+                <TeamsLockedNotice />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Create New Team */}
-          {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
+          {!locked && teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && !showCreateForm && (
             <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-4 sm:p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">👥</div>
@@ -191,7 +194,7 @@ export default function TeamsPage() {
             </Card>
           )}
           
-          {teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
+          {!locked && teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && showCreateForm && (
             <Card id="create-team-form" className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardHeader>
                 <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
@@ -263,7 +266,7 @@ export default function TeamsPage() {
             </Card>
           )}
           
-          {!teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && (
+          {!locked && !teamSubmissionsEnabled && !hackathonUser?.teamId && !userCreatedTeam && (
             <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
               <CardContent className="p-6 text-center">
                 <div className="text-4xl sm:text-6xl mb-3">⛔</div>
@@ -281,7 +284,7 @@ export default function TeamsPage() {
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
-                {!hackathonUser?.teamId && (
+                {!locked && !hackathonUser?.teamId && (
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       onClick={handleJoinRandomTeam}
@@ -356,7 +359,7 @@ export default function TeamsPage() {
                   >
                     Clear Filters
                   </Button>
-                ) : !userCreatedTeam ? (
+                ) : !userCreatedTeam && !locked ? (
                   <Button
                     onClick={() => {
                       // Scroll to the create form
@@ -370,11 +373,11 @@ export default function TeamsPage() {
                     <RocketIcon className="mr-2 h-4 w-4" />
                     Create First Team
                   </Button>
-                ) : (
+                ) : userCreatedTeam ? (
                   <p className="text-cyan-300 text-sm">
                     You've already created a team! Check it out below.
                   </p>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           ) : (
@@ -443,18 +446,22 @@ export default function TeamsPage() {
                             </Badge>
                           </div>
                           <div className="flex flex-col gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleRemoveIdea(team._id)}
-                              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
-                            >
-                              Remove Idea
-                            </Button>
+                            {!locked && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleRemoveIdea(team._id)}
+                                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
+                              >
+                                Remove Idea
+                              </Button>
+                            )}
                             <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                               <Link href="/hackathon/ideas">Browse Ideas</Link>
                             </Button>
                           </div>
                         </div>
+                      ) : locked ? (
+                        <TeamsLockedNotice className="text-xs" />
                       ) : (
                         <div className="space-y-2">
                           <p className="text-gray-400 text-xs mb-2">Select an idea for your team:</p>
@@ -555,7 +562,7 @@ export default function TeamsPage() {
                                 </Link>
                               </Button>
                             </div>
-                            {!hackathonUser?.teamId && team.leaderId !== hackathonUser?.userId && (
+                            {!locked && !hackathonUser?.teamId && team.leaderId !== hackathonUser?.userId && (
                               <div className="flex justify-center">
                                 <Button
                                   size="sm"

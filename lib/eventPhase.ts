@@ -18,3 +18,10 @@ export function nextPhaseChangeAt(times: EventTimes, now: number): number | null
   const boundaries = [times.eventStartAt, times.submissionsCloseAt, times.votingClosesAt];
   return boundaries.find((at) => at > now) ?? null;
 }
+
+// Mirrors assertTeamsUnlocked: team changes stop at the submission deadline.
+export function teamsLocked(phase: Phase): boolean {
+  return phase === "voting" || phase === "closed";
+}
+
+export const TEAMS_LOCKED_MESSAGE = "Teams are locked after the submission deadline";

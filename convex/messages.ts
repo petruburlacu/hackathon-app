@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getUsername } from "./users";
 
@@ -23,7 +23,7 @@ export const send = mutation({
   handler: async (ctx, { body }) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
     // Send a new message.
     await ctx.db.insert("messages", { body, userId });

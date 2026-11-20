@@ -68,56 +68,7 @@ export const HackathonHome = () => {
           </div>
         </div>
 
-        {/* Judging Criteria Section */}
-        <div className="mt-16 bg-linear-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xs p-6 sm:p-8 rounded-2xl border border-yellow-400/20 mx-4">
-          <h3 className="text-xl sm:text-2xl font-bold text-center text-yellow-300 mb-6 font-mono">
-            JUDGING CRITERIA
-          </h3>
-          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
-            <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">
-              <div className="h-6 bg-linear-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">33%</span>
-              </div>
-              <div className="p-3 sm:p-4">
-                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-white"></div>
-                  </div>
-                </div>
-                <div className="text-green-400 font-bold hackathon-title text-sm sm:text-base mb-1">Viability of POC</div>
-                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How well can this idea be built into a working proof of concept?</div>
-              </div>
-            </div>
-            <div className="text-center bg-black/20 rounded-lg border border-blue-400/20 overflow-hidden">
-              <div className="h-6 bg-linear-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">33%</span>
-              </div>
-              <div className="p-3 sm:p-4">
-                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-white"></div>
-                  </div>
-                </div>
-                <div className="text-blue-400 font-bold hackathon-title text-sm sm:text-base mb-1">Cross-team Collaboration</div>
-                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How effectively did dev and non-dev team members work together?</div>
-              </div>
-            </div>
-            <div className="text-center bg-black/20 rounded-lg border border-purple-400/20 overflow-hidden">
-              <div className="h-6 bg-linear-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">33%</span>
-              </div>
-              <div className="p-3 sm:p-4">
-                <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-white"></div>
-                  </div>
-                </div>
-                <div className="text-purple-400 font-bold hackathon-title text-sm sm:text-base mb-1">Business Alignment</div>
-                <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">How well does this solution align with business goals and needs?</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* TODO(judging): add judging criteria here if judges are confirmed; the app runs the people's vote only for now. */}
 
         {/* Rules Section */}
         <div className="mt-16 bg-linear-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-xs p-6 sm:p-8 rounded-2xl border border-pink-400/20 mx-4">
