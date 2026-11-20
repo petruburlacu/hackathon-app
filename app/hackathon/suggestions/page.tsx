@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import {
   StarIcon,
   PlusIcon,
@@ -72,14 +73,8 @@ export default function SuggestionsPage() {
       setIsAnonymous(false);
       setShowCreateForm(false);
       toast.success("Suggestion submitted successfully!");
-    } catch (error: any) {
-      if (error.message?.includes("Title must be at least 3 characters")) {
-        toast.error("Title must be at least 3 characters long");
-      } else if (error.message?.includes("Description must be at least 10 characters")) {
-        toast.error("Description must be at least 10 characters long");
-      } else {
-        toast.error("Failed to submit suggestion");
-      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to submit suggestion"));
     }
   };
 
@@ -91,8 +86,8 @@ export default function SuggestionsPage() {
       } else {
         toast.success("Vote retracted!");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to toggle vote");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to toggle vote"));
     }
   };
 
@@ -110,12 +105,8 @@ export default function SuggestionsPage() {
     try {
       await deleteSuggestion({ suggestionId: suggestionId as any });
       toast.success("Suggestion deleted successfully!");
-    } catch (error: any) {
-      if (error.message?.includes("Only the author or admin can delete")) {
-        toast.error("Only the author or admin can delete suggestions");
-      } else {
-        toast.error("Failed to delete suggestion");
-      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to delete suggestion"));
     }
   };
 

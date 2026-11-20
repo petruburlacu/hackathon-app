@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
 import { EventClockCard } from "./EventClockCard";
@@ -85,12 +86,7 @@ export default function AdminPage() {
       const result = await seedData({});
       toast.success(`Seeded ${result.ideasCreated} sample ideas!`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      if (errorMessage.includes("already exists")) {
-        toast.error("Data already exists! Clear first to reseed.");
-      } else {
-        toast.error("Failed to seed data");
-      }
+      toast.error(getErrorMessage(error, "Failed to seed data"));
     } finally {
       setIsSeeding(false);
     }
@@ -101,8 +97,8 @@ export default function AdminPage() {
     try {
       const result = await clearData({});
       toast.success(`Cleared ${result.deleted.ideas} ideas and ${result.deleted.teams} teams!`);
-    } catch {
-      toast.error("Failed to clear data");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to clear data"));
     } finally {
       setIsClearing(false);
     }
@@ -119,8 +115,8 @@ export default function AdminPage() {
       
       const result = await seedData({});
       toast.success(`Seeded ${result.ideasCreated} sample ideas!`);
-    } catch {
-      toast.error("Failed to clear and seed data");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to clear and seed data"));
     } finally {
       setIsSeeding(false);
       setIsClearing(false);
@@ -144,8 +140,7 @@ export default function AdminPage() {
       });
       toast.success(`${type === "ideas" ? "Ideas" : "Teams"} submissions ${value ? "enabled" : "disabled"}`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to update settings";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to update settings"));
     }
   };
 
@@ -158,8 +153,7 @@ export default function AdminPage() {
       await adminDeleteIdea({ ideaId });
       toast.success("Idea admin deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to delete idea"));
     }
   };
 
@@ -172,8 +166,7 @@ export default function AdminPage() {
       await adminDeleteTeam({ teamId });
       toast.success("Team admin deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to delete team"));
     }
   };
 

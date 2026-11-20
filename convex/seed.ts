@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { isAdmin } from "./users";
@@ -49,17 +50,17 @@ export const seedHackathonData = mutation({
     // Get the current user ID (the admin seeding the data)
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Must be authenticated to seed data");
+      throw new ConvexError("Must be authenticated to seed data");
     }
 
     if (!(await isAdmin(ctx, userId))) {
-      throw new Error("Admin access required");
+      throw new ConvexError("Admin access required");
     }
 
     // Check if data already exists
     const existingIdeas = await ctx.db.query("ideas").collect();
     if (existingIdeas.length > 0) {
-      throw new Error("Hackathon data already exists. Clear existing data first.");
+      throw new ConvexError("Hackathon data already exists. Clear existing data first.");
     }
 
     console.log("🌱 Seeding hackathon data...");
@@ -97,11 +98,11 @@ export const clearHackathonData = mutation({
     // Get the current user ID (the admin clearing the data)
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Must be authenticated to clear data");
+      throw new ConvexError("Must be authenticated to clear data");
     }
 
     if (!(await isAdmin(ctx, userId))) {
-      throw new Error("Admin access required");
+      throw new ConvexError("Admin access required");
     }
 
     // Clear all hackathon data
