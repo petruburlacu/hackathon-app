@@ -45,8 +45,8 @@ export function sameDraft(a: Draft, b: Draft): boolean {
 }
 
 // Must only run in the browser: mount it below a component that renders after the Convex queries load.
-export function useDraftBackup(teamId: string) {
-  const key = `hackathon-draft:${teamId}`;
+export function useDraftBackup(teamId: string, userId: string) {
+  const key = `hackathon-draft:${teamId}:${userId}`;
   const [draft] = useState(() => readDraft(key));
   const pending = useRef<Draft | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

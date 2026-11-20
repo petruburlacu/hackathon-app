@@ -2,7 +2,7 @@
 
 import type { JSONContent } from "@tiptap/react";
 import { useMutation } from "convex/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,7 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
     saved,
   } = props;
   const now = useNow(15_000);
-  const backup = useDraftBackup(teamId);
+  const backup = useDraftBackup(teamId, myUserId);
 
   const acquireEditLock = useMutation(api.submissions.acquireEditLock);
   const takeOverEditLock = useMutation(api.submissions.takeOverEditLock);
@@ -145,6 +145,10 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
   };
 
   const startEditing = async (start: Draft, startDirty: boolean) => {
+    if (draftOffer && start !== draftOffer) {
+      toast.error("Restore or discard your unsaved draft first.");
+      return;
+    }
     setBusy(true);
     try {
       const result = await acquireEditLock({});
@@ -165,6 +169,10 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
   };
 
   const takeOver = async () => {
+    if (draftOffer) {
+      toast.error("Restore or discard your unsaved draft first.");
+      return;
+    }
     setBusy(true);
     try {
       await takeOverEditLock({});
@@ -230,7 +238,14 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [editing, dirty]);
 
+  // What's in the form right now, read after an awaited save (state in that closure is stale).
+  const latest = useRef<Draft>(current);
+  useEffect(() => {
+    latest.current = { title, tagline, content };
+  }, [title, tagline, content]);
+
   const update = (next: Draft) => {
+    latest.current = next;
     setTitle(next.title);
     setTagline(next.tagline);
     setContent(next.content);
@@ -241,16 +256,24 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
   const doSave = async (close: boolean) => {
     setSaving(true);
     try {
-      await saveSubmission({ title, tagline, content });
-      backup.clear();
-      setDirty(false);
+      const snapshot = current;
+      await saveSubmission(snapshot);
       toast.success("Saved");
-      if (close) setMode("view");
+      // Typing continues while the save is in flight; only settle if nothing changed since.
+      if (sameDraft(latest.current, snapshot)) {
+        backup.clear();
+        setDirty(false);
+        if (close) setMode("view");
+      }
     } catch (error) {
       const message = getErrorMessage(error, `Could not save. ${KEPT}`);
       toast.error(message);
       if (message === LOCK_LOST)
-        setFailure(`Someone else is editing now. ${KEPT}`);
+        setFailure(
+          lock && lock.userId !== myUserId
+            ? `Someone else is editing now. ${KEPT}`
+            : `Your editing session ended. ${KEPT}`,
+        );
     } finally {
       setSaving(false);
     }
