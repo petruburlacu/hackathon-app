@@ -13,6 +13,7 @@ import type * as eventClock from "../eventClock.js";
 import type * as hackathon from "../hackathon.js";
 import type * as messages from "../messages.js";
 import type * as seed from "../seed.js";
+import type * as submissions from "../submissions.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   hackathon: typeof hackathon;
   messages: typeof messages;
   seed: typeof seed;
+  submissions: typeof submissions;
   users: typeof users;
 }>;
 
