@@ -50,16 +50,14 @@ type Team = {
   currentDevs: number;
   currentNonDevs: number;
   createdAt: number;
-  votes: number;
 };
 
 export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonUser | null | undefined }) {
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
-  const leaderboard = useQuery(api.hackathon.getLeaderboard) || [];
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
-  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0, teamVotes: 0, total: 0 };
+  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0 };
 
   if (!hackathonUser) {
     return (
@@ -80,7 +78,6 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
   }
 
   const topIdeas = ideas.slice(0, 3);
-  const topTeams = leaderboard.slice(0, 3);
   const userTeam = teams.find((team: Team) => team._id === hackathonUser.teamId);
   
   // Determine user state for personalized content
@@ -212,9 +209,9 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">
-                {ideas.reduce((sum: number, idea: Idea) => sum + idea.votes, 0) + teams.reduce((sum: number, team: Team) => sum + team.votes, 0)}
+                {ideas.reduce((sum: number, idea: Idea) => sum + idea.votes, 0)}
               </div>
-              <p className="text-gray-400 text-sm hackathon-text">Votes cast across all</p>
+              <p className="text-gray-400 text-sm hackathon-text">Votes cast on ideas</p>
             </CardContent>
           </Card>
         </div>
@@ -272,15 +269,12 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                 <p className="text-cyan-200 text-sm hackathon-text">
                   {!hasIdeas && !hasTeam ? 
                     "Not ready to participate? You can still browse and vote!" :
-                    "Support the community by voting for ideas and teams!"
+                    "Support the community by voting for ideas!"
                   }
                 </p>
                 <div className="space-y-2">
                   <Button asChild size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white hackathon-text">
                     <Link href="/hackathon/ideas">Vote for Ideas</Link>
-                  </Button>
-                  <Button asChild size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white hackathon-text">
-                    <Link href="/hackathon/leaderboard">Vote for Teams</Link>
                   </Button>
                 </div>
               </div>
@@ -397,47 +391,6 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           </Card>
         )}
 
-        {/* Top Teams Preview */}
-        {topTeams.length > 0 && (
-          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-              <BadgeIcon className="h-5 w-5" /> Top Teams
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {topTeams.map((team: Team, index: number) => (
-                  <div key={team._id} className={`p-4 rounded-lg border ${
-                    index === 0 ? 'bg-linear-to-r from-yellow-500/10 to-orange-500/10 border-yellow-400/30' :
-                    index === 1 ? 'bg-linear-to-r from-gray-500/10 to-slate-500/10 border-gray-400/30' :
-                    'bg-linear-to-r from-orange-500/10 to-red-500/10 border-orange-400/30'
-                  }`}>
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className={`hackathon-title text-sm font-bold ${
-                        index === 0 ? 'text-yellow-400' : 
-                        index === 1 ? 'text-gray-300' : 
-                        'text-orange-400'
-                      }`}>
-                        #{index + 1}
-                      </h4>
-                      <Badge className="bg-pink-500 text-white text-xs hackathon-text">{team.votes} votes</Badge>
-                    </div>
-                    <h5 className="text-cyan-300 font-bold mb-2 hackathon-title">{team.name}</h5>
-                    <p className="text-gray-400 text-xs hackathon-text">
-                      {team.currentDevs} devs, {team.currentNonDevs} non-devs
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="text-center mt-4">
-                <Button asChild variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black hackathon-text">
-                  <Link href="/hackathon/leaderboard">View Full Leaderboard</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );

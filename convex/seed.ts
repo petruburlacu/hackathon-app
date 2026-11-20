@@ -107,7 +107,6 @@ export const clearHackathonData = mutation({
     const ideas = await ctx.db.query("ideas").collect();
     const teams = await ctx.db.query("teams").collect();
     const ideaVotes = await ctx.db.query("ideaVotes").collect();
-    const teamVotes = await ctx.db.query("teamVotes").collect();
     const hackathonUsers = await ctx.db.query("hackathonUsers").collect();
 
     for (const idea of ideas) {
@@ -117,9 +116,6 @@ export const clearHackathonData = mutation({
       await ctx.db.delete(team._id);
     }
     for (const vote of ideaVotes) {
-      await ctx.db.delete(vote._id);
-    }
-    for (const vote of teamVotes) {
       await ctx.db.delete(vote._id);
     }
     for (const user of hackathonUsers) {
@@ -133,7 +129,6 @@ export const clearHackathonData = mutation({
         ideas: ideas.length,
         teams: teams.length,
         ideaVotes: ideaVotes.length,
-        teamVotes: teamVotes.length,
         hackathonUsers: hackathonUsers.length,
       },
     };

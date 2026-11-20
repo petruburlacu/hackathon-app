@@ -288,18 +288,12 @@ export const getUserVoteStatus = query({
     
     if (userId === null) {
       console.log("getUserVoteStatus - user not signed in");
-      return { ideaVotes: [], teamVotes: [], suggestionVotes: [] };
+      return { ideaVotes: [], suggestionVotes: [] };
     }
 
     // Get all votes for ideas
     const ideaVotes = await ctx.db
       .query("ideaVotes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
-    // Get all votes for teams
-    const teamVotes = await ctx.db
-      .query("teamVotes")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
@@ -311,7 +305,6 @@ export const getUserVoteStatus = query({
 
     const result = {
       ideaVotes: ideaVotes.map(vote => vote.ideaId),
-      teamVotes: teamVotes.map(vote => vote.teamId),
       suggestionVotes: suggestionVotes.map(vote => vote.suggestionId),
     };
 
@@ -475,7 +468,6 @@ export const createTeam = mutation({
       currentDevs: 0,
       currentNonDevs: 0,
       createdAt: Date.now(),
-      votes: 0,
       status: "forming",
     });
 
@@ -552,10 +544,7 @@ export const updateTeam = mutation({
 export const getTeams = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("teams")
-      .withIndex("by_votes")
-      .collect();
+    return await ctx.db.query("teams").collect();
   },
 });
 
@@ -808,115 +797,6 @@ export const removeIdeaFromTeam = mutation({
   },
 });
 
-export const voteForTeam = mutation({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not signed in");
-    }
-
-    // Check if user already voted for this team
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    if (existingVote) {
-      throw new Error("You have already voted for this team");
-    }
-
-    // Create vote record
-    await ctx.db.insert("teamVotes", {
-      teamId: args.teamId,
-      userId,
-      createdAt: Date.now(),
-    });
-
-    // Update team vote count
-    const team = await ctx.db.get(args.teamId);
-    if (team) {
-      await ctx.db.patch(args.teamId, {
-        votes: team.votes + 1,
-      });
-    }
-  },
-});
-
-export const toggleTeamVote = mutation({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not signed in");
-    }
-
-    // Check if user already voted for this team
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    const team = await ctx.db.get(args.teamId);
-    if (!team) {
-      throw new Error("Team not found");
-    }
-
-    if (existingVote) {
-      // User has voted, so retract the vote
-      await ctx.db.delete(existingVote._id);
-      await ctx.db.patch(args.teamId, {
-        votes: Math.max(0, team.votes - 1),
-      });
-      return { action: "retracted", votes: Math.max(0, team.votes - 1) };
-    } else {
-      // Check if user has already voted for another team (only 1 team vote allowed)
-      const otherTeamVotes = await ctx.db
-        .query("teamVotes")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .collect();
-
-      if (otherTeamVotes.length > 0) {
-        throw new Error("You can only vote for one team. Please retract your existing team vote first.");
-      }
-
-      // User hasn't voted, so add the vote
-      await ctx.db.insert("teamVotes", {
-        teamId: args.teamId,
-        userId,
-        createdAt: Date.now(),
-      });
-      await ctx.db.patch(args.teamId, {
-        votes: team.votes + 1,
-      });
-      return { action: "added", votes: team.votes + 1 };
-    }
-  },
-});
-
-export const hasUserVotedForTeam = query({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      return false;
-    }
-
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    return !!existingVote;
-  },
-});
-
 export const leaveTeam = mutation({
   args: {},
   handler: async (ctx) => {
@@ -999,16 +879,6 @@ export const deleteTeam = mutation({
       });
     }
 
-    // Delete team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team", (q) => q.eq("teamId", team._id))
-      .collect();
-
-    for (const vote of teamVotes) {
-      await ctx.db.delete(vote._id);
-    }
-
     // Delete the team
     await ctx.db.delete(team._id);
   },
@@ -1045,16 +915,6 @@ export const adminDeleteTeam = mutation({
       });
     }
 
-    // Delete team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team", (q) => q.eq("teamId", team._id))
-      .collect();
-
-    for (const vote of teamVotes) {
-      await ctx.db.delete(vote._id);
-    }
-
     // Delete the team
     await ctx.db.delete(team._id);
   },
@@ -1069,18 +929,6 @@ export const getTeamsUsingIdea = query({
       .query("teams")
       .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
       .collect();
-  },
-});
-
-export const getLeaderboard = query({
-  args: {},
-  handler: async (ctx) => {
-    const teams = await ctx.db
-      .query("teams")
-      .withIndex("by_votes")
-      .collect();
-
-    return teams.sort((a, b) => b.votes - a.votes);
   },
 });
 
@@ -1213,7 +1061,7 @@ export const getMyVotesGiven = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      return { ideaVotes: 0, teamVotes: 0, total: 0 };
+      return { ideaVotes: 0 };
     }
 
     // Get user's idea votes
@@ -1222,17 +1070,7 @@ export const getMyVotesGiven = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    // Get user's team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
-    return {
-      ideaVotes: ideaVotes.length,
-      teamVotes: teamVotes.length,
-      total: ideaVotes.length + teamVotes.length,
-    };
+    return { ideaVotes: ideaVotes.length };
   },
 });
 

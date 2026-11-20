@@ -10,6 +10,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
+import { Leaderboard } from "@/app/hackathon/leaderboard/Leaderboard";
 import {
   PlusIcon,
   StarIcon,
@@ -40,7 +41,6 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
 
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
-  const leaderboard = useQuery(api.hackathon.getLeaderboard) || [];
 
   const createIdea = useMutation(api.hackathon.createIdea);
   const createTeam = useMutation(api.hackathon.createTeam);
@@ -294,9 +294,6 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg wrap-break-word line-clamp-1">{team.name}</CardTitle>
-                    <Badge variant="secondary" className="bg-pink-500 text-white">
-                      {team.votes} votes
-                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -336,60 +333,7 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       )}
 
       {/* Leaderboard Tab */}
-      {activeTab === "leaderboard" && (
-        <div className="space-y-6">
-          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono text-center text-2xl">
-                🏆 TEAM LEADERBOARD 🏆
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          <div className="space-y-4">
-            {leaderboard.map((team, index: number) => (
-              <Card key={team._id} className={`bg-black/40 backdrop-blur-xs border-cyan-400/20 ${
-                index === 0 ? 'border-yellow-400/60 bg-linear-to-r from-yellow-500/10 to-orange-500/10' : ''
-              }`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`text-2xl font-bold ${
-                        index === 0 ? 'text-yellow-400' : 
-                        index === 1 ? 'text-gray-300' : 
-                        index === 2 ? 'text-orange-400' : 'text-cyan-300'
-                      }`}>
-                        #{index + 1}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-yellow-400 font-mono">{team.name}</h3>
-                        <p className="text-cyan-200 text-sm">
-                          {team.currentDevs} devs, {team.currentNonDevs} non-devs
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-pink-400">{team.votes}</div>
-                      <div className="text-sm text-gray-400">votes</div>
-                    </div>
-                  </div>
-                  {index < 3 && (
-                    <div className="mt-4 text-center">
-                      <Badge className={`${
-                        index === 0 ? 'bg-yellow-400 text-black' :
-                        index === 1 ? 'bg-gray-400 text-black' :
-                        'bg-orange-400 text-black'
-                      }`}>
-                        {index === 0 ? '🥇 1st Place' : index === 1 ? '🥈 2nd Place' : '🥉 3rd Place'}
-                      </Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+      {activeTab === "leaderboard" && <Leaderboard />}
     </div>
   );
 }

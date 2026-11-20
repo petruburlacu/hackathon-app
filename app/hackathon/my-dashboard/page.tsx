@@ -22,7 +22,7 @@ export default function MyDashboardPage() {
   const viewer = useQuery(api.users.viewer);
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
-  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0, teamVotes: 0, total: 0 };
+  const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0 };
 
   const leaveTeam = useMutation(api.hackathon.leaveTeam);
   const deleteTeam = useMutation(api.hackathon.deleteTeam);
@@ -89,9 +89,9 @@ export default function MyDashboardPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">
-                    {myVotesGiven.total}
+                    {myVotesGiven.ideaVotes}
                   </div>
-                  <div className="text-gray-400">Total Votes Given</div>
+                  <div className="text-gray-400">Idea Votes Given</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">
@@ -184,7 +184,6 @@ export default function MyDashboardPage() {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <Badge className="bg-pink-500 text-white">{myTeamDetails.team.votes} votes</Badge>
                         <Badge className={`${myTeamDetails.team.isAssembled ? 'bg-green-500' : 'bg-yellow-500'} text-white`}>
                           {myTeamDetails.team.isAssembled ? '✅ Assembled' : '⏳ Forming'}
                         </Badge>

@@ -297,9 +297,6 @@ export default function TeamDetailPage() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Badge className="bg-pink-500 text-white text-lg px-3 py-1">
-                    {teamDetails.team.votes} votes
-                  </Badge>
                   <Badge className={`${getStatusColor(teamDetails.team.status || "forming")} text-lg px-3 py-1`}>
                     {getStatusText(teamDetails.team.status || "forming")}
                   </Badge>
