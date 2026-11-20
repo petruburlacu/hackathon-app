@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { LeaderboardRow } from "@/convex/leaderboard";
@@ -71,40 +72,47 @@ function BoardRow({
 }) {
   const width = topTotal > 0 ? (row.totalPoints / topTotal) * 100 : 0;
   return (
-    <li className="flex items-center gap-3 sm:gap-4 rounded-xl bg-black/30 border border-cyan-400/10 p-3 sm:p-4">
-      <div
-        className="w-10 shrink-0 text-center"
-        aria-label={`Rank ${row.rank}`}
+    <li>
+      <Link
+        href={`/hackathon/submissions/${row.submissionId}`}
+        className="flex items-center gap-3 sm:gap-4 rounded-xl bg-black/30 border border-cyan-400/10 p-3 sm:p-4 transition-colors hover:border-yellow-400/40 hover:bg-black/40"
       >
-        {MEDALS[row.rank] ? (
-          <span className="text-3xl">{MEDALS[row.rank]}</span>
-        ) : (
-          <span className="text-lg font-bold font-mono text-cyan-300">
-            #{row.rank}
-          </span>
-        )}
-      </div>
-      <Thumbnail row={row} />
-      <div className="min-w-0 flex-1 space-y-2">
-        <div className="min-w-0">
-          <div className="truncate font-bold text-yellow-300">{row.title}</div>
-          <div className="truncate text-sm text-gray-400">{row.teamName}</div>
+        <div
+          className="w-10 shrink-0 text-center"
+          aria-label={`Rank ${row.rank}`}
+        >
+          {MEDALS[row.rank] ? (
+            <span className="text-3xl">{MEDALS[row.rank]}</span>
+          ) : (
+            <span className="text-lg font-bold font-mono text-cyan-300">
+              #{row.rank}
+            </span>
+          )}
         </div>
-        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-linear-to-r from-yellow-400 to-pink-500 transition-[width] duration-500"
-            style={{ width: `${width}%` }}
-          />
+        <Thumbnail row={row} />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="min-w-0">
+            <div className="truncate font-bold text-yellow-300">
+              {row.title}
+            </div>
+            <div className="truncate text-sm text-gray-400">{row.teamName}</div>
+          </div>
+          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-yellow-400 to-pink-500 transition-[width] duration-500"
+              style={{ width: `${width}%` }}
+            />
+          </div>
         </div>
-      </div>
-      <div className="w-20 shrink-0 text-right">
-        <div className="text-2xl font-bold font-mono text-white">
-          {row.totalPoints}
+        <div className="w-20 shrink-0 text-right">
+          <div className="text-2xl font-bold font-mono text-white">
+            {row.totalPoints}
+          </div>
+          <div className="text-xs text-gray-400">
+            {row.voterCount} {row.voterCount === 1 ? "voter" : "voters"}
+          </div>
         </div>
-        <div className="text-xs text-gray-400">
-          {row.voterCount} {row.voterCount === 1 ? "voter" : "voters"}
-        </div>
-      </div>
+      </Link>
     </li>
   );
 }
