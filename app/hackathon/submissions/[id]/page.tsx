@@ -52,7 +52,11 @@ export default function SubmissionReadPage() {
         <article className="mx-auto w-full max-w-3xl space-y-5 p-3 sm:p-6">
           <BackLink />
           <div className="overflow-hidden rounded-xl border border-cyan-400/20">
-            <Cover url={submission.coverUrl} title={submission.title} />
+            <Cover
+              url={submission.coverUrl}
+              title={submission.title}
+              sizes="(min-width: 768px) 768px, 100vw"
+            />
           </div>
           <header className="space-y-1">
             <h1 className="text-2xl font-bold text-yellow-400 sm:text-3xl">

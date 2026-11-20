@@ -57,7 +57,11 @@ function SubmissionCard({
         href={`/hackathon/submissions/${card._id}`}
         className="group flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-yellow-400"
       >
-        <Cover url={card.coverUrl} title={card.title} />
+        <Cover
+          url={card.coverUrl}
+          title={card.title}
+          sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
+        />
         <div className="flex flex-1 flex-col gap-1 p-4">
           <h2 className="text-lg font-bold text-yellow-300 group-hover:underline underline-offset-4">
             {card.title}

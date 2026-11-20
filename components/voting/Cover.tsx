@@ -1,22 +1,20 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type CoverProps = {
   url: string | null;
   title: string;
+  sizes: string;
   className?: string;
 };
 
-export function Cover({ url, title, className }: CoverProps) {
+// next/image so viewers hit Vercel's image cache, not Convex egress.
+export function Cover({ url, title, sizes, className }: CoverProps) {
   if (url) {
     return (
-      // Plain <img> until covers move to next/image with Convex remotePatterns.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url}
-        alt=""
-        loading="lazy"
-        className={cn("aspect-video w-full object-cover", className)}
-      />
+      <div className={cn("relative aspect-video w-full", className)}>
+        <Image src={url} alt="" fill sizes={sizes} className="object-cover" />
+      </div>
     );
   }
   return (
