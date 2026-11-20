@@ -233,9 +233,10 @@ async function writeSubmission(
     submissionId = existing._id;
     await ctx.db.patch(submissionId, summary);
   } else {
-    submissionId = await ctx.db.insert("submissions", {
+    submissionId = await ctx.db.insert("submissions", { teamId, ...summary });
+    await ctx.db.insert("submissionTotals", {
+      submissionId,
       teamId,
-      ...summary,
       totalPoints: 0,
       voterCount: 0,
     });
@@ -433,10 +434,14 @@ export async function deleteSubmissionCascade(ctx: MutationCtx, teamId: Id<"team
     .query("submissionVersions")
     .withIndex("by_submission_savedAt", (q) => q.eq("submissionId", submission._id))
     .collect();
-  for (const row of [...contentRows, ...versions]) {
+  const totals = await ctx.db
+    .query("submissionTotals")
+    .withIndex("by_submission", (q) => q.eq("submissionId", submission._id))
+    .collect();
+  for (const row of [...contentRows, ...versions, ...totals]) {
     await ctx.db.delete(row._id);
   }
-  // Deleting the summary row drops its totals with it; other submissions' totals don't include these votes.
+  // Other submissions' totals don't include these votes, so only the votes themselves go.
   const votes = await ctx.db
     .query("pointVotes")
     .withIndex("by_submission", (q) => q.eq("submissionId", submission._id))

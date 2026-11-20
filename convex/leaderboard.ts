@@ -18,27 +18,33 @@ export type LeaderboardRow = {
 };
 
 async function loadBoard(ctx: QueryCtx): Promise<LeaderboardRow[]> {
-  const submissions = await ctx.db
-    .query("submissions")
+  const totals = await ctx.db
+    .query("submissionTotals")
     .withIndex("by_points")
     .order("desc")
     .collect();
   const rows = await Promise.all(
-    submissions.map(async (submission) => {
-      const team = await ctx.db.get(submission.teamId);
+    totals.map(async ({ submissionId, teamId, totalPoints, voterCount }) => {
+      const [submission, team] = await Promise.all([
+        ctx.db.get(submissionId),
+        ctx.db.get(teamId),
+      ]);
+      if (!submission) {
+        return null;
+      }
       return {
-        submissionId: submission._id,
+        submissionId,
         title: submission.title,
         teamName: team?.name ?? "Unknown team",
         coverUrl: submission.coverImageId
           ? await ctx.storage.getUrl(submission.coverImageId)
           : null,
-        totalPoints: submission.totalPoints,
-        voterCount: submission.voterCount,
+        totalPoints,
+        voterCount,
       };
     }),
   );
-  return rankByPoints(rows);
+  return rankByPoints(rows.filter((row) => row !== null));
 }
 
 export const get = query({
