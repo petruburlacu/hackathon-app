@@ -51,6 +51,8 @@ export default defineSchema({
     currentDevs: v.number(),
     currentNonDevs: v.number(),
     createdAt: v.number(),
+    // Admin override: this team may keep editing its submission until this time, past the deadline.
+    submissionReopenedUntil: v.optional(v.number()),
   }).index("by_leader", ["leaderId"])
     .index("by_status", ["status"])
     .index("by_idea", ["ideaId"]),
@@ -99,4 +101,39 @@ export default defineSchema({
     submissionsCloseAt: v.optional(v.number()),
     votingClosesAt: v.optional(v.number()),
   }),
+
+  // Kept small: the gallery and leaderboard subscribe to this table.
+  submissions: defineTable({
+    teamId: v.id("teams"),
+    title: v.string(),
+    tagline: v.string(),
+    coverImageId: v.optional(v.id("_storage")),
+    savedBy: v.id("users"),
+    savedAt: v.number(),
+    totalPoints: v.number(),
+    voterCount: v.number(),
+  }).index("by_team", ["teamId"])
+    .index("by_points", ["totalPoints"]),
+
+  submissionContent: defineTable({
+    submissionId: v.id("submissions"),
+    content: v.any(),
+  }).index("by_submission", ["submissionId"]),
+
+  // Keyed by team, not submission: the submission row only exists after the first Save.
+  editLocks: defineTable({
+    teamId: v.id("teams"),
+    userId: v.id("users"),
+    heartbeatAt: v.number(),
+  }).index("by_team", ["teamId"]),
+
+  submissionVersions: defineTable({
+    submissionId: v.id("submissions"),
+    title: v.string(),
+    tagline: v.string(),
+    coverImageId: v.optional(v.id("_storage")),
+    content: v.any(),
+    savedBy: v.id("users"),
+    savedAt: v.number(),
+  }).index("by_submission_savedAt", ["submissionId", "savedAt"]),
 });

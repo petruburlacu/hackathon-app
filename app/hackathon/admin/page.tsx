@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
 import { EventClockCard } from "./EventClockCard";
+import { ReopenTeamCard } from "./ReopenTeamCard";
 
 // Type for idea object
 type Idea = {
@@ -201,6 +202,8 @@ export default function AdminPage() {
           </Card>
 
           <EventClockCard />
+
+          <ReopenTeamCard teams={teams} />
 
           {/* Submission Controls */}
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
