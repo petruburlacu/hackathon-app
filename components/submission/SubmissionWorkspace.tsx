@@ -13,6 +13,7 @@ import { getErrorMessage } from "@/lib/errorMessage";
 import { eventPhase, type EventTimes } from "@/lib/eventPhase";
 import { formatUkDateTime } from "@/lib/ukTime";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { CoverImageField } from "./CoverImageField";
 import { HistoryDrawer } from "./HistoryDrawer";
 import { RecordingHelp } from "./RecordingHelp";
 import { SubmissionEditor } from "./SubmissionEditor";
@@ -83,6 +84,7 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
         ? {
             title: saved.summary.title,
             tagline: saved.summary.tagline,
+            coverImageId: saved.summary.coverImageId,
             content: saved.content ?? buildTemplate(),
           }
         : { title: "", tagline: "", content: buildTemplate(idea?.description) },
@@ -93,6 +95,7 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
   const [failure, setFailure] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
+  const [coverImageId, setCoverImageId] = useState<Id<"_storage">>();
   const [content, setContent] = useState<JSONContent>(serverCopy.content);
   const [editorSeed, setEditorSeed] = useState<{
     key: number;
@@ -131,11 +134,12 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
           : (failure ?? (lock ? null : `Your editing session ended. ${KEPT}`));
   const editing = mode === "edit" && lostReason === null;
   const lost = lostReason !== null;
-  const current: Draft = { title, tagline, content };
+  const current: Draft = { title, tagline, coverImageId, content };
 
   const begin = (start: Draft, startDirty: boolean) => {
     setTitle(start.title);
     setTagline(start.tagline);
+    setCoverImageId(start.coverImageId);
     setContent(start.content);
     setEditorSeed((seed) => ({ key: seed.key + 1, content: start.content }));
     setDirty(startDirty);
@@ -241,13 +245,14 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
   // What's in the form right now, read after an awaited save (state in that closure is stale).
   const latest = useRef<Draft>(current);
   useEffect(() => {
-    latest.current = { title, tagline, content };
-  }, [title, tagline, content]);
+    latest.current = { title, tagline, coverImageId, content };
+  }, [title, tagline, coverImageId, content]);
 
   const update = (next: Draft) => {
     latest.current = next;
     setTitle(next.title);
     setTagline(next.tagline);
+    setCoverImageId(next.coverImageId);
     setContent(next.content);
     setDirty(true);
     backup.save(next);
@@ -343,6 +348,7 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
                 {
                   title: version.title,
                   tagline: version.tagline,
+                  coverImageId: version.coverImageId,
                   content: version.content,
                 },
                 false,
@@ -539,12 +545,11 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
             <p className="text-gray-300">{shown.tagline || "No tagline yet"}</p>
           </div>
         )}
-        <div
-          className="rounded-md border border-dashed border-gray-600 p-3 text-sm text-gray-400"
-          aria-disabled="true"
-        >
-          Cover image: coming soon
-        </div>
+        <CoverImageField
+          editing={editing}
+          coverImageId={editing ? coverImageId : shown.coverImageId}
+          onChange={(next) => update({ ...current, coverImageId: next })}
+        />
       </div>
 
       {editing ? (

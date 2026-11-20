@@ -2,6 +2,7 @@ import type { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { isSafeHref } from "../../lib/safeHref";
+import { ImageNode } from "./ImageNode";
 import { TEMPLATE_SECTIONS } from "./template";
 
 const HINTS = new Map<string, string>(
@@ -40,6 +41,7 @@ export function editorExtensions({
         return HINTS.get(previous.textContent.trim()) ?? "Write here…";
       },
     }),
+    ImageNode,
     // Image (PR 4) and video (PR 5) nodes register here.
   ];
 }
