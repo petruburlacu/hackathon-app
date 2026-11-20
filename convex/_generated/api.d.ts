@@ -11,10 +11,12 @@
 import type * as auth from "../auth.js";
 import type * as eventClock from "../eventClock.js";
 import type * as hackathon from "../hackathon.js";
+import type * as leaderboard from "../leaderboard.js";
 import type * as messages from "../messages.js";
 import type * as seed from "../seed.js";
 import type * as submissions from "../submissions.js";
 import type * as users from "../users.js";
+import type * as voting from "../voting.js";
 
 import type {
   ApiFromModules,
@@ -26,10 +28,12 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   eventClock: typeof eventClock;
   hackathon: typeof hackathon;
+  leaderboard: typeof leaderboard;
   messages: typeof messages;
   seed: typeof seed;
   submissions: typeof submissions;
   users: typeof users;
+  voting: typeof voting;
 }>;
 
 /**

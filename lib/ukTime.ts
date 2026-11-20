@@ -41,3 +41,19 @@ export function fromUkInput(value: string): number {
   const wallAsUtc = Date.UTC(year, month - 1, day, hour, minute);
   return wallAsUtc - ukOffsetAt(wallAsUtc - ukOffsetAt(wallAsUtc));
 }
+
+const ukDayTime = new Intl.DateTimeFormat("en-GB", {
+  timeZone: UK_TIME_ZONE,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+// "Thu 3 Dec, 17:00", built from parts so it doesn't depend on the runtime's ICU punctuation.
+export function formatUkDayTime(ms: number): string {
+  const p = Object.fromEntries(ukDayTime.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return `${p.weekday} ${p.day} ${p.month}, ${p.hour}:${p.minute}`;
+}
