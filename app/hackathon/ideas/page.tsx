@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import { FullScreenLoader } from "@/components/PixelatedLoader";
@@ -175,8 +176,8 @@ export default function IdeasPage() {
     try {
       await assignIdeaToTeam({ teamId: myTeamDetails.team._id, ideaId: ideaId as any });
       toast.success("Idea assigned to your team!");
-    } catch {
-      toast.error("Failed to assign idea to team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to assign idea to team"));
     }
   };
 
@@ -189,8 +190,8 @@ export default function IdeasPage() {
     try {
       await removeIdeaFromTeam({ teamId: myTeamDetails.team._id });
       toast.success("Idea removed from your team!");
-    } catch {
-      toast.error("Failed to remove idea from team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to remove idea from team"));
     }
   };
 

@@ -1,8 +1,9 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { components } from "./_generated/api";
 import { getUsername, isAdmin } from "./users";
-import { mutation, query, type QueryCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { loadEventTimes } from "./eventClock";
 
 // Basic text sanitization to prevent layout-breaking and invisible control chars
 function sanitizeText(input: string, maxLength: number): string {
@@ -15,6 +16,13 @@ function sanitizeText(input: string, maxLength: number): string {
   const compact = stripped.replace(/\s+/g, " ").trim();
   // 4) Enforce max length
   return compact.slice(0, Math.max(0, maxLength));
+}
+
+export async function assertTeamsUnlocked(ctx: MutationCtx): Promise<void> {
+  const { submissionsCloseAt } = await loadEventTimes(ctx);
+  if (Date.now() >= submissionsCloseAt) {
+    throw new ConvexError("Teams are locked after the submission deadline");
+  }
 }
 
 // User management functions
@@ -288,18 +296,12 @@ export const getUserVoteStatus = query({
     
     if (userId === null) {
       console.log("getUserVoteStatus - user not signed in");
-      return { ideaVotes: [], teamVotes: [], suggestionVotes: [] };
+      return { ideaVotes: [], suggestionVotes: [] };
     }
 
     // Get all votes for ideas
     const ideaVotes = await ctx.db
       .query("ideaVotes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
-    // Get all votes for teams
-    const teamVotes = await ctx.db
-      .query("teamVotes")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
@@ -311,7 +313,6 @@ export const getUserVoteStatus = query({
 
     const result = {
       ideaVotes: ideaVotes.map(vote => vote.ideaId),
-      teamVotes: teamVotes.map(vote => vote.teamId),
       suggestionVotes: suggestionVotes.map(vote => vote.suggestionId),
     };
 
@@ -420,6 +421,7 @@ export const createTeam = mutation({
     maxNonDevs: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     // Prefer DB settings; fallback to env when unset
     const settings = await ctx.db.query("settings").first();
     const teamCreationEnabledDb = settings?.enableTeamSubmissions;
@@ -475,7 +477,6 @@ export const createTeam = mutation({
       currentDevs: 0,
       currentNonDevs: 0,
       createdAt: Date.now(),
-      votes: 0,
       status: "forming",
     });
 
@@ -552,10 +553,7 @@ export const updateTeam = mutation({
 export const getTeams = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("teams")
-      .withIndex("by_votes")
-      .collect();
+    return await ctx.db.query("teams").collect();
   },
 });
 
@@ -563,6 +561,7 @@ export const getTeams = query({
 export const joinRandomTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -656,6 +655,7 @@ export const joinTeam = mutation({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -707,6 +707,7 @@ export const removeTeamMember = mutation({
     memberUserId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -753,12 +754,54 @@ export const removeTeamMember = mutation({
   },
 });
 
+export const adminRemoveTeamMember = mutation({
+  args: {
+    teamId: v.id("teams"),
+    memberUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    if (!(await isAdmin(ctx, userId))) {
+      throw new ConvexError("Admin access required");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new ConvexError("Team not found");
+    }
+
+    if (args.memberUserId === team.leaderId) {
+      throw new ConvexError("The team leader can't be removed; delete the team instead");
+    }
+
+    const member = await ctx.db
+      .query("hackathonUsers")
+      .withIndex("by_user", (q) => q.eq("userId", args.memberUserId))
+      .first();
+
+    if (!member || member.teamId !== args.teamId) {
+      throw new ConvexError("Member not found in this team");
+    }
+
+    await ctx.db.patch(member._id, { teamId: undefined });
+    await ctx.db.patch(args.teamId, {
+      currentDevs: Math.max(0, team.currentDevs - (member.role === "dev" ? 1 : 0)),
+      currentNonDevs: Math.max(0, team.currentNonDevs - (member.role === "non-dev" ? 1 : 0)),
+    });
+  },
+});
+
 export const assignIdeaToTeam = mutation({
   args: {
     teamId: v.id("teams"),
     ideaId: v.id("ideas"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -786,6 +829,7 @@ export const removeIdeaFromTeam = mutation({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -808,118 +852,10 @@ export const removeIdeaFromTeam = mutation({
   },
 });
 
-export const voteForTeam = mutation({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not signed in");
-    }
-
-    // Check if user already voted for this team
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    if (existingVote) {
-      throw new Error("You have already voted for this team");
-    }
-
-    // Create vote record
-    await ctx.db.insert("teamVotes", {
-      teamId: args.teamId,
-      userId,
-      createdAt: Date.now(),
-    });
-
-    // Update team vote count
-    const team = await ctx.db.get(args.teamId);
-    if (team) {
-      await ctx.db.patch(args.teamId, {
-        votes: team.votes + 1,
-      });
-    }
-  },
-});
-
-export const toggleTeamVote = mutation({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not signed in");
-    }
-
-    // Check if user already voted for this team
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    const team = await ctx.db.get(args.teamId);
-    if (!team) {
-      throw new Error("Team not found");
-    }
-
-    if (existingVote) {
-      // User has voted, so retract the vote
-      await ctx.db.delete(existingVote._id);
-      await ctx.db.patch(args.teamId, {
-        votes: Math.max(0, team.votes - 1),
-      });
-      return { action: "retracted", votes: Math.max(0, team.votes - 1) };
-    } else {
-      // Check if user has already voted for another team (only 1 team vote allowed)
-      const otherTeamVotes = await ctx.db
-        .query("teamVotes")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .collect();
-
-      if (otherTeamVotes.length > 0) {
-        throw new Error("You can only vote for one team. Please retract your existing team vote first.");
-      }
-
-      // User hasn't voted, so add the vote
-      await ctx.db.insert("teamVotes", {
-        teamId: args.teamId,
-        userId,
-        createdAt: Date.now(),
-      });
-      await ctx.db.patch(args.teamId, {
-        votes: team.votes + 1,
-      });
-      return { action: "added", votes: team.votes + 1 };
-    }
-  },
-});
-
-export const hasUserVotedForTeam = query({
-  args: {
-    teamId: v.id("teams"),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      return false;
-    }
-
-    const existingVote = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
-      .first();
-
-    return !!existingVote;
-  },
-});
-
 export const leaveTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -963,6 +899,7 @@ export const leaveTeam = mutation({
 export const deleteTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -997,16 +934,6 @@ export const deleteTeam = mutation({
       await ctx.db.patch(member._id, {
         teamId: undefined,
       });
-    }
-
-    // Delete team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team", (q) => q.eq("teamId", team._id))
-      .collect();
-
-    for (const vote of teamVotes) {
-      await ctx.db.delete(vote._id);
     }
 
     // Delete the team
@@ -1045,16 +972,6 @@ export const adminDeleteTeam = mutation({
       });
     }
 
-    // Delete team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_team", (q) => q.eq("teamId", team._id))
-      .collect();
-
-    for (const vote of teamVotes) {
-      await ctx.db.delete(vote._id);
-    }
-
     // Delete the team
     await ctx.db.delete(team._id);
   },
@@ -1069,18 +986,6 @@ export const getTeamsUsingIdea = query({
       .query("teams")
       .withIndex("by_idea", (q) => q.eq("ideaId", args.ideaId))
       .collect();
-  },
-});
-
-export const getLeaderboard = query({
-  args: {},
-  handler: async (ctx) => {
-    const teams = await ctx.db
-      .query("teams")
-      .withIndex("by_votes")
-      .collect();
-
-    return teams.sort((a, b) => b.votes - a.votes);
   },
 });
 
@@ -1213,7 +1118,7 @@ export const getMyVotesGiven = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      return { ideaVotes: 0, teamVotes: 0, total: 0 };
+      return { ideaVotes: 0 };
     }
 
     // Get user's idea votes
@@ -1222,17 +1127,7 @@ export const getMyVotesGiven = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    // Get user's team votes
-    const teamVotes = await ctx.db
-      .query("teamVotes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-
-    return {
-      ideaVotes: ideaVotes.length,
-      teamVotes: teamVotes.length,
-      total: ideaVotes.length + teamVotes.length,
-    };
+    return { ideaVotes: ideaVotes.length };
   },
 });
 

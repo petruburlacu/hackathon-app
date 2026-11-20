@@ -51,9 +51,7 @@ export default defineSchema({
     currentDevs: v.number(),
     currentNonDevs: v.number(),
     createdAt: v.number(),
-    votes: v.number(),
   }).index("by_leader", ["leaderId"])
-    .index("by_votes", ["votes"])
     .index("by_status", ["status"])
     .index("by_idea", ["ideaId"]),
   
@@ -64,14 +62,6 @@ export default defineSchema({
   }).index("by_idea", ["ideaId"])
     .index("by_user", ["userId"])
     .index("by_idea_user", ["ideaId", "userId"]),
-  
-  teamVotes: defineTable({
-    teamId: v.id("teams"),
-    userId: v.id("users"),
-    createdAt: v.number(),
-  }).index("by_team", ["teamId"])
-    .index("by_user", ["userId"])
-    .index("by_team_user", ["teamId", "userId"]),
   
   suggestions: defineTable({
     title: v.string(),
@@ -105,5 +95,8 @@ export default defineSchema({
     enableIdeaSubmissions: v.boolean(),
     enableTeamSubmissions: v.boolean(),
     updatedAt: v.number(),
+    eventStartAt: v.optional(v.number()),
+    submissionsCloseAt: v.optional(v.number()),
+    votingClosesAt: v.optional(v.number()),
   }),
 });

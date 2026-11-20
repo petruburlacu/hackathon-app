@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { RocketIcon, AvatarIcon, StarIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
@@ -26,7 +27,7 @@ export default function TeamsPage() {
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "name">("name");
+  const [sortBy, setSortBy] = useState<"newest" | "name">("name");
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -85,7 +86,7 @@ export default function TeamsPage() {
       } else if (errorMessage.includes("already in a team")) {
         toast.error("You are already in a team");
       } else {
-        toast.error("Failed to create team");
+        toast.error(getErrorMessage(error, "Failed to create team"));
       }
     }
   };
@@ -95,8 +96,7 @@ export default function TeamsPage() {
       const result = await joinRandomTeam({});
       toast.success(`Joined team: ${result?.teamName || "Success"}`);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage || "Failed to join a random team");
+      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Failed to join a random team"));
     }
   };
 
@@ -104,8 +104,8 @@ export default function TeamsPage() {
     try {
       await joinTeam({ teamId: teamId as any });
       toast.success("Joined team successfully!");
-    } catch {
-      toast.error("Failed to join team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to join team"));
     }
   };
 
@@ -113,8 +113,8 @@ export default function TeamsPage() {
     try {
       await assignIdeaToTeam({ teamId: teamId as any, ideaId: ideaId as any });
       toast.success("Idea assigned to team successfully!");
-    } catch {
-      toast.error("Failed to assign idea to team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to assign idea to team"));
     }
   };
 
@@ -122,8 +122,8 @@ export default function TeamsPage() {
     try {
       await removeIdeaFromTeam({ teamId: teamId as any });
       toast.success("Idea removed from team successfully!");
-    } catch {
-      toast.error("Failed to remove idea from team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to remove idea from team"));
     }
   };
 
@@ -157,12 +157,9 @@ export default function TeamsPage() {
       switch (sortBy) {
         case "newest":
           return b.createdAt - a.createdAt;
-        case "votes":
-          return b.votes - a.votes;
         case "name":
-          return a.name.localeCompare(b.name);
         default:
-          return b.votes - a.votes;
+          return a.name.localeCompare(b.name);
       }
     });
 
@@ -318,12 +315,11 @@ export default function TeamsPage() {
                       <SelectItem value="ready">🚀 Ready</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "name") => setSortBy(value)}>
+                  <Select value={sortBy} onValueChange={(value: "newest" | "name") => setSortBy(value)}>
                     <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                      <SelectItem value="votes">Most Votes</SelectItem>
                       <SelectItem value="newest">Newest</SelectItem>
                       <SelectItem value="name">Alphabetical</SelectItem>
                     </SelectContent>
@@ -388,9 +384,6 @@ export default function TeamsPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg wrap-break-word line-clamp-1">{team.name}</CardTitle>
-                    <Badge variant="secondary" className="bg-pink-500 text-white">
-                      {team.votes} votes
-                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>

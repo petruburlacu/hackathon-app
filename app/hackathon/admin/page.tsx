@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
+import { EventClockCard } from "./EventClockCard";
 
 // Type for idea object
 type Idea = {
@@ -36,7 +37,6 @@ type Team = {
   currentDevs: number;
   currentNonDevs: number;
   createdAt: number;
-  votes: number;
 };
 
 export default function AdminPage() {
@@ -200,6 +200,8 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
+          <EventClockCard />
+
           {/* Submission Controls */}
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
@@ -362,9 +364,6 @@ export default function AdminPage() {
                       <h4 className="text-yellow-400 font-bold text-sm mb-1">{team.name}</h4>
                       <p className="text-gray-400 text-xs line-clamp-2">{team.description || "No description"}</p>
                       <div className="flex gap-2 mt-2">
-                        <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded">
-                          {team.votes} votes
-                        </span>
                         <span className={`text-xs px-2 py-1 rounded ${
                           team.status === 'forming' ? 'bg-yellow-500 text-black' :
                           team.status === 'idea-browsing' ? 'bg-blue-500 text-white' :
