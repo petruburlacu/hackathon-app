@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
-import { EventClockCard } from "./EventClockCard";
+import { EventClockCard, TestModeNotice } from "./EventClockCard";
 import { ReopenTeamCard } from "./ReopenTeamCard";
 import { ExportResultsCard } from "./ExportResultsCard";
 
@@ -173,6 +173,7 @@ export default function AdminPage() {
   return (
     <main className="flex min-h-screen grow flex-col bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
       <HackathonNav title="🛠️ ADMIN PANEL 🛠️" />
+      <TestModeNotice />
 
       <div className="flex-1 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
