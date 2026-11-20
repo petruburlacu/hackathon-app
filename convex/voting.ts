@@ -22,13 +22,16 @@ async function adjustTotals(
   pointsDelta: number,
   votersDelta: number,
 ): Promise<void> {
-  const submission = await ctx.db.get(submissionId);
-  if (!submission) {
+  const totals = await ctx.db
+    .query("submissionTotals")
+    .withIndex("by_submission", (q) => q.eq("submissionId", submissionId))
+    .first();
+  if (!totals) {
     return;
   }
-  await ctx.db.patch(submissionId, {
-    totalPoints: submission.totalPoints + pointsDelta,
-    voterCount: submission.voterCount + votersDelta,
+  await ctx.db.patch(totals._id, {
+    totalPoints: totals.totalPoints + pointsDelta,
+    voterCount: totals.voterCount + votersDelta,
   });
 }
 
@@ -108,12 +111,16 @@ export const givePoints = mutation({
 });
 
 export const removePoints = mutation({
-  args: { submissionId: v.id("submissions") },
+  args: {
+    submissionId: v.id("submissions"),
+    // The value the voter saw; a stale ballot must not take back a vote changed elsewhere.
+    points: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     const voterId = await requireUserId(ctx);
     await assertVotingOpen(ctx);
     const vote = await getVote(ctx, voterId, args.submissionId);
-    if (!vote) {
+    if (!vote || (args.points !== undefined && vote.points !== args.points)) {
       return;
     }
     await ctx.db.delete(vote._id);

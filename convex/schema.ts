@@ -110,9 +110,15 @@ export default defineSchema({
     coverImageId: v.optional(v.id("_storage")),
     savedBy: v.id("users"),
     savedAt: v.number(),
+  }).index("by_team", ["teamId"]),
+
+  // Split from `submissions` so a vote doesn't re-run the gallery and read-page queries.
+  submissionTotals: defineTable({
+    submissionId: v.id("submissions"),
+    teamId: v.id("teams"),
     totalPoints: v.number(),
     voterCount: v.number(),
-  }).index("by_team", ["teamId"])
+  }).index("by_submission", ["submissionId"])
     .index("by_points", ["totalPoints"]),
 
   submissionContent: defineTable({
