@@ -3,7 +3,7 @@ import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
-import { assertCanEdit, getImageRow, requireMyTeam } from "./submissions";
+import { assertCanEdit, getImageRow, getTeamIdOf, requireMyTeam } from "./submissions";
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 export const MAX_IMAGES_PER_TEAM = 40;
@@ -72,11 +72,28 @@ export const registerUpload = mutation({
       return await rejectAndDelete(
         ctx,
         args.storageId,
-        `Your team has reached the limit of ${MAX_IMAGES_PER_TEAM} images.`,
+        `Your team has reached the limit of ${MAX_IMAGES_PER_TEAM} images. Ask an organiser if you need more.`,
       );
     }
     await ctx.db.insert("submissionImages", { teamId, storageId: args.storageId });
     return { storageId: args.storageId };
+  },
+});
+
+// Removing an image from the text doesn't free a slot, so this counts every upload the team registered.
+export const myImageUsage = query({
+  args: {},
+  handler: async (ctx): Promise<{ used: number; limit: number } | null> => {
+    const userId = await getAuthUserId(ctx);
+    const teamId = userId === null ? undefined : await getTeamIdOf(ctx, userId);
+    if (!teamId) {
+      return null;
+    }
+    const rows = await ctx.db
+      .query("submissionImages")
+      .withIndex("by_team", (q) => q.eq("teamId", teamId))
+      .take(MAX_IMAGES_PER_TEAM);
+    return { used: rows.length, limit: MAX_IMAGES_PER_TEAM };
   },
 });
 

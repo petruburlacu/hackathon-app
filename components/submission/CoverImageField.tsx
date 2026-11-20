@@ -1,8 +1,10 @@
 "use client";
 
+import { useQuery } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { ImagePicker } from "./ImagePicker";
@@ -22,6 +24,7 @@ export function CoverImageField({
 }) {
   const upload = useImageUpload();
   const [uploading, setUploading] = useState(false);
+  const usage = useQuery(api.images.myImageUsage, editing ? {} : "skip");
 
   if (!editing) {
     return coverImageId ? (
@@ -44,7 +47,14 @@ export function CoverImageField({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-200">Cover image</p>
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-medium text-gray-200">Cover image</p>
+        {usage && (
+          <span className="text-xs text-gray-400">
+            {usage.used} of {usage.limit} images used
+          </span>
+        )}
+      </div>
       {coverImageId ? (
         <StoredImage storageId={coverImageId} alt="" sizes={COVER_SIZES} />
       ) : (
