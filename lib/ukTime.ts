@@ -52,6 +52,10 @@ const ukDayTime = new Intl.DateTimeFormat("en-GB", {
   hourCycle: "h23",
 });
 
+export function formatUkDateTime(ms: number): string {
+  return ukDayTime.format(new Date(ms));
+}
+
 // "Thu 3 Dec, 17:00", built from parts so it doesn't depend on the runtime's ICU punctuation.
 export function formatUkDayTime(ms: number): string {
   const p = Object.fromEntries(ukDayTime.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
