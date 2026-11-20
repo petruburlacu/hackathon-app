@@ -100,6 +100,9 @@ export default defineSchema({
     eventStartAt: v.optional(v.number()),
     submissionsCloseAt: v.optional(v.number()),
     votingClosesAt: v.optional(v.number()),
+    officialEventStartAt: v.optional(v.number()),
+    officialSubmissionsCloseAt: v.optional(v.number()),
+    officialVotingClosesAt: v.optional(v.number()),
   }),
 
   // Kept small: the gallery and leaderboard subscribe to this table.

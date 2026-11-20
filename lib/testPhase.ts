@@ -4,7 +4,8 @@ import type { EventTimes, Phase } from "./eventPhase";
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
-export const REAL_EVENT_TIMES: EventTimes = {
+// Fallback only: once an admin saves event dates, those win.
+export const DEFAULT_EVENT_TIMES: EventTimes = {
   eventStartAt: EVENT_START.getTime(),
   submissionsCloseAt: DEFAULT_SUBMISSIONS_CLOSE.getTime(),
   votingClosesAt: DEFAULT_VOTING_CLOSE.getTime(),
@@ -26,10 +27,18 @@ export function testPhaseTimes(phase: Phase, now: number): EventTimes {
   };
 }
 
-export function isRealEventTimes(times: EventTimes): boolean {
+export function sameEventTimes(a: EventTimes, b: EventTimes): boolean {
   return (
-    times.eventStartAt === REAL_EVENT_TIMES.eventStartAt &&
-    times.submissionsCloseAt === REAL_EVENT_TIMES.submissionsCloseAt &&
-    times.votingClosesAt === REAL_EVENT_TIMES.votingClosesAt
+    a.eventStartAt === b.eventStartAt &&
+    a.submissionsCloseAt === b.submissionsCloseAt &&
+    a.votingClosesAt === b.votingClosesAt
+  );
+}
+
+export function isValidEventTimes(times: EventTimes): boolean {
+  return (
+    [times.eventStartAt, times.submissionsCloseAt, times.votingClosesAt].every(Number.isFinite) &&
+    times.eventStartAt < times.submissionsCloseAt &&
+    times.submissionsCloseAt < times.votingClosesAt
   );
 }

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { eventPhase, type Phase } from "./eventPhase";
-import { REAL_EVENT_TIMES, isRealEventTimes, testPhaseTimes } from "./testPhase";
+import {
+  DEFAULT_EVENT_TIMES,
+  isValidEventTimes,
+  sameEventTimes,
+  testPhaseTimes,
+} from "./testPhase";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -50,9 +55,9 @@ describe("testPhaseTimes", () => {
   );
 });
 
-describe("REAL_EVENT_TIMES", () => {
+describe("DEFAULT_EVENT_TIMES", () => {
   it("is 2 Dec 10:00, 3 Dec 17:00 and 6 Dec 23:59 UK time", () => {
-    expect(REAL_EVENT_TIMES).toEqual({
+    expect(DEFAULT_EVENT_TIMES).toEqual({
       eventStartAt: Date.parse("2026-12-02T10:00:00Z"),
       submissionsCloseAt: Date.parse("2026-12-03T17:00:00Z"),
       votingClosesAt: Date.parse("2026-12-06T23:59:00Z"),
@@ -60,12 +65,34 @@ describe("REAL_EVENT_TIMES", () => {
   });
 });
 
-describe("isRealEventTimes", () => {
-  it("is true only when all three times match the real dates", () => {
-    expect(isRealEventTimes({ ...REAL_EVENT_TIMES })).toBe(true);
-    expect(isRealEventTimes(testPhaseTimes("voting", now))).toBe(false);
+describe("sameEventTimes", () => {
+  it("is true only when all three times match", () => {
+    const dates = testPhaseTimes("before", now);
+    expect(sameEventTimes(dates, { ...dates })).toBe(true);
+    expect(sameEventTimes(dates, testPhaseTimes("voting", now))).toBe(false);
+    expect(sameEventTimes(dates, { ...dates, votingClosesAt: dates.votingClosesAt + 1 })).toBe(
+      false,
+    );
+  });
+});
+
+describe("isValidEventTimes", () => {
+  it("accepts start < submissions close < voting close", () => {
+    expect(isValidEventTimes(DEFAULT_EVENT_TIMES)).toBe(true);
+  });
+
+  it("rejects times out of order or equal", () => {
+    const { eventStartAt, submissionsCloseAt, votingClosesAt } = DEFAULT_EVENT_TIMES;
     expect(
-      isRealEventTimes({ ...REAL_EVENT_TIMES, votingClosesAt: REAL_EVENT_TIMES.votingClosesAt + 1 }),
+      isValidEventTimes({ eventStartAt: submissionsCloseAt, submissionsCloseAt, votingClosesAt }),
     ).toBe(false);
+    expect(
+      isValidEventTimes({ eventStartAt, submissionsCloseAt: votingClosesAt + 1, votingClosesAt }),
+    ).toBe(false);
+  });
+
+  it("rejects non-finite times", () => {
+    expect(isValidEventTimes({ ...DEFAULT_EVENT_TIMES, votingClosesAt: Number.NaN })).toBe(false);
+    expect(isValidEventTimes({ ...DEFAULT_EVENT_TIMES, votingClosesAt: Infinity })).toBe(false);
   });
 });

@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/submission/ConfirmDialog";
 import type { EventTimes, Phase } from "@/lib/eventPhase";
 import { getErrorMessage } from "@/lib/errorMessage";
-import { REAL_EVENT_TIMES, isRealEventTimes } from "@/lib/testPhase";
-import { fromUkInput, toUkInput } from "@/lib/ukTime";
+import { sameEventTimes } from "@/lib/testPhase";
+import { formatUkDayTime, fromUkInput, toUkInput } from "@/lib/ukTime";
 
 const TEST_MODE_MESSAGE = "Test mode: the event clock isn't on the real dates. Reset before launch.";
 
@@ -22,7 +22,10 @@ const TEST_PHASES = [
   { phase: "closed", label: "Voting closed" },
 ] as const satisfies ReadonlyArray<{ phase: Phase; label: string }>;
 
-type PendingAction = { kind: "jump"; phase: Phase; label: string } | { kind: "reset" };
+type PendingAction =
+  | { kind: "jump"; phase: Phase; label: string }
+  | { kind: "reset" }
+  | { kind: "saveDates"; times: EventTimes };
 
 const FIELDS = [
   { key: "eventStartAt", label: "Event start (editing opens)" },
@@ -30,8 +33,18 @@ const FIELDS = [
   { key: "votingClosesAt", label: "Voting closes" },
 ] as const satisfies ReadonlyArray<{ key: keyof EventTimes; label: string }>;
 
-function EventClockForm({ times }: { times: EventTimes }) {
-  const updateEventTimes = useMutation(api.eventClock.updateEventTimes);
+const timesKey = (times: EventTimes) =>
+  `${times.eventStartAt}-${times.submissionsCloseAt}-${times.votingClosesAt}`;
+
+function TimesForm({
+  times,
+  submitLabel,
+  onSubmit,
+}: {
+  times: EventTimes;
+  submitLabel: string;
+  onSubmit: (times: EventTimes) => Promise<void> | void;
+}) {
   const [values, setValues] = useState<Record<keyof EventTimes, string>>({
     eventStartAt: toUkInput(times.eventStartAt),
     submissionsCloseAt: toUkInput(times.submissionsCloseAt),
@@ -39,28 +52,25 @@ function EventClockForm({ times }: { times: EventTimes }) {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     if (Object.values(values).some((value) => !value)) {
       toast.error("Fill in all three times");
       return;
     }
     setIsSaving(true);
     try {
-      await updateEventTimes({
+      await onSubmit({
         eventStartAt: fromUkInput(values.eventStartAt),
         submissionsCloseAt: fromUkInput(values.submissionsCloseAt),
         votingClosesAt: fromUkInput(values.votingClosesAt),
       });
-      toast.success("Event times saved");
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to save event times"));
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="grid gap-3 md:grid-cols-3">
         {FIELDS.map(({ key, label }) => (
           <label key={key} className="space-y-1 text-sm">
@@ -78,20 +88,34 @@ function EventClockForm({ times }: { times: EventTimes }) {
         <div className="text-xs text-gray-500">All times are UK time (Europe/London).</div>
         <Button
           size="sm"
-          onClick={handleSave}
+          onClick={handleSubmit}
           disabled={isSaving}
           className="bg-green-500 hover:bg-green-600 text-white"
         >
-          {isSaving ? "Saving..." : "Save times"}
+          {isSaving ? "Saving..." : submitLabel}
         </Button>
       </div>
     </div>
   );
 }
 
-function TestPhaseControls() {
-  const jumpToPhase = useMutation(api.eventClock.jumpToPhase);
+function confirmTitle(action: PendingAction | null): string {
+  if (action?.kind === "jump") return `Jump to "${action.label}"?`;
+  if (action?.kind === "saveDates") return "Save the event dates?";
+  return "Reset to the event dates?";
+}
+
+function confirmLabel(action: PendingAction | null): string {
+  if (action?.kind === "jump") return "Jump";
+  if (action?.kind === "saveDates") return "Save";
+  return "Reset";
+}
+
+function EventClockControls({ times, dates }: { times: EventTimes; dates: EventTimes }) {
   const updateEventTimes = useMutation(api.eventClock.updateEventTimes);
+  const saveEventDates = useMutation(api.eventClock.saveEventDates);
+  const resetToEventDates = useMutation(api.eventClock.resetToEventDates);
+  const jumpToPhase = useMutation(api.eventClock.jumpToPhase);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
@@ -101,9 +125,12 @@ function TestPhaseControls() {
       if (action.kind === "jump") {
         await jumpToPhase({ phase: action.phase });
         toast.success(`Event clock set to: ${action.label}`);
+      } else if (action.kind === "saveDates") {
+        await saveEventDates(action.times);
+        toast.success("Event dates saved and applied to the event clock");
       } else {
-        await updateEventTimes(REAL_EVENT_TIMES);
-        toast.success("Event clock reset to the real event dates");
+        await resetToEventDates({});
+        toast.success("Event clock reset to the event dates");
       }
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to change the event clock"));
@@ -112,44 +139,89 @@ function TestPhaseControls() {
     }
   };
 
+  const saveLiveClock = async (next: EventTimes) => {
+    try {
+      await updateEventTimes(next);
+      toast.success("Event clock saved");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to save the event clock"));
+    }
+  };
+
   return (
-    <div className="space-y-2 border-t border-cyan-400/10 pt-4">
-      <div className="text-yellow-300 font-semibold text-sm">Test phase</div>
-      <div className="flex flex-wrap gap-2">
-        {TEST_PHASES.map(({ phase, label }) => (
-          <Button
-            key={phase}
-            size="sm"
-            variant="outline"
-            disabled={isApplying}
-            onClick={() => setPending({ kind: "jump", phase, label })}
-            className="border-cyan-400/40 bg-transparent text-cyan-200 hover:bg-cyan-400/10 hover:text-white"
-          >
-            {label}
-          </Button>
-        ))}
-        <Button
-          size="sm"
-          disabled={isApplying}
-          onClick={() => setPending({ kind: "reset" })}
-          className="bg-yellow-400 text-black hover:bg-yellow-300"
+    <div className="space-y-6">
+      {!sameEventTimes(times, dates) && (
+        <div
+          role="status"
+          className="rounded-md border border-yellow-400/60 bg-yellow-400/15 p-3 text-sm font-semibold text-yellow-200"
         >
-          Reset to event dates
-        </Button>
-      </div>
-      <div className="text-xs text-gray-500">
-        Each test phase sets all three times relative to now. Reset puts back 2 Dec 10:00, 3 Dec
-        17:00 and 6 Dec 23:59 (UK time).
-      </div>
+          {TEST_MODE_MESSAGE}
+        </div>
+      )}
+
+      <section className="space-y-2">
+        <h3 className="text-cyan-200 font-semibold">Event dates</h3>
+        <p className="text-xs text-gray-400">
+          The dates the event is meant to use. Saving them also puts the event clock on them.
+        </p>
+        <TimesForm
+          key={timesKey(dates)}
+          times={dates}
+          submitLabel="Save event dates"
+          onSubmit={(next) => setPending({ kind: "saveDates", times: next })}
+        />
+      </section>
+
+      <section className="space-y-2 border-t border-cyan-400/10 pt-4">
+        <h3 className="text-cyan-200 font-semibold">Event clock</h3>
+        <p className="text-xs text-gray-400">
+          The times the site enforces right now. Change them by hand, or use a test phase below.
+        </p>
+        <TimesForm
+          key={timesKey(times)}
+          times={times}
+          submitLabel="Save times"
+          onSubmit={saveLiveClock}
+        />
+      </section>
+
+      <section className="space-y-2 border-t border-cyan-400/10 pt-4">
+        <h3 className="text-cyan-200 font-semibold">Test phase</h3>
+        <div className="flex flex-wrap gap-2">
+          {TEST_PHASES.map(({ phase, label }) => (
+            <Button
+              key={phase}
+              size="sm"
+              variant="outline"
+              disabled={isApplying}
+              onClick={() => setPending({ kind: "jump", phase, label })}
+              className="border-cyan-400/40 bg-transparent text-cyan-200 hover:bg-cyan-400/10 hover:text-white"
+            >
+              {label}
+            </Button>
+          ))}
+          <Button
+            size="sm"
+            disabled={isApplying}
+            onClick={() => setPending({ kind: "reset" })}
+            className="bg-yellow-400 text-black hover:bg-yellow-300"
+          >
+            Reset to event dates
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Each test phase moves only the event clock, setting all three times relative to now.
+          Reset puts the clock back on the event dates: {formatUkDayTime(dates.eventStartAt)},{" "}
+          {formatUkDayTime(dates.submissionsCloseAt)} and {formatUkDayTime(dates.votingClosesAt)}{" "}
+          (UK time).
+        </p>
+      </section>
+
       <ConfirmDialog
         open={pending !== null}
         onOpenChange={(open) => !open && setPending(null)}
-        title={
-          pending?.kind === "jump"
-            ? `Jump to "${pending.label}"?`
-            : "Reset to the real event dates?"
-        }
-        confirmLabel={pending?.kind === "jump" ? "Jump" : "Reset"}
+        title={confirmTitle(pending)}
+        confirmLabel={confirmLabel(pending)}
         onConfirm={() => pending && apply(pending)}
       >
         <p>This changes the event clock for everyone using the site.</p>
@@ -158,9 +230,16 @@ function TestPhaseControls() {
   );
 }
 
-export function TestModeNotice() {
+function useTestMode(): { times: EventTimes; dates: EventTimes; testMode: boolean } | undefined {
   const times = useQuery(api.eventClock.getEventTimes);
-  if (times === undefined || isRealEventTimes(times)) return null;
+  const dates = useQuery(api.eventClock.getEventDates);
+  if (times === undefined || dates === undefined) return undefined;
+  return { times, dates, testMode: !sameEventTimes(times, dates) };
+}
+
+export function TestModeNotice() {
+  const clock = useTestMode();
+  if (!clock?.testMode) return null;
   return (
     <div className="border-b border-yellow-400/40 bg-yellow-400/15 px-4 py-1.5 text-center text-xs font-semibold text-yellow-200">
       {TEST_MODE_MESSAGE}
@@ -169,7 +248,7 @@ export function TestModeNotice() {
 }
 
 export function EventClockCard() {
-  const times = useQuery(api.eventClock.getEventTimes);
+  const clock = useTestMode();
 
   return (
     <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
@@ -177,24 +256,10 @@ export function EventClockCard() {
         <CardTitle className="text-yellow-400 font-mono">⏰ Event Clock</CardTitle>
       </CardHeader>
       <CardContent>
-        {times === undefined ? (
+        {clock === undefined ? (
           <div className="text-gray-400 text-sm">Loading...</div>
         ) : (
-          <div className="space-y-4">
-            {!isRealEventTimes(times) && (
-              <div
-                role="status"
-                className="rounded-md border border-yellow-400/60 bg-yellow-400/15 p-3 text-sm font-semibold text-yellow-200"
-              >
-                {TEST_MODE_MESSAGE}
-              </div>
-            )}
-            <EventClockForm
-              key={`${times.eventStartAt}-${times.submissionsCloseAt}-${times.votingClosesAt}`}
-              times={times}
-            />
-            <TestPhaseControls />
-          </div>
+          <EventClockControls times={clock.times} dates={clock.dates} />
         )}
       </CardContent>
     </Card>
