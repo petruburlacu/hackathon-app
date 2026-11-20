@@ -36,7 +36,8 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
   }
 
   const given = ballot ? pointsGivenTo(ballot, submissionId) : null;
-  const slots = ballot ? ballotSlots(ballot) : [];
+  const slots = ballotSlots(ballot ?? []);
+  const inactive = busy || !ballot;
 
   const run = async <T,>(action: () => Promise<T>): Promise<T | undefined> => {
     setBusy(true);
@@ -57,8 +58,9 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
   };
 
   const onPress = (points: number) => {
+    if (inactive) return;
     if (given === points) {
-      void run(() => removePoints({ submissionId }));
+      void run(() => removePoints({ submissionId, points }));
     } else {
       void give(points, false);
     }
@@ -78,7 +80,8 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
             <button
               key={points}
               type="button"
-              disabled={busy || !ballot}
+              // aria-disabled, not disabled: a disabled button drops keyboard focus on every press.
+              aria-disabled={inactive}
               aria-pressed={selected}
               aria-label={
                 selected
@@ -90,7 +93,7 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
               title={usedElsewhere ? `Now on ${holder.title}` : undefined}
               onClick={() => onPress(points)}
               className={cn(
-                "relative h-11 rounded-lg border font-mono text-lg font-bold transition-colors disabled:opacity-60",
+                "relative h-11 rounded-lg border font-mono text-lg font-bold transition-colors aria-disabled:cursor-wait aria-disabled:opacity-60",
                 selected
                   ? "border-yellow-300 bg-yellow-400 text-black shadow-[0_0_12px_rgba(250,204,21,0.5)]"
                   : usedElsewhere

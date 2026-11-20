@@ -50,8 +50,9 @@ export function BallotBar() {
                       {points}
                     </Link>
                   ) : (
-                    <span className={chip} aria-label={`${points} points left`}>
+                    <span className={chip}>
                       {points}
+                      <span className="sr-only"> points left</span>
                     </span>
                   )}
                 </li>
