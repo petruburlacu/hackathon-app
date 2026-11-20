@@ -1,44 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import { EVENT_START, EVENT_START_LABEL } from "@/lib/event";
+import { formatUkDayTime } from "@/lib/ukTime";
 
-interface TimeLeft {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
 
 export function HackathonCountdown() {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isExpired, setIsExpired] = useState(false);
+  const times = useQuery(api.eventClock.getEventTimes);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const targetDate = EVENT_START.getTime();
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const difference = targetDate - now;
-
-      if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        setTimeLeft({ days, hours, minutes, seconds });
-        setIsExpired(false);
-      } else {
-        setIsExpired(true);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      }
-    }, 1000);
-
+    const timer = setInterval(() => setNow(Date.now()), SECOND);
     return () => clearInterval(timer);
   }, []);
+
+  if (times === undefined) return null;
+
+  const difference = times.eventStartAt - now;
+  const isExpired = difference <= 0;
+  const timeLeft = {
+    days: Math.max(0, Math.floor(difference / DAY)),
+    hours: Math.max(0, Math.floor((difference % DAY) / HOUR)),
+    minutes: Math.max(0, Math.floor((difference % HOUR) / MINUTE)),
+    seconds: Math.max(0, Math.floor((difference % MINUTE) / SECOND)),
+  };
 
   if (isExpired) {
     return (
@@ -68,7 +60,7 @@ export function HackathonCountdown() {
             COUNTDOWN TO EVENT
           </h2>
           <p className="text-yellow-200 text-sm sm:text-lg lg:text-2xl mb-6 sm:mb-10 font-mono hackathon-text px-2">
-            {EVENT_START_LABEL}
+            {formatUkDayTime(times.eventStartAt)} (UK time)
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-10">
