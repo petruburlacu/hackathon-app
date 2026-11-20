@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import {
   ArrowLeftIcon,
   Pencil1Icon,
@@ -41,6 +42,7 @@ export default function TeamDetailPage() {
 
   const updateTeamStatus = useMutation(api.hackathon.updateTeamStatus);
   const removeTeamMember = useMutation(api.hackathon.removeTeamMember);
+  const adminRemoveTeamMember = useMutation(api.hackathon.adminRemoveTeamMember);
   const updateTeam = useMutation(api.hackathon.updateTeam);
   const leaveTeam = useMutation(api.hackathon.leaveTeam);
   const deleteTeam = useMutation(api.hackathon.deleteTeam);
@@ -135,7 +137,8 @@ export default function TeamDetailPage() {
     }
 
     try {
-      await removeTeamMember({ teamId: teamId as any, memberUserId: memberUserId as any });
+      const remove = viewer.isAdmin ? adminRemoveTeamMember : removeTeamMember;
+      await remove({ teamId: teamId as any, memberUserId: memberUserId as any });
       toast.success("Member removed from team successfully!");
     } catch (error: any) {
       if (error.message?.includes("Only team leaders can remove members")) {
@@ -143,7 +146,7 @@ export default function TeamDetailPage() {
       } else if (error.message?.includes("Team leader cannot remove themselves")) {
         toast.error("Team leader cannot remove themselves");
       } else {
-        toast.error("Failed to remove member from team");
+        toast.error(getErrorMessage(error, "Failed to remove member from team"));
       }
     }
   };
@@ -160,8 +163,7 @@ export default function TeamDetailPage() {
       // Redirect to teams page after leaving
       window.location.href = "/hackathon/teams";
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsLeaving(false);
     }
@@ -179,8 +181,7 @@ export default function TeamDetailPage() {
       // Redirect to teams page after deleting
       window.location.href = "/hackathon/teams";
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsDeleting(false);
     }
@@ -421,8 +422,7 @@ export default function TeamDetailPage() {
                       {member.userId === teamDetails.team.leaderId && (
                         <Badge className="bg-purple-500 text-white">Leader</Badge>
                       )}
-                      {/* Show remove button for team leaders, but not for the leader themselves */}
-                      {hackathonUser?.userId === teamDetails.team.leaderId && member.userId !== teamDetails.team.leaderId && (
+                      {(viewer.isAdmin || hackathonUser?.userId === teamDetails.team.leaderId) && member.userId !== teamDetails.team.leaderId && (
                         <Button
                           size="sm"
                           onClick={() => handleRemoveMember(member.userId)}

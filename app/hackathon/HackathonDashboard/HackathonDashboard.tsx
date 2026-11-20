@@ -10,6 +10,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { Leaderboard } from "@/app/hackathon/leaderboard/Leaderboard";
 import {
   PlusIcon,
@@ -111,8 +112,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
       setNewTeamName("");
       setNewTeamDescription("");
       toast.success("Team created successfully!");
-    } catch {
-      toast.error("Failed to create team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to create team"));
     }
   };
 
@@ -120,8 +121,8 @@ export function HackathonDashboard({ hackathonUser }: { hackathonUser: Hackathon
     try {
       await joinTeam({ teamId: teamId as Id<"teams"> });
       toast.success("Joined team successfully!");
-    } catch {
-      toast.error("Failed to join team");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to join team"));
     }
   };
 

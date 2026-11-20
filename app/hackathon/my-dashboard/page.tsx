@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import {
   TrashIcon,
   ExitIcon,
@@ -41,8 +42,7 @@ export default function MyDashboardPage() {
       await leaveTeam({});
       toast.success("Left team successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsLeaving(false);
     }
@@ -58,8 +58,7 @@ export default function MyDashboardPage() {
       await deleteTeam({});
       toast.success("Team deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsDeleting(false);
     }

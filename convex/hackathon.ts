@@ -1,8 +1,9 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { components } from "./_generated/api";
 import { getUsername, isAdmin } from "./users";
-import { mutation, query, type QueryCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { loadEventTimes } from "./eventClock";
 
 // Basic text sanitization to prevent layout-breaking and invisible control chars
 function sanitizeText(input: string, maxLength: number): string {
@@ -15,6 +16,13 @@ function sanitizeText(input: string, maxLength: number): string {
   const compact = stripped.replace(/\s+/g, " ").trim();
   // 4) Enforce max length
   return compact.slice(0, Math.max(0, maxLength));
+}
+
+export async function assertTeamsUnlocked(ctx: MutationCtx): Promise<void> {
+  const { submissionsCloseAt } = await loadEventTimes(ctx);
+  if (Date.now() >= submissionsCloseAt) {
+    throw new ConvexError("Teams are locked after the submission deadline");
+  }
 }
 
 // User management functions
@@ -413,6 +421,7 @@ export const createTeam = mutation({
     maxNonDevs: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     // Prefer DB settings; fallback to env when unset
     const settings = await ctx.db.query("settings").first();
     const teamCreationEnabledDb = settings?.enableTeamSubmissions;
@@ -552,6 +561,7 @@ export const getTeams = query({
 export const joinRandomTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -645,6 +655,7 @@ export const joinTeam = mutation({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -696,6 +707,7 @@ export const removeTeamMember = mutation({
     memberUserId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -742,12 +754,54 @@ export const removeTeamMember = mutation({
   },
 });
 
+export const adminRemoveTeamMember = mutation({
+  args: {
+    teamId: v.id("teams"),
+    memberUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+
+    if (!(await isAdmin(ctx, userId))) {
+      throw new ConvexError("Admin access required");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new ConvexError("Team not found");
+    }
+
+    if (args.memberUserId === team.leaderId) {
+      throw new ConvexError("The team leader can't be removed; delete the team instead");
+    }
+
+    const member = await ctx.db
+      .query("hackathonUsers")
+      .withIndex("by_user", (q) => q.eq("userId", args.memberUserId))
+      .first();
+
+    if (!member || member.teamId !== args.teamId) {
+      throw new ConvexError("Member not found in this team");
+    }
+
+    await ctx.db.patch(member._id, { teamId: undefined });
+    await ctx.db.patch(args.teamId, {
+      currentDevs: Math.max(0, team.currentDevs - (member.role === "dev" ? 1 : 0)),
+      currentNonDevs: Math.max(0, team.currentNonDevs - (member.role === "non-dev" ? 1 : 0)),
+    });
+  },
+});
+
 export const assignIdeaToTeam = mutation({
   args: {
     teamId: v.id("teams"),
     ideaId: v.id("ideas"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -775,6 +829,7 @@ export const removeIdeaFromTeam = mutation({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -800,6 +855,7 @@ export const removeIdeaFromTeam = mutation({
 export const leaveTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");
@@ -843,6 +899,7 @@ export const leaveTeam = mutation({
 export const deleteTeam = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertTeamsUnlocked(ctx);
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       throw new Error("Not signed in");

@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
+import { EventClockCard } from "./EventClockCard";
 
 // Type for idea object
 type Idea = {
@@ -198,6 +199,8 @@ export default function AdminPage() {
               </div>
             </CardContent>
           </Card>
+
+          <EventClockCard />
 
           {/* Submission Controls */}
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
