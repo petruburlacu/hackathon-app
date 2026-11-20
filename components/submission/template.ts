@@ -27,7 +27,7 @@ export const TEMPLATE_SECTIONS = [
 const SECTION_LEVEL = 2;
 
 // Non-text nodes that fill a section on their own. The image (PR 4) and video (PR 5) nodes add their type here.
-const CONTENT_NODE_TYPES = new Set<string>();
+const CONTENT_NODE_TYPES = new Set<string>(["video"]);
 
 function paragraph(text?: string): JSONContent {
   return text

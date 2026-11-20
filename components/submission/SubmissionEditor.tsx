@@ -14,6 +14,7 @@ import { normaliseHref } from "@/lib/safeHref";
 import { editorExtensions } from "./editorExtensions";
 import { ImagePicker } from "./ImagePicker";
 import { useImageUpload } from "./useImageUpload";
+import { promptVideoUrl } from "./VideoNode";
 
 type SubmissionEditorProps = {
   initialContent: JSONContent;
@@ -208,6 +209,27 @@ function Toolbar({
       title: "Add or change a link",
       active: state.link,
       run: () => editLink(editor),
+    },
+    {
+      label: "Add video",
+      title: "Add a demo video link",
+      run: () => {
+        const url = promptVideoUrl();
+        if (url) {
+          const { $from } = editor.state.selection;
+          // Insert after the current top-level block so headings and paragraphs aren't split.
+          const at = $from.depth >= 1 ? $from.after(1) : editor.state.selection.to;
+          editor
+            .chain()
+            .focus()
+            // The trailing paragraph moves the cursor past the video, so the next insert doesn't replace it.
+            .insertContentAt(at, [
+              { type: "video", attrs: { url } },
+              { type: "paragraph" },
+            ])
+            .run();
+        }
+      },
     },
     {
       label: "Undo",
