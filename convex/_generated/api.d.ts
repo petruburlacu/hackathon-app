@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as eventClock from "../eventClock.js";
+import type * as gallery from "../gallery.js";
 import type * as hackathon from "../hackathon.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as messages from "../messages.js";
@@ -27,6 +28,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   eventClock: typeof eventClock;
+  gallery: typeof gallery;
   hackathon: typeof hackathon;
   leaderboard: typeof leaderboard;
   messages: typeof messages;
