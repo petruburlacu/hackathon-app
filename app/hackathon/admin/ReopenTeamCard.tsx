@@ -67,7 +67,7 @@ export function ReopenTeamCard({ teams }: { teams: Doc<"teams">[] }) {
         </div>
         <div className="flex items-center justify-between gap-4">
           <div className="text-xs text-gray-500">
-            UK time (Europe/London). The team must have saved once. Pick a past time to close it again.
+            UK time (Europe/London). Works even if the team never saved. Pick a past time to close it again.
           </div>
           <Button
             size="sm"

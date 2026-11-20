@@ -77,8 +77,9 @@ export async function assertCanEdit(
     throw new ConvexError("Editing opens when the hackathon starts");
   }
   if (now >= times.submissionsCloseAt) {
-    const submission = await getSubmissionByTeam(ctx, teamId);
-    if (!(submission?.reopenedUntil !== undefined && now < submission.reopenedUntil)) {
+    const team = await ctx.db.get(teamId);
+    const reopenedUntil = team?.submissionReopenedUntil;
+    if (!(reopenedUntil !== undefined && now < reopenedUntil)) {
       throw new ConvexError("Submissions are closed");
     }
   }
@@ -192,7 +193,17 @@ function assertValidContent(content: unknown): void {
   if (typeof content !== "object" || content === null || Array.isArray(content)) {
     throw new ConvexError("Content must be a document");
   }
-  if (new TextEncoder().encode(JSON.stringify(content)).length > MAX_CONTENT_BYTES) {
+  // v.any() admits ArrayBuffer and bigint, which JSON.stringify would drop or throw on.
+  let json: string;
+  try {
+    json = JSON.stringify(content, (_key, value: unknown) => {
+      if (value instanceof ArrayBuffer || typeof value === "bigint") throw new Error("not JSON");
+      return value;
+    });
+  } catch {
+    throw new ConvexError("Content must be a document");
+  }
+  if (new TextEncoder().encode(json).length > MAX_CONTENT_BYTES) {
     throw new ConvexError("Content is too large (200 KB max)");
   }
 }
@@ -401,11 +412,11 @@ export const adminReopenTeam = mutation({
     if (!Number.isFinite(args.until)) {
       throw new ConvexError("Pick a valid reopen time");
     }
-    const submission = await getSubmissionByTeam(ctx, args.teamId);
-    if (!submission) {
-      throw new ConvexError("This team hasn't saved a submission yet");
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new ConvexError("Team not found");
     }
-    await ctx.db.patch(submission._id, { reopenedUntil: args.until });
+    await ctx.db.patch(team._id, { submissionReopenedUntil: args.until });
   },
 });
 

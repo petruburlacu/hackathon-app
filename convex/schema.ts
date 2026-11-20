@@ -51,6 +51,8 @@ export default defineSchema({
     currentDevs: v.number(),
     currentNonDevs: v.number(),
     createdAt: v.number(),
+    // Admin override: this team may keep editing its submission until this time, past the deadline.
+    submissionReopenedUntil: v.optional(v.number()),
   }).index("by_leader", ["leaderId"])
     .index("by_status", ["status"])
     .index("by_idea", ["ideaId"]),
@@ -108,7 +110,6 @@ export default defineSchema({
     coverImageId: v.optional(v.id("_storage")),
     savedBy: v.id("users"),
     savedAt: v.number(),
-    reopenedUntil: v.optional(v.number()),
     totalPoints: v.number(),
     voterCount: v.number(),
   }).index("by_team", ["teamId"])
