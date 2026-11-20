@@ -2,8 +2,14 @@
 
 import type { JSONContent } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 
-export type Draft = { title: string; tagline: string; content: JSONContent };
+export type Draft = {
+  title: string;
+  tagline: string;
+  coverImageId?: Id<"_storage">;
+  content: JSONContent;
+};
 
 const DEBOUNCE_MS = 1000;
 
@@ -13,6 +19,8 @@ function isDraft(value: unknown): value is Draft {
   return (
     typeof draft.title === "string" &&
     typeof draft.tagline === "string" &&
+    (draft.coverImageId === undefined ||
+      typeof draft.coverImageId === "string") &&
     typeof draft.content === "object" &&
     draft.content !== null
   );

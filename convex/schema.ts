@@ -137,6 +137,13 @@ export default defineSchema({
     savedAt: v.number(),
   }).index("by_submission_savedAt", ["submissionId", "savedAt"]),
 
+  // Every image file a team has uploaded: the 40-per-team cap, the ownership check and the delete cascade.
+  submissionImages: defineTable({
+    teamId: v.id("teams"),
+    storageId: v.id("_storage"),
+  }).index("by_team", ["teamId"])
+    .index("by_storage", ["storageId"]),
+
   pointVotes: defineTable({
     voterId: v.id("users"),
     submissionId: v.id("submissions"),
