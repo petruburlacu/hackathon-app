@@ -399,6 +399,9 @@
   color: rgb(103 232 249);
   text-decoration: underline;
 }
+.submission-content .tiptap a.video-card {
+  text-decoration: none;
+}
 .submission-content .tiptap blockquote {
   border-left: 3px solid rgb(34 211 238 / 0.5);
   padding-left: 1rem;
