@@ -41,3 +41,17 @@ export function fromUkInput(value: string): number {
   const wallAsUtc = Date.UTC(year, month - 1, day, hour, minute);
   return wallAsUtc - ukOffsetAt(wallAsUtc - ukOffsetAt(wallAsUtc));
 }
+
+const ukDisplay = new Intl.DateTimeFormat("en-GB", {
+  timeZone: UK_TIME_ZONE,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function formatUkDateTime(ms: number): string {
+  return ukDisplay.format(new Date(ms));
+}
