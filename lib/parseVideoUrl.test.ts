@@ -71,6 +71,7 @@ describe("parseVideoUrl", () => {
     "https://evil.com/?u=https://youtu.be/abc",
     "https://sharepoint.com/x",
     "https://opus2.sharepoint.com.evil.io/:v:/x",
+    "http://opus2.sharepoint.com/:v:/x",
     "https://evilstream.office.com/x",
     "https://office.com/x",
     "ftp://youtu.be/abc",
@@ -84,5 +85,15 @@ describe("parseVideoUrl", () => {
     "not a url",
   ])("rejects %j (review focus #5)", (url) => {
     expect(parseVideoUrl(url)).toBeNull();
+  });
+});
+
+describe("sharepoint card hygiene", () => {
+  it("drops credentials from card links", () => {
+    expect(parseVideoUrl("https://user:pw@opus2.sharepoint.com/:v:/s/t/E?e=1")).toEqual({
+      kind: "link",
+      provider: "sharepoint",
+      href: "https://opus2.sharepoint.com/:v:/s/t/E?e=1",
+    });
   });
 });

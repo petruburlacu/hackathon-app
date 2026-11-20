@@ -144,11 +144,14 @@ function Toolbar({ editor }: { editor: Editor }) {
       run: () => {
         const url = promptVideoUrl();
         if (url) {
+          const { $from } = editor.state.selection;
+          // Insert after the current top-level block so headings and paragraphs aren't split.
+          const at = $from.depth >= 1 ? $from.after(1) : editor.state.selection.to;
           editor
             .chain()
             .focus()
             // The trailing paragraph moves the cursor past the video, so the next insert doesn't replace it.
-            .insertContent([
+            .insertContentAt(at, [
               { type: "video", attrs: { url } },
               { type: "paragraph" },
             ])

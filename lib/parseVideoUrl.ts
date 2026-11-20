@@ -70,7 +70,13 @@ export function parseVideoUrl(input: string): ParsedVideo | null {
 
   // Bare sharepoint.com is not a tenant; every Opus 2 site is a subdomain.
   if (host.endsWith(".sharepoint.com") || host === "stream.office.com") {
-    return { kind: "link", provider: "sharepoint", href: url.href };
+    // Cards are plain links, so insist on TLS and drop any user:password@ part.
+    if (url.protocol !== "https:") return null;
+    return {
+      kind: "link",
+      provider: "sharepoint",
+      href: `https://${url.host}${url.pathname}${url.search}`,
+    };
   }
 
   return null;

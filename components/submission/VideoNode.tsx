@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { normaliseHref } from "../../lib/safeHref";
 import { parseVideoUrl, type ParsedVideo } from "../../lib/parseVideoUrl";
 
-const IFRAME_SANDBOX = "allow-scripts allow-same-origin allow-presentation";
+const IFRAME_SANDBOX =
+  "allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox";
 const UNSUPPORTED = "Unsupported video link";
 const MAX_LENGTH = "Demo videos: 5 minutes max.";
 const SHARING_REMINDER = "Check sharing is set to People in Opus 2.";
