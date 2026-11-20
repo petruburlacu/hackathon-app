@@ -17,9 +17,12 @@ export const generateUploadUrl = mutation({
   },
 });
 
-// SVG can carry script, so only raster types count as images here.
-function isRasterImage(contentType: string | undefined): boolean {
-  return contentType !== undefined && contentType.startsWith("image/") && contentType !== "image/svg+xml";
+// Only what compressImage produces. An allowlist, so SVG (which can carry script) never gets through.
+const ALLOWED_TYPES = new Set(["image/webp", "image/jpeg"]);
+
+function isAllowedImage(contentType: string | undefined): boolean {
+  const base = contentType?.split(";")[0].trim().toLowerCase();
+  return base !== undefined && ALLOWED_TYPES.has(base);
 }
 
 type RegisterResult = { storageId: Id<"_storage"> } | { error: string };
@@ -54,7 +57,7 @@ export const registerUpload = mutation({
       }
       throw error;
     }
-    if (!isRasterImage(file.contentType)) {
+    if (!isAllowedImage(file.contentType)) {
       return await rejectAndDelete(ctx, args.storageId, "Only image files can be uploaded");
     }
     if (file.size > MAX_IMAGE_BYTES) {
@@ -68,7 +71,7 @@ export const registerUpload = mutation({
       return await rejectAndDelete(
         ctx,
         args.storageId,
-        `Your team has reached the limit of ${MAX_IMAGES_PER_TEAM} images`,
+        `Your team has reached the limit of ${MAX_IMAGES_PER_TEAM} images.`,
       );
     }
     await ctx.db.insert("submissionImages", { teamId, storageId: args.storageId });
