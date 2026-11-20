@@ -7,10 +7,13 @@ import {
   type Editor,
   type JSONContent,
 } from "@tiptap/react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { normaliseHref } from "@/lib/safeHref";
 import { editorExtensions } from "./editorExtensions";
+import { ImagePicker } from "./ImagePicker";
+import { useImageUpload } from "./useImageUpload";
 import { promptVideoUrl } from "./VideoNode";
 
 type SubmissionEditorProps = {
@@ -23,21 +26,84 @@ export function SubmissionEditor({
   onChange,
 }: SubmissionEditorProps) {
   const extensions = useMemo(() => editorExtensions({ editable: true }), []);
+  const upload = useImageUpload();
+  // editorProps are captured when the editor is created; the ref keeps the handlers current.
+  const insertImages = useRef<(files: File[], at?: number) => void>(() => {});
   const editor = useEditor({
     extensions,
     content: initialContent,
     immediatelyRender: false,
     onUpdate: ({ editor }) => onChange(editor.getJSON()),
+    editorProps: {
+      handlePaste: (_view, event) => {
+        const files = imageFiles(event.clipboardData);
+        if (files.length === 0) return false;
+        insertImages.current(files);
+        return true;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved) return false;
+        const files = imageFiles(event.dataTransfer);
+        if (files.length === 0) return false;
+        const at = view.posAtCoords({
+          left: event.clientX,
+          top: event.clientY,
+        })?.pos;
+        insertImages.current(files, at);
+        return true;
+      },
+    },
   });
+
+  const insert = useCallback(
+    (files: File[], at?: number) => {
+      if (!editor) return;
+      void (async () => {
+        for (const file of files) {
+          const toastId = toast.loading("Uploading image…");
+          try {
+            const storageId = await upload(file);
+            const node = { type: "image", attrs: { storageId, alt: "" } };
+            const chain = editor.chain().focus();
+            (at === undefined
+              ? chain.insertContent(node)
+              : chain.insertContentAt(at, node)
+            ).run();
+            toast.dismiss(toastId);
+          } catch (error) {
+            toast.error(
+              getErrorMessage(
+                error,
+                "Could not upload the image. Please try again.",
+              ),
+              { id: toastId },
+            );
+          }
+        }
+      })();
+    },
+    [editor, upload],
+  );
+  useEffect(() => {
+    insertImages.current = insert;
+  }, [insert]);
 
   return (
     <div className="rounded-lg border border-cyan-400/30 bg-black/30">
-      {editor && <Toolbar editor={editor} />}
+      {editor && (
+        <Toolbar editor={editor} onPickImage={(file) => insert([file])} />
+      )}
       <EditorContent
         editor={editor}
         className="submission-content submission-content--editable px-4 py-3"
       />
     </div>
+  );
+}
+
+function imageFiles(data: DataTransfer | null): File[] {
+  return Array.from(data?.files ?? []).filter((file) =>
+    file.type.startsWith("image/"),
   );
 }
 
@@ -73,7 +139,13 @@ function editLink(editor: Editor) {
   }
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({
+  editor,
+  onPickImage,
+}: {
+  editor: Editor;
+  onPickImage: (file: File) => void;
+}) {
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -196,6 +268,11 @@ function Toolbar({ editor }: { editor: Editor }) {
           {button.label}
         </button>
       ))}
+      <ImagePicker
+        label="Image"
+        onPick={onPickImage}
+        className="h-auto border-0 bg-transparent px-2.5 py-1 text-sm font-normal text-gray-100 hover:bg-white/10 hover:text-gray-100"
+      />
     </div>
   );
 }

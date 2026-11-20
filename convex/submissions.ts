@@ -28,13 +28,28 @@ export async function getTeamIdOf(ctx: QueryCtx, userId: Id<"users">): Promise<I
   return profile?.teamId;
 }
 
-async function requireMyTeam(ctx: QueryCtx): Promise<{ userId: Id<"users">; teamId: Id<"teams"> }> {
+export async function requireMyTeam(ctx: QueryCtx): Promise<{ userId: Id<"users">; teamId: Id<"teams"> }> {
   const userId = await requireUserId(ctx);
   const teamId = await getTeamIdOf(ctx, userId);
   if (!teamId) {
     throw new ConvexError("Not on this team");
   }
   return { userId, teamId };
+}
+
+export async function getImageRow(ctx: QueryCtx, storageId: Id<"_storage">) {
+  return await ctx.db
+    .query("submissionImages")
+    .withIndex("by_storage", (q) => q.eq("storageId", storageId))
+    .first();
+}
+
+async function assertTeamImage(ctx: QueryCtx, teamId: Id<"teams">, storageId: Id<"_storage"> | undefined) {
+  if (storageId === undefined) return;
+  const row = await getImageRow(ctx, storageId);
+  if (row?.teamId !== teamId) {
+    throw new ConvexError("That cover image isn't one of your team's uploads");
+  }
 }
 
 async function getSubmissionByTeam(ctx: QueryCtx, teamId: Id<"teams">) {
@@ -279,6 +294,7 @@ export const saveSubmission = mutation({
     const title = cleanRequired(args.title, "Title", MAX_TITLE_LENGTH);
     const tagline = cleanRequired(args.tagline, "Tagline", MAX_TAGLINE_LENGTH);
     assertValidContent(args.content);
+    await assertTeamImage(ctx, teamId, args.coverImageId);
     const submissionId = await writeSubmission(ctx, userId, teamId, {
       title,
       tagline,
@@ -388,6 +404,7 @@ export const restoreVersion = mutation({
     await assertCanEdit(ctx, userId, teamId);
     const lock = await assertHoldsFreshLock(ctx, userId, teamId);
     const version = await getMyTeamVersion(ctx, teamId, args.versionId);
+    await assertTeamImage(ctx, teamId, version.coverImageId);
     const submissionId = await writeSubmission(ctx, userId, teamId, {
       title: version.title,
       tagline: version.tagline,
@@ -421,6 +438,15 @@ export async function deleteSubmissionCascade(ctx: MutationCtx, teamId: Id<"team
   const lock = await getLockByTeam(ctx, teamId);
   if (lock) {
     await ctx.db.delete(lock._id);
+  }
+  // Before the submission check: a team can upload images before its first Save.
+  const images = await ctx.db
+    .query("submissionImages")
+    .withIndex("by_team", (q) => q.eq("teamId", teamId))
+    .collect();
+  for (const image of images) {
+    await ctx.storage.delete(image.storageId);
+    await ctx.db.delete(image._id);
   }
   const submission = await getSubmissionByTeam(ctx, teamId);
   if (!submission) {

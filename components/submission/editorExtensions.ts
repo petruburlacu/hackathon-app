@@ -2,6 +2,7 @@ import type { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { isSafeHref } from "../../lib/safeHref";
+import { ImageNode } from "./ImageNode";
 import { TEMPLATE_SECTIONS } from "./template";
 import { Video } from "./VideoNode";
 
@@ -41,7 +42,7 @@ export function editorExtensions({
         return HINTS.get(previous.textContent.trim()) ?? "Write here…";
       },
     }),
-    // Image (PR 4) and video (PR 5) nodes register here.
+    ImageNode,
     Video,
   ];
 }

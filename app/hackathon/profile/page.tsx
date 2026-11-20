@@ -210,8 +210,8 @@ export default function ProfilePage() {
                 <div className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                   <h4 className="text-cyan-300 font-medium mb-2">Active Sessions</h4>
                   <p className="text-white text-sm mb-3">
-                    For security, only one active session is allowed per account. 
-                    If you log in from another device, previous sessions will be automatically terminated.
+                    You can be signed in on several devices at once. If you see a session you
+                    don&apos;t recognise, use &quot;Logout All Sessions&quot; below.
                   </p>
                   {getActiveSessions && getActiveSessions.length > 0 ? (
                     <div className="space-y-2">
@@ -221,11 +221,6 @@ export default function ProfilePage() {
                       <div className="text-xs text-gray-400">
                         Current session: {getActiveSessions.find(s => s.isCurrent)?.sessionId?.substring(0, 8)}...
                       </div>
-                      {getActiveSessions.length > 1 && (
-                        <div className="text-yellow-400 text-xs">
-                          ⚠️ Multiple sessions detected - will be terminated on next login
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <p className="text-gray-400 text-sm">No active sessions found</p>

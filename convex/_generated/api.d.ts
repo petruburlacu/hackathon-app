@@ -9,9 +9,11 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as eventClock from "../eventClock.js";
 import type * as gallery from "../gallery.js";
 import type * as hackathon from "../hackathon.js";
+import type * as images from "../images.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as messages from "../messages.js";
 import type * as seed from "../seed.js";
@@ -27,9 +29,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  crons: typeof crons;
   eventClock: typeof eventClock;
   gallery: typeof gallery;
   hackathon: typeof hackathon;
+  images: typeof images;
   leaderboard: typeof leaderboard;
   messages: typeof messages;
   seed: typeof seed;
