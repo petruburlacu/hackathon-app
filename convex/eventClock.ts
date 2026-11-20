@@ -36,7 +36,7 @@ export const updateEventTimes = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      throw new Error("Not signed in");
+      throw new ConvexError("Not signed in");
     }
     if (!(await isAdmin(ctx, userId))) {
       throw new ConvexError("Admin access required");
