@@ -1,6 +1,7 @@
 import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { isAdmin } from "./users";
+import { deleteSubmissionCascade } from "./submissions";
 
 // Sample hackathon ideas
 const sampleIdeas = [
@@ -113,6 +114,7 @@ export const clearHackathonData = mutation({
       await ctx.db.delete(idea._id);
     }
     for (const team of teams) {
+      await deleteSubmissionCascade(ctx, team._id);
       await ctx.db.delete(team._id);
     }
     for (const vote of ideaVotes) {

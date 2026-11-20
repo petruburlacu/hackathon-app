@@ -63,11 +63,16 @@ export function SubmissionEditor({
           const toastId = toast.loading("Uploading image…");
           try {
             const storageId = await upload(file);
-            const node = { type: "image", attrs: { storageId, alt: "" } };
+            // The trailing paragraph moves the cursor off the image; left selected, the next keystroke
+            // or upload would replace it.
+            const nodes = [
+              { type: "image", attrs: { storageId, alt: "" } },
+              { type: "paragraph" },
+            ];
             const chain = editor.chain().focus();
             (at === undefined
-              ? chain.insertContent(node)
-              : chain.insertContentAt(at, node)
+              ? chain.insertContent(nodes)
+              : chain.insertContentAt(at, nodes)
             ).run();
             toast.dismiss(toastId);
           } catch (error) {
