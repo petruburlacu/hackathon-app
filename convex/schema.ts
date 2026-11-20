@@ -95,5 +95,8 @@ export default defineSchema({
     enableIdeaSubmissions: v.boolean(),
     enableTeamSubmissions: v.boolean(),
     updatedAt: v.number(),
+    eventStartAt: v.optional(v.number()),
+    submissionsCloseAt: v.optional(v.number()),
+    votingClosesAt: v.optional(v.number()),
   }),
 });

@@ -6,3 +6,6 @@ export const EVENT_START_LABEL = `${new Intl.DateTimeFormat("en-GB", {
   timeStyle: "short",
   timeZone: "UTC",
 }).format(EVENT_START)} UTC`;
+
+export const DEFAULT_SUBMISSIONS_CLOSE = new Date("2026-12-03T17:00:00Z");
+export const DEFAULT_VOTING_CLOSE = new Date("2026-12-06T23:59:00Z");
