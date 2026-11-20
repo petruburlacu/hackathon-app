@@ -13,6 +13,10 @@ import { getErrorMessage } from "@/lib/errorMessage";
 import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import { FullScreenLoader } from "@/components/PixelatedLoader";
+import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
+import { useEventPhase } from "@/lib/useEventPhase";
+import { teamsLocked } from "@/lib/eventPhase";
+import Link from "next/link";
 
 export default function IdeasPage() {
   const settings = useQuery(api.hackathon.getSettings);
@@ -44,6 +48,8 @@ export default function IdeasPage() {
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
+  const phase = useEventPhase(useQuery(api.eventClock.getEventTimes));
+  const locked = phase !== undefined && teamsLocked(phase);
 
   const createIdea = useMutation(api.hackathon.createIdea);
   const updateIdea = useMutation(api.hackathon.updateIdea);
@@ -112,8 +118,8 @@ export default function IdeasPage() {
       setNewIdeaCategory("web-app");
       setShowCreateForm(false);
       toast.success("Idea submitted successfully!");
-    } catch {
-      toast.error("Failed to submit idea");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to submit idea"));
     } finally {
       setIsCreatingIdea(false);
     }
@@ -154,8 +160,8 @@ export default function IdeasPage() {
       } else {
         toast.success("Vote retracted!");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to toggle vote");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to toggle vote"));
     } finally {
       setIsVoting(null);
     }
@@ -204,8 +210,7 @@ export default function IdeasPage() {
       await deleteIdea({ ideaId: ideaId as any });
       toast.success("Idea deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to delete idea"));
     }
   };
 
@@ -218,8 +223,7 @@ export default function IdeasPage() {
       await adminDeleteIdea({ ideaId: ideaId as any });
       toast.success("Idea admin deleted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error, "Failed to delete idea"));
     }
   };
 
@@ -262,8 +266,8 @@ export default function IdeasPage() {
       });
       setEditingIdea(null);
       toast.success("Idea updated successfully!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update idea");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update idea"));
     }
   };
 
@@ -281,6 +285,16 @@ export default function IdeasPage() {
 
       <div className="flex-1 p-3 sm:p-4 lg:p-6">
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+          {phase !== undefined && phase !== "before" && (
+            <p className="rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-3 text-sm text-cyan-200">
+              Idea votes only help teams pick an idea. They don&apos;t count in the hackathon vote.{" "}
+              <Link href="/hackathon/submissions" className="font-bold text-yellow-300 underline">
+                See the submissions
+              </Link>
+            </p>
+          )}
+          {locked && myTeamDetails?.isLeader && <TeamsLockedNotice />}
+
           {/* Submit New Idea */}
           {ideaSubmissionsEnabled && !showCreateForm ? (
             <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
@@ -527,7 +541,7 @@ export default function IdeasPage() {
                     <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-400/20">
                       <div className="flex items-center justify-between">
                         <span className="text-green-400 text-xs font-medium">✅ Assigned to your team</span>
-                        {myTeamDetails?.isLeader && (
+                        {myTeamDetails?.isLeader && !locked && (
                           <Button
                             size="sm"
                             onClick={handleRemoveIdea}
@@ -616,7 +630,7 @@ export default function IdeasPage() {
                         >
                           View Details
                         </Button>
-                        {myTeamDetails?.team && myTeamDetails.team.ideaId !== idea._id && myTeamDetails?.isLeader && (
+                        {!locked && myTeamDetails?.team && myTeamDetails.team.ideaId !== idea._id && myTeamDetails?.isLeader && (
                           <Button
                             size="sm"
                             onClick={() => handleAssignIdea(idea._id)}

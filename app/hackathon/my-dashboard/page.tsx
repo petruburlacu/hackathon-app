@@ -15,6 +15,8 @@ import {
 } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
+import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
+import { useTeamsLocked } from "@/lib/useTeamsLocked";
 
 export default function MyDashboardPage() {
   const [isLeaving, setIsLeaving] = useState(false);
@@ -24,6 +26,7 @@ export default function MyDashboardPage() {
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
   const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0 };
+  const locked = useTeamsLocked();
 
   const leaveTeam = useMutation(api.hackathon.leaveTeam);
   const deleteTeam = useMutation(api.hackathon.deleteTeam);
@@ -42,7 +45,7 @@ export default function MyDashboardPage() {
       await leaveTeam({});
       toast.success("Left team successfully!");
     } catch (error) {
-      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
+      toast.error(getErrorMessage(error, "Failed to leave team"));
     } finally {
       setIsLeaving(false);
     }
@@ -58,7 +61,7 @@ export default function MyDashboardPage() {
       await deleteTeam({});
       toast.success("Team deleted successfully!");
     } catch (error) {
-      toast.error(getErrorMessage(error, error instanceof Error ? error.message : "Unknown error"));
+      toast.error(getErrorMessage(error, "Failed to delete team"));
     } finally {
       setIsDeleting(false);
     }
@@ -161,14 +164,20 @@ export default function MyDashboardPage() {
                 <div className="text-center py-8">
                   <div className="text-6xl mb-4">👥</div>
                   <h3 className="text-xl font-bold text-yellow-400 mb-2">Not in a Team</h3>
-                  <p className="text-cyan-200 mb-4">Join a team or create your own to start collaborating!</p>
+                  {locked ? (
+                    <TeamsLockedNotice className="mx-auto mb-4 w-fit" />
+                  ) : (
+                    <p className="text-cyan-200 mb-4">Join a team or create your own to start collaborating!</p>
+                  )}
                   <div className="flex gap-4 justify-center">
                     <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white font-bold">
                       <Link href="/hackathon/teams">Browse Teams</Link>
                     </Button>
-                    <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-                      <Link href="/hackathon/teams">Create Team</Link>
-                    </Button>
+                    {!locked && (
+                      <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+                        <Link href="/hackathon/teams">Create Team</Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -221,12 +230,13 @@ export default function MyDashboardPage() {
                     )}
 
                     {/* Team Actions */}
+                    {locked && <TeamsLockedNotice className="mb-3" />}
                     <div className="flex gap-2">
                       <Button asChild size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
                         <Link href="/hackathon/teams">View Team Details</Link>
                       </Button>
                       
-                      {!myTeamDetails.isLeader ? (
+                      {locked ? null : !myTeamDetails.isLeader ? (
                         <Button
                           size="sm"
                           onClick={handleLeaveTeam}
