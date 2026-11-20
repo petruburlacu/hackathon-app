@@ -1,20 +1,16 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError, v } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { loadEventTimes } from "./eventClock";
 import { getUsername, isAdmin } from "./users";
 import { sanitizeText } from "../lib/sanitizeText";
+import { isFresh } from "../lib/editLock";
 
-export const LOCK_TTL_MS = 300_000;
 export const MAX_VERSIONS = 5;
 const MAX_CONTENT_BYTES = 200_000;
 const MAX_TITLE_LENGTH = 80;
 const MAX_TAGLINE_LENGTH = 140;
-
-function isFresh(lock: Doc<"editLocks">, now: number): boolean {
-  return now - lock.heartbeatAt <= LOCK_TTL_MS;
-}
 
 async function requireUserId(ctx: QueryCtx): Promise<Id<"users">> {
   const userId = await getAuthUserId(ctx);
@@ -101,7 +97,7 @@ export const acquireEditLock = mutation({
     const { userId, teamId } = await requireMyTeam(ctx);
     await assertCanEdit(ctx, userId, teamId);
     const lock = await getLockByTeam(ctx, teamId);
-    if (lock && lock.userId !== userId && isFresh(lock, Date.now())) {
+    if (lock && lock.userId !== userId && isFresh(lock.heartbeatAt, Date.now())) {
       return { ok: false, holder: await displayNameOf(ctx, lock.userId) };
     }
     await writeLock(ctx, teamId, userId);
@@ -172,7 +168,7 @@ export const getMyEditState = query({
 
 async function assertHoldsFreshLock(ctx: MutationCtx, userId: Id<"users">, teamId: Id<"teams">) {
   const lock = await getLockByTeam(ctx, teamId);
-  if (!lock || lock.userId !== userId || !isFresh(lock, Date.now())) {
+  if (!lock || lock.userId !== userId || !isFresh(lock.heartbeatAt, Date.now())) {
     throw new ConvexError("You no longer hold the edit lock");
   }
   return lock;
