@@ -24,7 +24,7 @@ export function ExportResultsCard() {
       link.href = url;
       link.download = `hackathon-results-${new Date().toISOString().slice(0, 10)}.csv`;
       link.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to export results"));
     } finally {

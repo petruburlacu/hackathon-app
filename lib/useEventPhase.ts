@@ -30,5 +30,16 @@ export function useEventPhase(
     return () => clearTimeout(timer);
   }, [times, now]);
 
+  // Timers stall while a laptop sleeps; re-read the clock when the tab comes back.
+  useEffect(() => {
+    const refresh = () => setNow(Date.now());
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
+
   return times ? eventPhase(times, now) : undefined;
 }
