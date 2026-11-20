@@ -14,6 +14,9 @@ import {
   LightningBoltIcon,
 } from "@radix-ui/react-icons";
 import { Id } from "@/convex/_generated/dataModel";
+import type { EventTimes, Phase } from "@/lib/eventPhase";
+import { useEventPhase } from "@/lib/useEventPhase";
+import { formatUkDayTime } from "@/lib/ukTime";
 
 interface HackathonUser {
   _id: string;
@@ -52,12 +55,102 @@ type Team = {
   createdAt: number;
 };
 
+const HERO_TITLE: Record<Phase, string> = {
+  before: "Get Ready to Hack!",
+  submissions: "The hackathon is on!",
+  voting: "Time to vote!",
+  closed: "That's a wrap!",
+};
+
+function PhaseHero({
+  phase,
+  times,
+  hasTeam,
+}: {
+  phase: Phase;
+  times: EventTimes;
+  hasTeam: boolean;
+}) {
+  const primary =
+    "w-full sm:w-auto bg-yellow-400 hover:bg-yellow-500 text-black font-bold hackathon-title text-base sm:text-lg px-6 py-6";
+  const secondary =
+    "w-full sm:w-auto border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-black hackathon-text";
+
+  let text: string;
+  let actions: React.ReactNode;
+  switch (phase) {
+    case "before":
+      text = `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Before then, form or join a team and browse the ideas.`;
+      actions = (
+        <>
+          <Button asChild className={primary}>
+            <Link href={hasTeam ? "/hackathon/my-dashboard" : "/hackathon/teams"}>
+              {hasTeam ? "See your team" : "Form or join a team"}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className={secondary}>
+            <Link href="/hackathon/ideas">Browse ideas</Link>
+          </Button>
+        </>
+      );
+      break;
+    case "submissions":
+      text = hasTeam
+        ? `Each team writes one submission about what they built. Any team member can write it. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`
+        : `Each team writes one submission about what they built. Join a team to take part. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`;
+      actions = (
+        <Button asChild className={primary}>
+          <Link href={hasTeam ? "/hackathon/submission" : "/hackathon/teams"}>
+            {hasTeam ? "Write your team's submission" : "Join a team to submit"}
+          </Link>
+        </Button>
+      );
+      break;
+    case "voting":
+      text = `Read the submissions and give your 5, 4, 3, 2 and 1 points to your five favourites. Voting closes ${formatUkDayTime(times.votingClosesAt)}.`;
+      actions = (
+        <>
+          <Button asChild className={primary}>
+            <Link href="/hackathon/submissions">
+              Vote now: give 5, 4, 3, 2 and 1 points
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className={secondary}>
+            <Link href="/hackathon/leaderboard">See the leaderboard</Link>
+          </Button>
+        </>
+      );
+      break;
+    case "closed":
+      text = "Voting has closed. Winners are announced on Monday.";
+      actions = (
+        <Button asChild className={primary}>
+          <Link href="/hackathon/leaderboard">See the final results</Link>
+        </Button>
+      );
+      break;
+  }
+
+  return (
+    <Card className="bg-linear-to-br from-yellow-500/25 to-orange-500/20 backdrop-blur-xs border-yellow-400/50">
+      <CardContent className="p-5 sm:p-8 text-center space-y-5">
+        <p className="text-base sm:text-lg text-cyan-100 hackathon-text">{text}</p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {actions}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonUser | null | undefined }) {
   const ideas = useQuery(api.hackathon.getIdeas) || [];
   const teams = useQuery(api.hackathon.getTeams) || [];
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
   const myVotesGiven = useQuery(api.hackathon.getMyVotesGiven) || { ideaVotes: 0 };
+  const times = useQuery(api.eventClock.getEventTimes);
+  const phase = useEventPhase(times);
 
   if (!hackathonUser) {
     return (
@@ -87,6 +180,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
   const hasParticipated = hasIdeas || hasVotedForIdeas; // Combined participation check
   
   // Calculate user progress
+  const ideasPhase = phase === "before";
   const userProgress = {
     hasProfile: true,
     hasParticipated,
@@ -99,15 +193,9 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Personalized Welcome Section */}
         <div className="text-center px-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
-            {userProgress.isComplete ? "🚀 Ready to Hack!" : 'Get Ready to Hack!'}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-yellow-400 mb-4 sm:mb-6 hackathon-title">
+            {phase ? HERO_TITLE[phase] : "\u00a0"}
           </h1>
-          <p className="text-base sm:text-lg lg:text-xl text-cyan-200 mb-6 sm:mb-8 hackathon-text">
-            {userProgress.isComplete ? "You're all set!" :
-             hasTeam ? "Your team is getting ready. Keep participating!" :
-             hasParticipated ? "Great participation! Now form or join a team." :
-             "Enjoy the retro vibes! Participate actively or support by voting! 🎮✨"}
-          </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <Badge className={`px-4 py-2 text-lg hackathon-text ${
                       hackathonUser.role === 'dev' 
@@ -128,6 +216,9 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           </div>
         </div>
 
+        {phase && times && <PhaseHero phase={phase} times={times} hasTeam={hasTeam} />}
+
+        {ideasPhase && (<>
         {/* Progress Checklist */}
         <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
           <CardHeader>
@@ -217,47 +308,12 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </div>
 
 
-        {/* Personalized Action Cards */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Next Action Card */}
-          <Card className="bg-linear-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-xs border-yellow-400/30">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
-              <LightningBoltIcon className="h-5 w-5" /> Next Action
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!hasParticipated ? (
-                <div>
-                  <p className="text-cyan-200 mb-4 hackathon-text">Start participating! Submit ideas or vote for others!</p>
-                  <div className="space-y-2">
-                    <Button asChild className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold hackathon-title">
-                      <Link href="/hackathon/ideas">Submit Ideas</Link>
-                    </Button>
-                    <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold hackathon-title">
-                      <Link href="/hackathon/ideas">Vote for Ideas</Link>
-                    </Button>
-                  </div>
-                </div>
-              ) : !hasTeam ? (
-                <div>
-                  <p className="text-cyan-200 mb-4 hackathon-text">Great participation! Now form or join a team.</p>
-                  <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold hackathon-title">
-                    <Link href="/hackathon/teams">Form/Join Team</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-cyan-200 mb-4 hackathon-text">🎉 You&apos;re all set! Start building your project.</p>
-                  <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white font-bold hackathon-title">
-                    <Link href="/hackathon/my-dashboard">View My Dashboard</Link>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        </>)}
 
-          {/* Browse & Vote Card - Always visible for non-participating users */}
+        {/* Personalized Action Cards */}
+        <div className={`grid gap-4 sm:gap-6 grid-cols-1 ${ideasPhase ? "sm:grid-cols-2" : ""}`}>
+          {/* Idea voting only matters while teams pick ideas; afterwards it could be mistaken for the hackathon vote. */}
+          {ideasPhase && (
           <Card className="bg-linear-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-xs border-green-400/30">
             <CardHeader>
               <CardTitle className="text-green-400 hackathon-title flex items-center gap-2">
@@ -280,6 +336,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Quick Access Card */}
           <Card className="bg-linear-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xs border-purple-400/30">
@@ -290,6 +347,11 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
+                {phase !== undefined && phase !== "before" && (
+                  <Button asChild size="sm" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black hackathon-text">
+                    <Link href="/hackathon/submissions">Browse Submissions</Link>
+                  </Button>
+                )}
                 <Button asChild size="sm" className="w-full bg-purple-500 hover:bg-purple-600 text-white hackathon-text">
                   <Link href="/hackathon/leaderboard">View Leaderboard</Link>
                 </Button>
@@ -304,65 +366,11 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           </Card>
         </div>
 
-        {/* Judging Criteria - Simplified */}
-        <Card className="bg-linear-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xs border-yellow-400/20">
-          <CardHeader>
-            <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg sm:text-xl">
-              JUDGING CRITERIA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* TODO(awards): restore an awards banner here once this year's awards are decided (removed in #8). */}
-            {/* Criteria Cards */}
-            <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
-              <div className="text-center bg-black/20 rounded-lg border border-green-400/20 overflow-hidden">
-                <div className="h-6 bg-linear-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">33%</span>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                      <div className="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                  </div>
-                  <div className="text-green-400 font-bold hackathon-title text-sm sm:text-base mb-1">Viability of POC</div>
-                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Can it be built?</div>
-                </div>
-              </div>
-              <div className="text-center bg-black/20 rounded-lg border border-blue-400/20 overflow-hidden">
-                <div className="h-6 bg-linear-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">33%</span>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                      <div className="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                  </div>
-                  <div className="text-blue-400 font-bold hackathon-title text-sm sm:text-base mb-1">Team Collaboration</div>
-                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Dev + Non-dev teamwork</div>
-                </div>
-              </div>
-              <div className="text-center bg-black/20 rounded-lg border border-purple-400/20 overflow-hidden">
-                <div className="h-6 bg-linear-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">33%</span>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <div className="mx-auto mb-3 w-8 h-8 rounded-full bg-linear-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                      <div className="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                  </div>
-                  <div className="text-purple-400 font-bold hackathon-title text-sm sm:text-base mb-1">Business Alignment</div>
-                  <div className="text-cyan-200 text-xs sm:text-sm hackathon-text">Solves real problems</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* TODO(judging): add judging criteria here if judges are confirmed; the app runs the people's vote only for now. */}
+        {/* TODO(awards): restore an awards banner here once this year's awards are decided (removed in #8). */}
 
         {/* Top Ideas Preview */}
-        {topIdeas.length > 0 && (
+        {ideasPhase && topIdeas.length > 0 && (
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2">
