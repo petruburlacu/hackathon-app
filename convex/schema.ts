@@ -136,4 +136,13 @@ export default defineSchema({
     savedBy: v.id("users"),
     savedAt: v.number(),
   }).index("by_submission_savedAt", ["submissionId", "savedAt"]),
+
+  pointVotes: defineTable({
+    voterId: v.id("users"),
+    submissionId: v.id("submissions"),
+    points: v.number(),
+    updatedAt: v.number(),
+  }).index("by_voter_points", ["voterId", "points"])
+    .index("by_voter_submission", ["voterId", "submissionId"])
+    .index("by_submission", ["submissionId"]),
 });

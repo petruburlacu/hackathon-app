@@ -10,6 +10,7 @@ import { HackathonNav } from "@/components/HackathonNav";
 import { Id } from "@/convex/_generated/dataModel";
 import { EventClockCard } from "./EventClockCard";
 import { ReopenTeamCard } from "./ReopenTeamCard";
+import { ExportResultsCard } from "./ExportResultsCard";
 
 // Type for idea object
 type Idea = {
@@ -204,6 +205,8 @@ export default function AdminPage() {
           <EventClockCard />
 
           <ReopenTeamCard teams={teams} />
+
+          <ExportResultsCard />
 
           {/* Submission Controls */}
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">

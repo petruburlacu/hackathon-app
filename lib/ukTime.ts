@@ -42,7 +42,7 @@ export function fromUkInput(value: string): number {
   return wallAsUtc - ukOffsetAt(wallAsUtc - ukOffsetAt(wallAsUtc));
 }
 
-const ukDisplay = new Intl.DateTimeFormat("en-GB", {
+const ukDayTime = new Intl.DateTimeFormat("en-GB", {
   timeZone: UK_TIME_ZONE,
   weekday: "short",
   day: "numeric",
@@ -53,5 +53,11 @@ const ukDisplay = new Intl.DateTimeFormat("en-GB", {
 });
 
 export function formatUkDateTime(ms: number): string {
-  return ukDisplay.format(new Date(ms));
+  return ukDayTime.format(new Date(ms));
+}
+
+// "Thu 3 Dec, 17:00", built from parts so it doesn't depend on the runtime's ICU punctuation.
+export function formatUkDayTime(ms: number): string {
+  const p = Object.fromEntries(ukDayTime.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return `${p.weekday} ${p.day} ${p.month}, ${p.hour}:${p.minute}`;
 }
