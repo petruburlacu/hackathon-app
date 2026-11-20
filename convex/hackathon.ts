@@ -1427,39 +1427,6 @@ async function getCurrentSessionId(ctx: QueryCtx) {
   return (await ctx.auth.getUserIdentity())?.subject ?? null;
 }
 
-export const enforceSingleSession = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
-
-    const currentSessionId = await getCurrentSessionId(ctx);
-    if (!currentSessionId) {
-      throw new Error("No active session found");
-    }
-
-    const sessions = await ctx.runQuery(components.auth.public.listSessions, {
-      userId,
-    });
-    const revoked = await ctx.runMutation(
-      components.auth.public.revokeSessions,
-      {
-        sessionIds: sessions
-          .map((session) => session.sessionId)
-          .filter((sessionId) => sessionId !== currentSessionId),
-      },
-    );
-    const sessionsDeleted = revoked.length;
-
-    // Log the session enforcement for security monitoring
-    console.log(`Security: Enforced single session for user ${userId}, deleted ${sessionsDeleted} concurrent sessions`);
-
-    return { success: true, sessionsDeleted };
-  },
-});
-
 export const getActiveSessions = query({
   args: {},
   handler: async (ctx) => {
