@@ -3,6 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { isSafeHref } from "../../lib/safeHref";
 import { TEMPLATE_SECTIONS } from "./template";
+import { Video } from "./VideoNode";
 
 const HINTS = new Map<string, string>(
   TEMPLATE_SECTIONS.map(({ heading, hint }) => [heading, hint]),
@@ -41,5 +42,6 @@ export function editorExtensions({
       },
     }),
     // Image (PR 4) and video (PR 5) nodes register here.
+    Video,
   ];
 }
