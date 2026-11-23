@@ -1,12 +1,13 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { components } from "./_generated/api";
 import { getUsername, isAdmin } from "./users";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { loadEventTimes } from "./eventClock";
 import { deleteSubmissionCascade } from "./submissions";
 import { sanitizeText } from "../lib/sanitizeText";
 import { TEAMS_LOCKED_MESSAGE } from "../lib/eventPhase";
+import { MAX_TEAM_SIZE } from "../lib/event";
 
 export async function assertTeamsUnlocked(ctx: MutationCtx): Promise<void> {
   const { submissionsCloseAt } = await loadEventTimes(ctx);
@@ -462,8 +463,8 @@ export const createTeam = mutation({
       description: sanitizedDescription,
       leaderId: userId,
     openForRandomAllocation: true,
-      maxDevs: 6,
-      maxNonDevs: 6,
+      maxDevs: MAX_TEAM_SIZE,
+      maxNonDevs: MAX_TEAM_SIZE,
       currentDevs: 0,
       currentNonDevs: 0,
       createdAt: Date.now(),
@@ -532,8 +533,8 @@ export const updateTeam = mutation({
       name: sanitizedName,
       description: sanitizedDescription,
       // Fixed total capacity; role-specific caps are no longer enforced
-      maxDevs: 6,
-      maxNonDevs: 6,
+      maxDevs: MAX_TEAM_SIZE,
+      maxNonDevs: MAX_TEAM_SIZE,
     });
 
     return args.teamId;
@@ -579,7 +580,7 @@ export const joinRandomTeam = mutation({
     const eligible = allTeams.filter((team) => {
       const isOpen = team.openForRandomAllocation !== false;
       const totalMembers = (team.currentDevs ?? 0) + (team.currentNonDevs ?? 0);
-      const hasTotalCapacity = totalMembers < 6;
+      const hasTotalCapacity = totalMembers < MAX_TEAM_SIZE;
       if (!isOpen || !hasTotalCapacity) return false;
       if (hackathonUser.role === "dev") {
         return (team.currentDevs ?? 0) < (team.maxDevs ?? 0);
@@ -669,9 +670,8 @@ export const joinTeam = mutation({
       throw new ConvexError("Team not found");
     }
 
-    // Check if team has space (total members up to 6)
     const totalMembers = team.currentDevs + team.currentNonDevs;
-    if (totalMembers >= 6) {
+    if (totalMembers >= MAX_TEAM_SIZE) {
       throw new ConvexError("Team is full");
     }
 
@@ -1472,5 +1472,18 @@ export const logoutAllSessions = mutation({
 
     console.log(`Security: User ${userId} logged out from all ${sessionsDeleted} sessions`);
     return { success: true, sessionsDeleted };
+  },
+});
+
+// One-off: `npx convex run hackathon:backfillTeamCaps` after lowering MAX_TEAM_SIZE. Full teams keep their members.
+export const backfillTeamCaps = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const teams = await ctx.db.query("teams").collect();
+    for (const team of teams) {
+      if (team.maxDevs !== MAX_TEAM_SIZE || team.maxNonDevs !== MAX_TEAM_SIZE) {
+        await ctx.db.patch(team._id, { maxDevs: MAX_TEAM_SIZE, maxNonDevs: MAX_TEAM_SIZE });
+      }
+    }
   },
 });

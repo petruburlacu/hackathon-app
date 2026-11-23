@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_TEAM_SIZE } from "@/lib/event";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,8 +76,8 @@ export default function TeamsPage() {
       await createTeam({
         name: newTeamName.trim(),
         description: newTeamDescription.trim() || undefined,
-        maxDevs: 6,
-        maxNonDevs: 6,
+        maxDevs: MAX_TEAM_SIZE,
+        maxNonDevs: MAX_TEAM_SIZE,
       });
       setNewTeamName("");
       setNewTeamDescription("");

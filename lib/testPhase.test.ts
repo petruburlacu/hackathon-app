@@ -56,10 +56,10 @@ describe("testPhaseTimes", () => {
 });
 
 describe("DEFAULT_EVENT_TIMES", () => {
-  it("is 2 Dec 10:00, 3 Dec 17:00 and 6 Dec 23:59 UK time", () => {
+  it("is 2 Dec 10:00, 3 Dec 16:00 and 6 Dec 23:59 UK time", () => {
     expect(DEFAULT_EVENT_TIMES).toEqual({
       eventStartAt: Date.parse("2026-12-02T10:00:00Z"),
-      submissionsCloseAt: Date.parse("2026-12-03T17:00:00Z"),
+      submissionsCloseAt: Date.parse("2026-12-03T16:00:00Z"),
       votingClosesAt: Date.parse("2026-12-06T23:59:00Z"),
     });
   });

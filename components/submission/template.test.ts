@@ -8,7 +8,7 @@ const HEADINGS = [
   "Demo",
   "How it works",
   "What's next",
-  "Links & references",
+  "GitHub repo",
 ];
 
 function headingsOf(doc: JSONContent): string[] {

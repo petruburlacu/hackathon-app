@@ -92,6 +92,14 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_suggestion_user", ["suggestionId", "userId"]),
   
+  announcements: defineTable({
+    title: v.string(),
+    body: v.string(),
+    pinned: v.boolean(),
+    authorId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_created", ["createdAt"]),
+
   // Site-wide settings (single document used)
   settings: defineTable({
     enableIdeaSubmissions: v.boolean(),
