@@ -11,7 +11,7 @@ export const TEMPLATE_SECTIONS = [
   },
   {
     heading: "Demo",
-    hint: "Paste a link to your demo video. Demo videos: 5 minutes max.",
+    hint: "Paste a link to your demonstration video. Every submission needs one. 5 minutes max.",
   },
   {
     heading: "How it works",
@@ -19,8 +19,8 @@ export const TEMPLATE_SECTIONS = [
   },
   { heading: "What's next", hint: "What would you do with more time?" },
   {
-    heading: "Links & references",
-    hint: "Repos, docs, or anything else worth a look.",
+    heading: "GitHub repo",
+    hint: "Link your team's GitHub repo. It should include documentation and an explanation of your solution.",
   },
 ] as const;
 
