@@ -17,6 +17,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import type { EventTimes, Phase } from "@/lib/eventPhase";
 import { useEventPhase } from "@/lib/useEventPhase";
 import { formatUkDayTime } from "@/lib/ukTime";
+import { AnnouncementBody } from "@/components/AnnouncementBody";
 
 interface HackathonUser {
   _id: string;
@@ -61,6 +62,33 @@ const HERO_TITLE: Record<Phase, string> = {
   voting: "Time to vote!",
   closed: "That's a wrap!",
 };
+
+function LatestAnnouncement() {
+  const announcements = useQuery(api.announcements.list);
+  const latest = announcements?.[0];
+  if (!latest) return null;
+
+  return (
+    <Card className="bg-black/40 backdrop-blur-xs border-yellow-400/40">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-yellow-400 hackathon-title flex items-center justify-between gap-3 text-lg">
+          <span>📌 {latest.title}</span>
+          <span className="text-xs font-normal text-gray-400 hackathon-text shrink-0">
+            {formatUkDayTime(latest.createdAt)}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <AnnouncementBody body={latest.body} className="text-cyan-100 text-sm hackathon-text line-clamp-4" />
+        <Button asChild variant="outline" size="sm" className="border-cyan-400 text-cyan-300 hover:bg-cyan-400 hover:text-black hackathon-text">
+          <Link href="/hackathon/announcements">
+            {announcements.length > 1 ? `See all ${announcements.length} announcements` : "Open the bulletin board"}
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 function PhaseHero({
   phase,
@@ -122,7 +150,7 @@ function PhaseHero({
       );
       break;
     case "closed":
-      text = "Voting has closed. Winners are announced on Monday.";
+      text = "Voting has closed. Winners, the judges' favourites and the special prize are announced on Monday.";
       actions = (
         <Button asChild className={primary}>
           <Link href="/hackathon/leaderboard">See the final results</Link>
@@ -217,6 +245,8 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
         </div>
 
         {phase && times && <PhaseHero phase={phase} times={times} hasTeam={hasTeam} />}
+
+        <LatestAnnouncement />
 
         {ideasPhase && (<>
         {/* Progress Checklist */}
@@ -366,8 +396,6 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           </Card>
         </div>
 
-        {/* TODO(judging): add judging criteria here if judges are confirmed; the app runs the people's vote only for now. */}
-        {/* TODO(awards): restore an awards banner here once this year's awards are decided (removed in #8). */}
 
         {/* Top Ideas Preview */}
         {ideasPhase && topIdeas.length > 0 && (

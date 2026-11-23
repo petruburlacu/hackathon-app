@@ -31,6 +31,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
 
   const navItems = [
     { href: "/hackathon", label: "Dashboard", current: pathname === "/hackathon" },
+    { href: "/hackathon/announcements", label: "Bulletin", current: pathname === "/hackathon/announcements" },
     { href: "/hackathon/ideas", label: "Ideas", current: pathname === "/hackathon/ideas" },
     { href: "/hackathon/teams", label: "Teams", current: pathname === "/hackathon/teams" },
     { href: "/hackathon/submission", label: "My submission", current: pathname === "/hackathon/submission" },
