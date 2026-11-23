@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_TEAM_SIZE } from "@/lib/event";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,8 +97,8 @@ export default function TeamDetailPage() {
         teamId: teamId as any,
         name: editForm.name.trim(),
         description: editForm.description.trim() || undefined,
-        maxDevs: 6,
-        maxNonDevs: 6,
+        maxDevs: MAX_TEAM_SIZE,
+        maxNonDevs: MAX_TEAM_SIZE,
       });
       setIsEditing(false);
       toast.success("Team updated successfully!");
