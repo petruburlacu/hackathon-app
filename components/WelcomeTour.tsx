@@ -28,7 +28,7 @@ const tourSteps = [
   {
     id: "ideas",
     title: "💡 Step 1: Submit Your Idea(s)",
-    content: "Start by submitting ideas that could become hackathon projects. You can submit multiple ideas and vote for others' ideas too!",
+    content: "Start by submitting ideas that could become hackathon projects. You can submit multiple ideas and upvote others' ideas too!",
     action: "Next: Learn about Teams",
     showProgress: true,
   },

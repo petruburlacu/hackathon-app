@@ -156,12 +156,12 @@ export default function IdeasPage() {
     try {
       const result = await toggleIdeaVote({ ideaId: ideaId as any });
       if (result.action === "added") {
-        toast.success("Vote recorded!");
+        toast.success("Upvoted!");
       } else {
-        toast.success("Vote retracted!");
+        toast.success("Upvote removed");
       }
     } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to toggle vote"));
+      toast.error(getErrorMessage(error, "Failed to update upvote"));
     } finally {
       setIsVoting(null);
     }
@@ -287,7 +287,7 @@ export default function IdeasPage() {
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {phase !== undefined && phase !== "before" && (
             <p className="rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-3 text-sm text-cyan-200">
-              Idea votes only help teams pick an idea. They don&apos;t count in the hackathon vote.{" "}
+              Upvotes only help teams pick an idea. They don&apos;t count in the hackathon vote.{" "}
               <Link href="/hackathon/submissions" className="font-bold text-yellow-300 underline">
                 See the submissions
               </Link>
@@ -304,7 +304,7 @@ export default function IdeasPage() {
                   Share Your Ideas
                 </h3>
                 <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base hackathon-text">
-                  Have an idea for the hackathon? Submit it and let the community vote on it!
+                  Have an idea for the hackathon? Submit it and let the community upvote it!
                 </p>
                 <Button
                   onClick={() => setShowCreateForm(true)}
@@ -415,7 +415,7 @@ export default function IdeasPage() {
                   Idea submissions are closed
                 </h3>
                 <p className="text-cyan-200 text-sm">
-                  You can still browse, search, and vote on existing ideas.
+                  You can still browse, search, and upvote existing ideas.
                 </p>
               </CardContent>
             </Card>
@@ -455,7 +455,7 @@ export default function IdeasPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                      <SelectItem value="votes">Most Votes</SelectItem>
+                      <SelectItem value="votes">Most Upvotes</SelectItem>
                       <SelectItem value="newest">Newest</SelectItem>
                       <SelectItem value="title">Alphabetical</SelectItem>
                     </SelectContent>
@@ -501,7 +501,7 @@ export default function IdeasPage() {
                     <CardTitle className="text-yellow-400 font-mono text-lg">{idea.title}</CardTitle>
                     <div className="flex gap-2">
                       <Badge variant="secondary" className="bg-pink-500 text-white">
-                        {idea.votes} votes
+                        {idea.votes} upvotes
                       </Badge>
                       <Badge variant="secondary" className="bg-blue-500 text-white">
                         {teams.filter((team: any) => team.ideaId === idea._id).length} teams
@@ -609,7 +609,7 @@ export default function IdeasPage() {
                         ) : (
                           <>
                             <StarIcon className="mr-1 h-4 w-4" />
-                            {hasVotedForIdea(idea._id) ? "Voted" : "Vote"}
+                            {hasVotedForIdea(idea._id) ? "Upvoted" : "Upvote"}
                           </>
                         )}
                       </Button>
@@ -625,7 +625,7 @@ export default function IdeasPage() {
                           className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4"
                           onClick={() => {
                             // TODO: Implement idea details modal or page
-                            alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nVotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
+                            alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nUpvotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
                           }}
                         >
                           View Details

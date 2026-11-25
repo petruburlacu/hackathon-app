@@ -123,7 +123,7 @@ export const HackathonHome = () => {
               gradient="from-purple-500 to-pink-500"
               title="2. Share ideas"
             >
-              Submit your ideas and browse what others have suggested.
+              Submit your ideas and upvote the ones you like.
             </StepCard>
             <StepCard
               icon={<RocketIcon className="h-6 w-6" />}
@@ -222,7 +222,7 @@ export const HackathonHome = () => {
             <RuleCard
               title="Voting"
               rules={[
-                "Before the event: vote for the ideas you like (1 vote per idea)",
+                "Before the event: upvote the ideas you like (1 upvote per idea)",
                 "After the event: give 5, 4, 3, 2 and 1 points to your five favourite submissions",
               ]}
             />
