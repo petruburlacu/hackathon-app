@@ -10,12 +10,15 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { roleBadgeClass, roleLabel } from "@/lib/roleLabel";
+import { plural } from "@/lib/plural";
 
 export default function ProfilePage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState("");
   const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
+  const [confirmLogoutAll, setConfirmLogoutAll] = useState(false);
 
   const viewer = useQuery(api.users.viewer);
   const hackathonUser = useQuery(api.hackathon.getHackathonUser);
@@ -92,9 +95,11 @@ export default function ProfilePage() {
                     {hackathonUser?.displayName || "Not set"}
                   </h2>
                   <p className="text-cyan-300">{viewer.username}</p>
-                  <Badge className={`mt-2 ${hackathonUser?.role === 'dev' ? 'bg-blue-500' : 'bg-pink-500'} text-white`}>
-                    {hackathonUser?.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
-                  </Badge>
+                  {hackathonUser && (
+                    <Badge className={`mt-2 ${roleBadgeClass(hackathonUser.role)} text-white`}>
+                      {roleLabel(hackathonUser.role)}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -160,12 +165,14 @@ export default function ProfilePage() {
                     </div>
                     <div className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                       <h4 className="text-cyan-300 font-medium mb-2">Role</h4>
-                      <Badge className={`${hackathonUser?.role === 'dev' ? 'bg-blue-500' : 'bg-pink-500'} text-white`}>
-                        {hackathonUser?.role === 'dev' ? '💻 Developer' : '🎨 Non-Developer'}
-                      </Badge>
+                      {hackathonUser && (
+                        <Badge className={`${roleBadgeClass(hackathonUser.role)} text-white`}>
+                          {roleLabel(hackathonUser.role)}
+                        </Badge>
+                      )}
                     </div>
                     <div className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
-                      <h4 className="text-cyan-300 font-medium mb-2">Email</h4>
+                      <h4 className="text-cyan-300 font-medium mb-2">Username</h4>
                       <p className="text-white">{viewer.username}</p>
                     </div>
                   </div>
@@ -175,29 +182,25 @@ export default function ProfilePage() {
           </Card>
 
           {/* Account Information */}
-          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono">🔐 Account Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+          {hackathonUser && (
+            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+              <CardHeader>
+                <CardTitle className="text-yellow-400 font-mono">🔐 Account Information</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="flex items-center justify-between">
-                  <span className="text-cyan-300 font-medium">Account Type:</span>
-                  <Badge className="bg-green-500 text-white">Hackathon Participant</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-cyan-300 font-medium">Registration Date:</span>
+                  <span className="text-cyan-300 font-medium">Joined:</span>
                   <span className="text-white">
-                    {hackathonUser ? new Date().toLocaleDateString() : "Not registered"}
+                    {new Date(hackathonUser._creationTime).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-cyan-300 font-medium">Status:</span>
-                  <Badge className="bg-green-500 text-white">Active</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Session Management */}
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
@@ -213,14 +216,9 @@ export default function ProfilePage() {
                     don&apos;t recognise, use &quot;Logout All Sessions&quot; below.
                   </p>
                   {getActiveSessions && getActiveSessions.length > 0 ? (
-                    <div className="space-y-2">
-                      <p className="text-green-400 text-sm">
-                        ✅ {getActiveSessions.length} active session(s)
-                      </p>
-                      <div className="text-xs text-gray-400">
-                        Current session: {getActiveSessions.find(s => s.isCurrent)?.sessionId?.substring(0, 8)}...
-                      </div>
-                    </div>
+                    <p className="text-green-400 text-sm">
+                      ✅ {plural(getActiveSessions.length, "active session")}
+                    </p>
                   ) : (
                     <p className="text-gray-400 text-sm">No active sessions found</p>
                   )}
@@ -232,14 +230,14 @@ export default function ProfilePage() {
                     Log out from all devices and sessions. This will terminate your current session and any other active sessions.
                   </p>
                   <Button
-                    onClick={handleLogoutAllSessions}
+                    onClick={() => setConfirmLogoutAll(true)}
                     disabled={isLoggingOutAll}
                     className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
                   >
                     {isLoggingOutAll ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Logging out...
+                        Logging out…
                       </div>
                     ) : (
                       "🚪 Logout All Sessions"
@@ -250,30 +248,18 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono">🚀 Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 md:grid-cols-2">
-                <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white">
-                  <Link href="/hackathon/my-dashboard">View Dashboard</Link>
-                </Button>
-                <Button asChild className="bg-purple-500 hover:bg-purple-600 text-white">
-                  <Link href="/hackathon/ideas">Browse Ideas</Link>
-                </Button>
-                <Button asChild className="bg-green-500 hover:bg-green-600 text-white">
-                  <Link href="/hackathon/teams">View Teams</Link>
-                </Button>
-                <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
-                  <Link href="/hackathon/leaderboard">Leaderboard</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmLogoutAll}
+        onOpenChange={setConfirmLogoutAll}
+        title="Log out everywhere?"
+        confirmLabel="Log out all sessions"
+        tone="destructive"
+        onConfirm={handleLogoutAllSessions}
+      >
+        <p>This signs you out on every device, including this one. You&apos;ll need to sign in again.</p>
+      </ConfirmDialog>
     </main>
   );
 }
