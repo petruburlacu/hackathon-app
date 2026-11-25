@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useRouter } from "next/navigation";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 import Link from "next/link";
@@ -77,12 +76,14 @@ export function UserMenu({ children, isAdmin = false, hackathonUser }: UserMenuP
 
 function SignOutButton() {
   const { signOut } = useAuthActions();
-  const router = useRouter();
   return (
     <DropdownMenuItem
       onClick={async () => {
         await signOut();
-        router.push("/signin");
+        // Hard navigation: the client router may hold a cached signed-in
+        // redirect for /signin (-> /hackathon), which router.push would replay.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/signin");
       }}
     >
       Sign out
