@@ -480,7 +480,7 @@ export default function TeamsPage() {
                                     <div className="flex items-center gap-2">
                                       <span>{idea.title}</span>
                                       <Badge className="bg-pink-500 text-white text-xs ml-2">
-                                        {idea.votes} votes
+                                        {idea.votes} upvotes
                                       </Badge>
                                     </div>
                                   </SelectItem>

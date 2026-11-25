@@ -50,7 +50,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
         displayName: displayName.trim(),
       });
       setShowSetup(false);
-      toast.success("Hackathon profile created successfully!");
+      toast.success("Profile created!");
     } catch (error) {
       console.error("Failed to create hackathon profile:", error);
       toast.error(getErrorMessage(error, "Failed to create hackathon profile. Please try again."));
@@ -67,10 +67,11 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
               🚀 COMPLETE YOUR PROFILE 🚀
             </div>
             <h2 className="font-semibold text-2xl sm:text-3xl tracking-tight text-yellow-400 font-mono mb-3 sm:mb-4 px-2">
-              Join the Hackathon
+              Set up your profile
             </h2>
             <p className="text-cyan-200 text-base sm:text-lg px-2">
-              Complete your profile to participate in the hackathon
+              One profile lets you vote, share ideas and join a team.
+              Here to vote? You don&apos;t need a team.
             </p>
           </div>
           
@@ -95,6 +96,9 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
                 <label className="text-sm font-medium mb-2 block text-cyan-300">
                   Choose your role *
                 </label>
+                <p className="text-xs text-cyan-200/80 mb-2">
+                  Used to balance teams. Just voting? Pick whichever fits.
+                </p>
                 <ToggleGroup
                   type="single"
                   value={role || ""}
@@ -123,7 +127,7 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-base sm:text-lg py-3 sm:py-3 mt-4 sm:mt-6"
                 disabled={!role || !displayName.trim()}
               >
-                Complete Profile & Enter Hackathon
+                Continue
               </Button>
             </div>
           </div>

@@ -328,7 +328,7 @@ export default function AdminPage() {
                       <p className="text-gray-400 text-xs line-clamp-2">{idea.description}</p>
                       <div className="flex gap-2 mt-2">
                         <span className="bg-pink-500 text-white text-xs px-2 py-1 rounded">
-                          {idea.votes} votes
+                          {idea.votes} upvotes
                         </span>
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
                           {teams.filter((team: Team) => team.ideaId === idea._id).length} teams

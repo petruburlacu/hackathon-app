@@ -108,7 +108,9 @@ function PhaseHero({
   let actions: React.ReactNode;
   switch (phase) {
     case "before":
-      text = `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Before then, form or join a team and browse the ideas.`;
+      text = hasTeam
+        ? `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Before then, browse the ideas and get your team ready.`
+        : `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Taking part? Form or join a team. Just here to vote? You don't need a team: voting opens ${formatUkDayTime(times.submissionsCloseAt)} under Vote.`;
       actions = (
         <>
           <Button asChild className={primary}>
@@ -125,13 +127,20 @@ function PhaseHero({
     case "submissions":
       text = hasTeam
         ? `Each team writes one submission about what they built. Any team member can write it. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`
-        : `Each team writes one submission about what they built. Join a team to take part. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`;
-      actions = (
+        : `Teams are building now. You don't need a team to vote: voting opens ${formatUkDayTime(times.submissionsCloseAt)}, and you can read submissions as teams write them.`;
+      actions = hasTeam ? (
         <Button asChild className={primary}>
-          <Link href={hasTeam ? "/hackathon/submission" : "/hackathon/teams"}>
-            {hasTeam ? "Write your team's submission" : "Join a team to submit"}
-          </Link>
+          <Link href="/hackathon/submission">Write your team&apos;s submission</Link>
         </Button>
+      ) : (
+        <>
+          <Button asChild className={primary}>
+            <Link href="/hackathon/submissions">Read submissions so far</Link>
+          </Button>
+          <Button asChild variant="outline" className={secondary}>
+            <Link href="/hackathon/teams">Join a team</Link>
+          </Button>
+        </>
       );
       break;
     case "voting":
@@ -276,7 +285,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   <div className="text-sm font-medium text-white hackathon-text">Engage With Ideas</div>
                   <div className="text-xs text-gray-400 hackathon-text">
                     {hasParticipated ? 
-                      `${hasIdeas ? `${myIdeas.length} ideas` : ''}${hasIdeas && hasVotedForIdeas ? ', ' : ''}${hasVotedForIdeas ? `${myVotesGiven.ideaVotes} votes` : ''}` : 
+                      `${hasIdeas ? `${myIdeas.length} ideas` : ''}${hasIdeas && hasVotedForIdeas ? ', ' : ''}${hasVotedForIdeas ? `${myVotesGiven.ideaVotes} upvotes` : ''}` : 
                       'Not started'
                     }
                   </div>
@@ -325,14 +334,14 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-yellow-400 hackathon-title flex items-center gap-2 text-lg">
-                <BadgeIcon className="h-5 w-5" /> Total Votes
+                <BadgeIcon className="h-5 w-5" /> Idea Upvotes
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-4xl font-bold text-cyan-300 hackathon-title mb-2">
                 {ideas.reduce((sum: number, idea: Idea) => sum + idea.votes, 0)}
               </div>
-              <p className="text-gray-400 text-sm hackathon-text">Votes cast on ideas</p>
+              <p className="text-gray-400 text-sm hackathon-text">Upvotes given to ideas</p>
             </CardContent>
           </Card>
         </div>
@@ -347,20 +356,20 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
           <Card className="bg-linear-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-xs border-green-400/30">
             <CardHeader>
               <CardTitle className="text-green-400 hackathon-title flex items-center gap-2">
-              <StarIcon className="h-5 w-5" /> Browse & Vote
+              <StarIcon className="h-5 w-5" /> Browse & Upvote
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-cyan-200 text-sm hackathon-text">
                   {!hasIdeas && !hasTeam ? 
-                    "Not ready to participate? You can still browse and vote!" :
-                    "Support the community by voting for ideas!"
+                    "Not ready to participate? You can still browse and upvote ideas!" :
+                    "Help teams pick by upvoting ideas!"
                   }
                 </p>
                 <div className="space-y-2">
                   <Button asChild size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white hackathon-text">
-                    <Link href="/hackathon/ideas">Vote for Ideas</Link>
+                    <Link href="/hackathon/ideas">Upvote Ideas</Link>
                   </Button>
                 </div>
               </div>
@@ -411,7 +420,7 @@ export function HackathonOverview({ hackathonUser }: { hackathonUser: HackathonU
                   <div key={idea._id} className="bg-black/20 p-4 rounded-lg border border-cyan-400/10">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-yellow-400 hackathon-title text-sm font-bold">#{index + 1}</h4>
-                      <Badge className="bg-pink-500 text-white text-xs hackathon-text">{idea.votes} votes</Badge>
+                      <Badge className="bg-pink-500 text-white text-xs hackathon-text">{idea.votes} upvotes</Badge>
                     </div>
                     <h5 className="text-cyan-300 font-bold mb-2 hackathon-title">{idea.title}</h5>
                     <p className="text-gray-400 text-xs line-clamp-2 hackathon-text">{idea.description}</p>

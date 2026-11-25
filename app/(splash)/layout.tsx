@@ -63,7 +63,7 @@ function SplashPageNav() {
     <>
       <Link href="/hackathon">
         <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-          Enter Hackathon
+          Open the app
         </Button>
       </Link>
     </>

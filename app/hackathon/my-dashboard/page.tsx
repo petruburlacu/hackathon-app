@@ -93,7 +93,7 @@ export default function MyDashboardPage() {
                   <div className="text-3xl font-bold text-cyan-300">
                     {myVotesGiven.ideaVotes}
                   </div>
-                  <div className="text-gray-400">Idea Votes Given</div>
+                  <div className="text-gray-400">Idea Upvotes Given</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-300">
@@ -135,7 +135,7 @@ export default function MyDashboardPage() {
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="text-yellow-400 font-bold text-lg">{idea.title}</h4>
                         <div className="flex gap-2">
-                          <Badge className="bg-pink-500 text-white text-xs">{idea.votes} votes</Badge>
+                          <Badge className="bg-pink-500 text-white text-xs">{idea.votes} upvotes</Badge>
                         </div>
                       </div>
                       <p className="text-cyan-200 text-sm mb-3 line-clamp-3">{idea.description}</p>
