@@ -11,6 +11,7 @@ type ConfirmDialogProps = {
   confirmLabel: string;
   cancelLabel?: string;
   onConfirm: () => void;
+  tone?: "default" | "destructive";
 };
 
 export function ConfirmDialog({
@@ -21,6 +22,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = "Cancel",
   onConfirm,
+  tone = "default",
 }: ConfirmDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -45,7 +47,11 @@ export function ConfirmDialog({
               </Button>
             </Dialog.Close>
             <Button
-              className="bg-yellow-400 text-black hover:bg-yellow-300"
+              className={
+                tone === "destructive"
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "bg-yellow-400 text-black hover:bg-yellow-300"
+              }
               onClick={() => {
                 onOpenChange(false);
                 onConfirm();

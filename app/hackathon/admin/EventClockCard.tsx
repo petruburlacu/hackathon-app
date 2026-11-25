@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/submission/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { EventTimes, Phase } from "@/lib/eventPhase";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { sameEventTimes } from "@/lib/testPhase";

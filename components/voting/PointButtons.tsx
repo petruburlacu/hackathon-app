@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { ConfirmDialog } from "@/components/submission/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ballotSlots, pointsGivenTo } from "@/lib/ballot";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { cn } from "@/lib/utils";

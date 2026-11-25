@@ -13,7 +13,7 @@ import { isFresh } from "@/lib/editLock";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { eventPhase, type EventTimes } from "@/lib/eventPhase";
 import { formatUkDateTime } from "@/lib/ukTime";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CoverImageField } from "./CoverImageField";
 import { HistoryDrawer } from "./HistoryDrawer";
 import { RecordingHelp } from "./RecordingHelp";
