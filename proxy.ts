@@ -3,6 +3,7 @@ import {
   convexAuthNextjsProxy,
   nextjsProxyRedirect,
 } from "@/lib/convexAuth";
+import { safeNextPath } from "@/lib/safeNext";
 
 const isSignInPage = (request: NextRequest) =>
   request.nextUrl.pathname === "/signin";
@@ -11,10 +12,15 @@ const isProtectedRoute = (request: NextRequest) =>
 
 export default convexAuthNextjsProxy(async (request, { isAuthenticated }) => {
   if (isSignInPage(request) && (await isAuthenticated())) {
-    return nextjsProxyRedirect(request, "/hackathon");
+    return nextjsProxyRedirect(
+      request,
+      safeNextPath(request.nextUrl.searchParams.get("next")),
+    );
   }
   if (isProtectedRoute(request) && !(await isAuthenticated())) {
-    return nextjsProxyRedirect(request, "/signin");
+    const { pathname, search } = request.nextUrl;
+    const next = encodeURIComponent(pathname + search);
+    return nextjsProxyRedirect(request, `/signin?next=${next}`);
   }
 });
 
