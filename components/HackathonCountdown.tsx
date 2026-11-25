@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { formatUkDayTime } from "@/lib/ukTime";
+import { eventPhase } from "@/lib/eventPhase";
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -24,7 +25,6 @@ export function HackathonCountdown() {
   if (times === undefined) return null;
 
   const difference = times.eventStartAt - now;
-  const isExpired = difference <= 0;
   const timeLeft = {
     days: Math.max(0, Math.floor(difference / DAY)),
     hours: Math.max(0, Math.floor((difference % DAY) / HOUR)),
@@ -32,17 +32,39 @@ export function HackathonCountdown() {
     seconds: Math.max(0, Math.floor((difference % MINUTE) / SECOND)),
   };
 
-  if (isExpired) {
+  const phase = eventPhase(times, now);
+  if (phase !== "before") {
+    const status = {
+      submissions: {
+        heading: "The hackathon is on",
+        body: `Teams are building. Submissions close ${formatUkDayTime(times.submissionsCloseAt)} (UK time).`,
+        href: "/hackathon",
+        cta: "Go to dashboard",
+      },
+      voting: {
+        heading: "Voting is open",
+        body: `Give your points to the best projects before ${formatUkDayTime(times.votingClosesAt)} (UK time).`,
+        href: "/hackathon/submissions",
+        cta: "Vote now",
+      },
+      closed: {
+        heading: "Voting has closed",
+        body: "Thanks for taking part. See how the projects ranked.",
+        href: "/hackathon/leaderboard",
+        cta: "See the leaderboard",
+      },
+    }[phase];
     return (
-      <Card className="bg-linear-to-r from-red-500/20 to-orange-500/20 backdrop-blur-xs border-red-400/30 p-8 rounded-2xl">
+      <Card className="bg-linear-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xs border-yellow-400/40 p-6 sm:p-8 rounded-2xl">
         <CardContent className="text-center">
-          <div className="text-6xl mb-4">🚀</div>
-          <h2 className="text-3xl font-bold text-red-400 font-mono mb-2">
-            HACKATHON STARTED!
-          </h2>
-          <p className="text-red-200 text-lg">
-            The event has begun! Join the action now!
-          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-yellow-400 font-mono mb-2">{status.heading}</h2>
+          <p className="text-yellow-100 text-base sm:text-lg mb-6">{status.body}</p>
+          <Link
+            href={status.href}
+            className="inline-block px-6 py-3 bg-linear-to-r from-yellow-400 to-orange-500 text-black font-bold rounded-xl shadow-xl transition-opacity hover:opacity-90 hackathon-title"
+          >
+            {status.cta}
+          </Link>
         </CardContent>
       </Card>
     );
@@ -71,7 +93,7 @@ export function HackathonCountdown() {
           </div>
           
           <div className="mt-4 sm:mt-8 text-center">
-            <Link href="/hackathon" className="inline-block px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-linear-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm sm:text-lg lg:text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all hackathon-title cursor-pointer">
+            <Link href="/hackathon" className="inline-block px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-linear-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm sm:text-lg lg:text-2xl rounded-xl transform -rotate-1 shadow-xl transition-opacity hover:opacity-90 hackathon-title">
               🚀 Hack or vote 🚀
             </Link>
           </div>
@@ -83,8 +105,8 @@ export function HackathonCountdown() {
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="bg-black/50 backdrop-blur-xs border border-yellow-400/30 rounded-xl p-3 sm:p-4 lg:p-6 hover:border-yellow-400/60 transition-all hover:scale-110 hover:shadow-lg">
-      <div className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-3 retro-glow countdown-font wrap-break-word">
+    <div className="bg-black/50 backdrop-blur-xs border border-yellow-400/30 rounded-xl p-3 sm:p-4 lg:p-6">
+      <div className="text-2xl sm:text-3xl lg:text-5xl font-bold text-yellow-400 font-mono mb-2 sm:mb-3 retro-glow countdown-font wrap-break-word tabular-nums">
         {value.toString().padStart(2, '0')}
       </div>
       <div className="text-cyan-300 text-xs sm:text-sm lg:text-lg font-mono uppercase tracking-wider hackathon-text">

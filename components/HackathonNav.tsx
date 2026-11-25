@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { HamburgerMenuIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { EVENT_NAME } from "@/lib/event";
 
 interface HackathonNavProps {
   title: string;
@@ -43,21 +44,20 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
   return (
     <header className="sticky top-0 z-10 border-b border-cyan-400/20 bg-black/20 backdrop-blur-sm px-4 md:px-6">
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex h-20 w-full justify-between gap-6 text-lg font-medium md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-        <Link href="/hackathon">
-          <h1 className="text-xl font-bold text-yellow-400 hackathon-title">
-            {title}
-          </h1>
+      <h1 className="sr-only">{title}</h1>
+      <nav aria-label="Main" className="hidden md:flex h-20 w-full justify-between gap-4 text-sm font-medium md:items-center">
+        <Link href="/" className="shrink-0 whitespace-nowrap text-lg font-bold text-yellow-400 hackathon-title" aria-label={`${EVENT_NAME} home`}>
+          🚀 <span className="hidden xl:inline">{EVENT_NAME.toUpperCase()}</span>
         </Link>
-        
-        <div className="flex items-center gap-4">
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+
+        <div className="flex min-w-0 items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-1 lg:gap-2">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`hackathon-text text-sm transition-colors py-2 px-3 rounded-md ${
+                aria-current={item.current ? "page" : undefined}
+                className={`hackathon-text whitespace-nowrap text-sm transition-colors py-2 px-2 lg:px-3 rounded-md ${
                   item.current
                     ? 'text-yellow-400 font-bold bg-yellow-400/10 border border-yellow-400/20'
                     : 'text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5'
@@ -66,9 +66,6 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
                 {item.label}
               </Link>
             ))}
-            <Link href="/" className="text-cyan-300 hover:text-yellow-400 transition-colors hackathon-text text-sm py-2 px-3 rounded-md hover:bg-yellow-400/5">
-              Home
-            </Link>
           </div>
           
           {children}
@@ -91,10 +88,12 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
         {/* Mobile Header Row */}
         <div className="flex items-center justify-between px-0 py-3 h-16">
           {/* Left: Title */}
-          <Link href="/hackathon" onClick={() => setIsMobileMenuOpen(false)}>
-            <h1 className="text-lg font-bold text-yellow-400 hackathon-title">
-              {title}
-            </h1>
+          <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="min-w-0 truncate whitespace-nowrap text-lg font-bold text-yellow-400 hackathon-title"
+          >
+            🚀 {EVENT_NAME.toUpperCase()}
           </Link>
           
           {/* Right: Actions */}
@@ -105,6 +104,7 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
                 variant="outline"
                 size="sm"
                 onClick={onShowTour}
+                aria-label="Take the tour"
                 className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black text-xs px-2 py-1 h-8"
               >
                 🎯
@@ -117,6 +117,9 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav"
               className="text-gray-400 hover:text-white p-2"
             >
               {isMobileMenuOpen ? (
@@ -130,13 +133,14 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
         
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="px-0 pb-4 border-t border-cyan-400/20 bg-black/30">
+          <nav id="mobile-nav" aria-label="Main" className="px-0 pb-4 border-t border-cyan-400/20 bg-black/30">
             <div className="space-y-1 pt-3 px-4">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-current={item.current ? "page" : undefined}
                   className={`block px-4 py-3 rounded-lg text-base transition-colors ${
                     item.current
                       ? 'text-yellow-400 font-bold bg-yellow-400/10 border border-yellow-400/20'
@@ -146,15 +150,8 @@ export function HackathonNav({ title, showTour, onShowTour, children }: Hackatho
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-3 rounded-lg text-base text-cyan-300 hover:text-yellow-400 hover:bg-yellow-400/5 transition-colors"
-              >
-                Home
-              </Link>
             </div>
-          </div>
+          </nav>
         )}
       </div>
     </header>

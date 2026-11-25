@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { EVENT_NAME } from "@/lib/event";
+import { isAuthenticatedNextjs } from "@/lib/convexAuth";
 
-export default function SplashPageLayout({
+export default async function SplashPageLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  const signedIn = await isAuthenticatedNextjs();
   return (
     <>
       <div className="flex min-h-screen w-full flex-col">
@@ -18,7 +20,7 @@ export default function SplashPageLayout({
               <h1 className="text-xl font-bold text-yellow-400 font-mono">🚀 {EVENT_NAME.toUpperCase()}</h1>
             </Link>
             <div className="flex items-center gap-4">
-              <SplashPageNav />
+              <SplashPageNav signedIn={signedIn} />
             </div>
           </nav>
           
@@ -28,7 +30,7 @@ export default function SplashPageLayout({
               <h1 className="text-lg font-bold text-yellow-400 font-mono">🚀 {EVENT_NAME.toUpperCase()}</h1>
             </Link>
             <div className="flex items-center gap-2">
-              <SplashPageNav />
+              <SplashPageNav signedIn={signedIn} />
             </div>
           </div>
         </header>
@@ -58,14 +60,12 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-function SplashPageNav() {
+function SplashPageNav({ signedIn }: { signedIn: boolean }) {
   return (
-    <>
-      <Link href="/hackathon">
-        <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-          Open the app
-        </Button>
+    <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+      <Link href={signedIn ? "/hackathon" : "/signin"}>
+        {signedIn ? "Go to dashboard" : "Sign in"}
       </Link>
-    </>
+    </Button>
   );
 }

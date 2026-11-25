@@ -5,6 +5,7 @@ export const {
   convexAuthNextjsProxy,
   nextjsProxyRedirect,
   convexAuthNextjsAccessToken,
+  isAuthenticatedNextjs,
   ConvexAuthNextjsServerProvider,
 } = setupConvexAuthNextjs({
   convexUrl: process.env.NEXT_PUBLIC_CONVEX_URL!,
