@@ -33,7 +33,6 @@ export default function HackathonPage() {
     hasIdeas: myIdeas.length > 0,
     hasTeam: !!myTeamDetails,
     teamHasIdea: !!myTeamDetails?.idea,
-    isComplete: myIdeas.length > 0 && !!myTeamDetails && !!myTeamDetails?.idea
   };
 
   return (

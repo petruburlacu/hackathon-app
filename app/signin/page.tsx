@@ -114,7 +114,7 @@ export default function SignInPage() {
       <div className="flex min-h-[calc(100vh-80px)] w-full container my-auto mx-auto px-4">
         <div className="max-w-[384px] mx-auto flex flex-col my-auto gap-4 pb-8 w-full">
           <h2 className="font-semibold text-xl sm:text-2xl tracking-tight text-white text-center sm:text-left">
-            {isSignUp ? "Join the Hackathon" : "Sign in"}
+            {isSignUp ? "Create your account" : "Sign in"}
           </h2>
           
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -173,7 +173,7 @@ export default function SignInPage() {
                   {isSignUp ? "Creating Account..." : "Signing In..."}
                 </div>
               ) : (
-                isSignUp ? "Join Hackathon" : "Sign In"
+                isSignUp ? "Create account" : "Sign In"
               )}
             </Button>
           </form>
@@ -187,7 +187,7 @@ export default function SignInPage() {
             >
               {isSignUp 
                 ? "Already have an account? Sign in" 
-                : "Don't have an account? Join the hackathon"
+                : "New here? Create an account to vote or take part"
               }
             </Button>
           </div>

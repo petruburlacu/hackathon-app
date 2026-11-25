@@ -108,7 +108,9 @@ function PhaseHero({
   let actions: React.ReactNode;
   switch (phase) {
     case "before":
-      text = `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Before then, form or join a team and browse the ideas.`;
+      text = hasTeam
+        ? `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Before then, browse the ideas and get your team ready.`
+        : `The hackathon starts ${formatUkDayTime(times.eventStartAt)}. Taking part? Form or join a team. Just here to vote? You don't need a team: voting opens ${formatUkDayTime(times.submissionsCloseAt)} under Vote.`;
       actions = (
         <>
           <Button asChild className={primary}>
@@ -125,13 +127,20 @@ function PhaseHero({
     case "submissions":
       text = hasTeam
         ? `Each team writes one submission about what they built. Any team member can write it. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`
-        : `Each team writes one submission about what they built. Join a team to take part. Submissions close ${formatUkDayTime(times.submissionsCloseAt)}.`;
-      actions = (
+        : `Teams are building now. You don't need a team to vote: voting opens ${formatUkDayTime(times.submissionsCloseAt)}, and you can read submissions as teams write them.`;
+      actions = hasTeam ? (
         <Button asChild className={primary}>
-          <Link href={hasTeam ? "/hackathon/submission" : "/hackathon/teams"}>
-            {hasTeam ? "Write your team's submission" : "Join a team to submit"}
-          </Link>
+          <Link href="/hackathon/submission">Write your team&apos;s submission</Link>
         </Button>
+      ) : (
+        <>
+          <Button asChild className={primary}>
+            <Link href="/hackathon/submissions">Read submissions so far</Link>
+          </Button>
+          <Button asChild variant="outline" className={secondary}>
+            <Link href="/hackathon/teams">Join a team</Link>
+          </Button>
+        </>
       );
       break;
     case "voting":

@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HackathonCountdown } from "@/components/HackathonCountdown";
 import { PersonIcon, RocketIcon, StarIcon } from "@radix-ui/react-icons";
 import { MAX_TEAM_SIZE } from "@/lib/event";
+import { useEventPhase } from "@/lib/useEventPhase";
+import { formatUkDayTime } from "@/lib/ukTime";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -82,10 +86,11 @@ export const HackathonHome = () => {
           <div className="mb-4 text-center text-xl sm:text-2xl lg:text-3xl text-yellow-300 font-bold hackathon-title px-4">
             Opus 2 Hackathon 2026 · Wed 2 – Thu 3 December
           </div>
-          <div className="mb-12 text-center text-lg sm:text-xl lg:text-2xl text-cyan-200 font-mono hackathon-text px-4">
+          <div className="mb-8 text-center text-lg sm:text-xl lg:text-2xl text-cyan-200 font-mono hackathon-text px-4">
             Two days of building, learning and working with colleagues from
             across the business, with some food and fun along the way 🎮✨
           </div>
+          <VoterCallout />
         </div>
 
         <div className="mb-16 flex justify-center">
@@ -189,9 +194,9 @@ export const HackathonHome = () => {
             </InfoCard>
             <InfoCard title="Vote">
               After the event, everyone at Opus 2 has a few days to review the
-              submissions and vote for their favourites. Our judges vote too,
-              and also pick their own favourites, which may differ from the
-              overall winners.
+              submissions and vote for their favourites. You don&apos;t need to
+              be in a team, just sign in. Our judges vote too, and also pick
+              their own favourites, which may differ from the overall winners.
             </InfoCard>
             <InfoCard title="Prizes">
               Prizes for the 🥇 1st, 🥈 2nd and 🥉 3rd placed teams, plus a ✨
@@ -242,7 +247,7 @@ export const HackathonHome = () => {
               href="/hackathon"
               className="inline-block px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-yellow-400 to-pink-500 text-black font-bold text-lg sm:text-xl rounded-lg transform rotate-1 shadow-lg"
             >
-              READY TO HACK? 🚀
+              HACK OR VOTE 🚀
             </Link>
           </div>
         </div>
@@ -250,6 +255,48 @@ export const HackathonHome = () => {
     </div>
   );
 };
+
+function VoterCallout() {
+  const times = useQuery(api.eventClock.getEventTimes);
+  const phase = useEventPhase(times);
+  let message = "Everyone at Opus 2 can vote, no team needed.";
+  if (times && (phase === "before" || phase === "submissions")) {
+    message += ` Voting opens ${formatUkDayTime(times.submissionsCloseAt)}.`;
+  } else if (times && phase === "voting") {
+    message = `Voting is open until ${formatUkDayTime(times.votingClosesAt)}. Everyone at Opus 2 can vote, no team needed.`;
+  }
+  const votingOpen = phase === "voting";
+
+  return (
+    <div className="mx-4 flex flex-col items-center gap-4">
+      <p className="text-base sm:text-lg text-yellow-200 hackathon-text">
+        🗳️ {message}
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Link
+          href="/hackathon/submissions"
+          className={`px-5 py-2 font-bold rounded-lg hackathon-text ${
+            votingOpen
+              ? "bg-linear-to-r from-yellow-400 to-pink-500 text-black"
+              : "border border-yellow-400 text-yellow-300 hover:bg-yellow-400/10"
+          }`}
+        >
+          {votingOpen ? "Vote now" : "I'm here to vote"}
+        </Link>
+        <Link
+          href="/hackathon"
+          className={`px-5 py-2 font-bold rounded-lg hackathon-text ${
+            votingOpen
+              ? "border border-yellow-400 text-yellow-300 hover:bg-yellow-400/10"
+              : "bg-linear-to-r from-yellow-400 to-pink-500 text-black"
+          }`}
+        >
+          I&apos;m taking part
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 function Section({
   title,

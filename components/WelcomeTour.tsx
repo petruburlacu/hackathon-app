@@ -14,7 +14,6 @@ interface WelcomeTourProps {
     hasIdeas: boolean;
     hasTeam: boolean;
     teamHasIdea: boolean;
-    isComplete: boolean;
   };
 }
 
@@ -22,7 +21,7 @@ const tourSteps = [
   {
     id: "welcome",
     title: "🚀 Welcome to Hackathon!",
-    content: "This tour will guide you through the process of participating in the event.",
+    content: "This tour will guide you through the process of participating in the event. Just here to vote? You don't need a team: skip to step 4.",
     action: "Let's get started!",
     showProgress: false,
   },
@@ -50,9 +49,9 @@ const tourSteps = [
   {
     id: "voting",
     title: "⭐ Step 4: Vote",
-    content: "You can vote for ideas! Once teams are formed and have ideas, you can also vote for your favorite team on the leaderboard. Each person gets one vote.",
+    content: "Everyone can vote, team or no team. After the submission deadline, open Vote in the header and give 5, 4, 3, 2 and 1 points to your five favourite projects. Upvotes on ideas only help teams pick an idea; they don't count in the vote.",
     action: "Next: Learn about Navigation",
-    showProgress: true,
+    showProgress: false,
   },
   {
     id: "navigation",
@@ -151,8 +150,6 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
         return userProgress.hasTeam;
       case "assign":
         return userProgress.teamHasIdea;
-      case "voting":
-        return userProgress.isComplete;
       default:
         return false;
     }
@@ -166,8 +163,6 @@ export function WelcomeTour({ isVisible, onClose, userProgress }: WelcomeTourPro
         return userProgress.hasTeam ? "✅ Team joined!" : "⏳ Join or create a team";
       case "assign":
         return userProgress.teamHasIdea ? "✅ Idea assigned!" : "⏳ Assign an idea to your team";
-      case "voting":
-        return userProgress.isComplete ? "✅ Ready to vote!" : "⏳ Complete previous steps";
       default:
         return "";
     }

@@ -72,7 +72,7 @@ export function HackathonCountdown() {
           
           <div className="mt-4 sm:mt-8 text-center">
             <Link href="/hackathon" className="inline-block px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-linear-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm sm:text-lg lg:text-2xl rounded-xl transform -rotate-1 shadow-xl hover:scale-105 transition-all hackathon-title cursor-pointer">
-              🚀 Enter Hackathon 🚀
+              🚀 Hack or vote 🚀
             </Link>
           </div>
         </CardContent>

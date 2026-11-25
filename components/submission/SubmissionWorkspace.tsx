@@ -2,6 +2,7 @@
 
 import type { JSONContent } from "@tiptap/react";
 import { useMutation } from "convex/react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -408,6 +409,17 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
       {phase !== "before" && phase !== "submissions" && !reopened && (
         <Notice>
           Submissions are closed, so this write-up can no longer be changed.
+          {phase === "voting" && (
+            <>
+              {" "}
+              <Link
+                href="/hackathon/submissions"
+                className="text-yellow-300 underline underline-offset-4"
+              >
+                Now vote for other teams&apos; projects →
+              </Link>
+            </>
+          )}
         </Notice>
       )}
       {phase !== "before" &&
