@@ -9,7 +9,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { formatUkDateTime } from "@/lib/ukTime";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SubmissionReader } from "./SubmissionReader";
 
 type HistoryDrawerProps = {

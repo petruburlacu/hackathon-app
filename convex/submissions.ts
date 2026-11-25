@@ -3,7 +3,7 @@ import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { loadEventTimes } from "./eventClock";
-import { getUsername, isAdmin } from "./users";
+import { displayNameOf, isAdmin } from "./users";
 import { sanitizeText } from "../lib/sanitizeText";
 import { isFresh } from "../lib/editLock";
 
@@ -64,14 +64,6 @@ async function getLockByTeam(ctx: QueryCtx, teamId: Id<"teams">) {
     .query("editLocks")
     .withIndex("by_team", (q) => q.eq("teamId", teamId))
     .first();
-}
-
-export async function displayNameOf(ctx: QueryCtx, userId: Id<"users">): Promise<string> {
-  const profile = await ctx.db
-    .query("hackathonUsers")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .first();
-  return profile?.displayName ?? (await getUsername(ctx, userId)) ?? "A teammate";
 }
 
 export async function assertCanEdit(

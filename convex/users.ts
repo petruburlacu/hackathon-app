@@ -17,6 +17,20 @@ function isAdminUsername(username: string | null): boolean {
   return username !== null && adminUsernames().includes(username.toLowerCase());
 }
 
+// Usernames are often email addresses, so only display names leave the server.
+export const UNNAMED = "Unnamed participant";
+
+export async function displayNameOf(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+): Promise<string> {
+  const profile = await ctx.db
+    .query("hackathonUsers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
+  return profile?.displayName || UNNAMED;
+}
+
 export async function getUsername(
   ctx: Pick<QueryCtx, "runQuery">,
   userId: Id<"users">,

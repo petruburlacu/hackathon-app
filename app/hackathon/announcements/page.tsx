@@ -15,6 +15,7 @@ import { AnnouncementBody } from "@/components/AnnouncementBody";
 import { HackathonNav } from "@/components/HackathonNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getErrorMessage } from "@/lib/errorMessage";
@@ -81,6 +82,7 @@ function AnnouncementCard({
 }) {
   const setPinned = useMutation(api.announcements.setPinned);
   const remove = useMutation(api.announcements.remove);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const togglePin = async () => {
     try {
@@ -94,7 +96,6 @@ function AnnouncementCard({
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${announcement.title}"?`)) return;
     try {
       await remove({ announcementId: announcement._id });
       toast.success("Announcement deleted");
@@ -141,8 +142,8 @@ function AnnouncementCard({
               </Button>
               <Button
                 size="sm"
-                onClick={handleDelete}
-                aria-label="Delete"
+                onClick={() => setConfirmingDelete(true)}
+                aria-label="Delete announcement"
                 className="bg-red-500 hover:bg-red-600 text-white"
               >
                 <TrashIcon className="h-4 w-4" />
@@ -157,6 +158,19 @@ function AnnouncementCard({
           className="text-cyan-100 text-sm sm:text-base hackathon-text"
         />
       </CardContent>
+      <ConfirmDialog
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        title="Delete this announcement?"
+        confirmLabel="Delete announcement"
+        tone="destructive"
+        onConfirm={handleDelete}
+      >
+        <p>
+          “{announcement.title}” will be removed from the bulletin for everyone.
+          This can&apos;t be undone.
+        </p>
+      </ConfirmDialog>
     </Card>
   );
 }

@@ -93,14 +93,16 @@ export function HackathonProfileSetup({ children }: HackathonProfileSetupProps) 
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block text-cyan-300">
+                <span id="role-label" className="text-sm font-medium mb-2 block text-cyan-300">
                   Choose your role *
-                </label>
-                <p className="text-xs text-cyan-200/80 mb-2">
+                </span>
+                <p id="role-hint" className="text-xs text-cyan-200/80 mb-2">
                   Used to balance teams. Just voting? Pick whichever fits.
                 </p>
                 <ToggleGroup
                   type="single"
+                  aria-labelledby="role-label"
+                  aria-describedby="role-hint"
                   value={role || ""}
                   onValueChange={(value) => setRole(value as "dev" | "non-dev" | "admin" | null)}
                   className="w-full flex flex-col sm:flex-row gap-2 sm:gap-0"

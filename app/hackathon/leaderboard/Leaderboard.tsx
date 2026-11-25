@@ -79,16 +79,26 @@ function BoardRow({
         href={`/hackathon/submissions/${row.submissionId}`}
         className="flex items-center gap-3 sm:gap-4 rounded-xl bg-black/30 border border-cyan-400/10 p-3 sm:p-4 transition-colors hover:border-yellow-400/40 hover:bg-black/40"
       >
-        <div
-          className="w-10 shrink-0 text-center"
-          aria-label={hasPoints ? `Rank ${row.rank}` : "No points yet"}
-        >
+        <div className="w-10 shrink-0 text-center">
+          <span className="sr-only">
+            {hasPoints ? `Rank ${row.rank}` : "No points yet"}
+          </span>
           {!hasPoints ? (
-            <span className="text-lg font-bold font-mono text-gray-500">–</span>
+            <span
+              aria-hidden="true"
+              className="text-lg font-bold font-mono text-gray-500"
+            >
+              –
+            </span>
           ) : MEDALS[row.rank] ? (
-            <span className="text-3xl">{MEDALS[row.rank]}</span>
+            <span aria-hidden="true" className="text-3xl">
+              {MEDALS[row.rank]}
+            </span>
           ) : (
-            <span className="text-lg font-bold font-mono text-cyan-300">
+            <span
+              aria-hidden="true"
+              className="text-lg font-bold font-mono text-cyan-300"
+            >
               #{row.rank}
             </span>
           )}

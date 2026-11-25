@@ -9,7 +9,7 @@ import {
 } from "@convex-dev/auth/methods/username-password/react";
 import { DEFAULT_MIN_PASSWORD_LENGTH } from "@convex-dev/auth/methods/username-password";
 import { api } from "@/convex/_generated/api";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { safeNextPath } from "@/lib/safeNext";
 import { useState } from "react";
 
@@ -191,8 +191,6 @@ export default function SignInPage() {
               }
             </Button>
           </div>
-          
-          <Toaster />
         </div>
       </div>
     </div>

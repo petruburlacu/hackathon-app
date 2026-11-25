@@ -7,14 +7,15 @@ import {
   type Editor,
   type JSONContent,
 } from "@tiptap/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { normaliseHref } from "@/lib/safeHref";
 import { editorExtensions } from "./editorExtensions";
 import { ImagePicker } from "./ImagePicker";
 import { useImageUpload } from "./useImageUpload";
-import { promptVideoUrl } from "./VideoNode";
+import { toVideoUrl, VIDEO_URL_HINT, videoUrlError } from "./VideoNode";
+import { UrlDialog } from "./UrlDialog";
 
 type SubmissionEditorProps = {
   initialContent: JSONContent;
@@ -112,23 +113,20 @@ function imageFiles(data: DataTransfer | null): File[] {
   );
 }
 
-function editLink(editor: Editor) {
-  const previous =
-    (editor.getAttributes("link").href as string | undefined) ?? "";
-  const input = window.prompt(
-    "Paste the link address. Leave it empty to remove the link.",
-    previous,
-  );
-  if (input === null) return;
+const LINK_ERROR = "Links must start with http:// or https://";
+
+function linkError(input: string): string | null {
+  if (input.trim() === "") return null;
+  return normaliseHref(input) ? null : LINK_ERROR;
+}
+
+function applyLink(editor: Editor, input: string) {
   if (input.trim() === "") {
     editor.chain().focus().extendMarkRange("link").unsetLink().run();
     return;
   }
   const href = normaliseHref(input);
-  if (!href) {
-    toast.error("Links must start with http:// or https://");
-    return;
-  }
+  if (!href) return;
   if (editor.state.selection.empty && !editor.isActive("link")) {
     editor
       .chain()
@@ -144,6 +142,23 @@ function editLink(editor: Editor) {
   }
 }
 
+function insertVideo(editor: Editor, input: string) {
+  const url = toVideoUrl(input);
+  if (!url) return;
+  const { $from } = editor.state.selection;
+  // Insert after the current top-level block so headings and paragraphs aren't split.
+  const at = $from.depth >= 1 ? $from.after(1) : editor.state.selection.to;
+  editor
+    .chain()
+    .focus()
+    // The trailing paragraph moves the cursor past the video, so the next insert doesn't replace it.
+    .insertContentAt(at, [
+      { type: "video", attrs: { url } },
+      { type: "paragraph" },
+    ])
+    .run();
+}
+
 function Toolbar({
   editor,
   onPickImage,
@@ -151,6 +166,7 @@ function Toolbar({
   editor: Editor;
   onPickImage: (file: File) => void;
 }) {
+  const [dialog, setDialog] = useState<"link" | "video" | null>(null);
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -213,28 +229,12 @@ function Toolbar({
       label: "Link",
       title: "Add or change a link",
       active: state.link,
-      run: () => editLink(editor),
+      run: () => setDialog("link"),
     },
     {
       label: "Add video",
       title: "Add a demo video link",
-      run: () => {
-        const url = promptVideoUrl();
-        if (url) {
-          const { $from } = editor.state.selection;
-          // Insert after the current top-level block so headings and paragraphs aren't split.
-          const at = $from.depth >= 1 ? $from.after(1) : editor.state.selection.to;
-          editor
-            .chain()
-            .focus()
-            // The trailing paragraph moves the cursor past the video, so the next insert doesn't replace it.
-            .insertContentAt(at, [
-              { type: "video", attrs: { url } },
-              { type: "paragraph" },
-            ])
-            .run();
-        }
-      },
+      run: () => setDialog("video"),
     },
     {
       label: "Undo",
@@ -277,6 +277,27 @@ function Toolbar({
         label="Image"
         onPick={onPickImage}
         className="h-auto border-0 bg-transparent px-2.5 py-1 text-sm font-normal text-gray-100 hover:bg-white/10 hover:text-gray-100"
+      />
+      <UrlDialog
+        open={dialog === "link"}
+        onOpenChange={(open) => setDialog(open ? "link" : null)}
+        title={state.link ? "Change link" : "Add a link"}
+        label="Link address"
+        hint="Leave it empty to remove the link."
+        initialValue={(editor.getAttributes("link").href as string | undefined) ?? ""}
+        submitLabel="Save link"
+        validate={linkError}
+        onSubmit={(value) => applyLink(editor, value)}
+      />
+      <UrlDialog
+        open={dialog === "video"}
+        onOpenChange={(open) => setDialog(open ? "video" : null)}
+        title="Add a demo video"
+        label="Video link"
+        hint={VIDEO_URL_HINT}
+        submitLabel="Add video"
+        validate={videoUrlError}
+        onSubmit={(value) => insertVideo(editor, value)}
       />
     </div>
   );

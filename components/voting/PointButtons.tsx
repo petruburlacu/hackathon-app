@@ -5,8 +5,9 @@ import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { ConfirmDialog } from "@/components/submission/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ballotSlots, pointsGivenTo } from "@/lib/ballot";
+import { plural } from "@/lib/plural";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { cn } from "@/lib/utils";
 
@@ -85,10 +86,10 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
               aria-pressed={selected}
               aria-label={
                 selected
-                  ? `Remove your ${points} points`
+                  ? `Remove your ${plural(points, "point")}`
                   : usedElsewhere
-                    ? `Give ${points} points (now on ${holder.title})`
-                    : `Give ${points} points`
+                    ? `Give ${plural(points, "point")} (now on ${holder.title})`
+                    : `Give ${plural(points, "point")}`
               }
               title={usedElsewhere ? `Now on ${holder.title}` : undefined}
               onClick={() => onPress(points)}
@@ -108,7 +109,7 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
       </div>
       <p className="min-h-4 text-center text-xs text-gray-400">
         {given !== null
-          ? `You gave ${given} points · tap ${given} again to take it back`
+          ? `You gave ${plural(given, "point")} · tap ${given} again to take ${given === 1 ? "it" : "them"} back`
           : "Tap a number to give points"}
       </p>
       <ConfirmDialog
@@ -118,7 +119,7 @@ export function PointButtons({ submissionId, isMine }: PointButtonsProps) {
         }}
         title={
           pendingMove
-            ? `Move your ${pendingMove.points} points from ${pendingMove.title}?`
+            ? `Move your ${plural(pendingMove.points, "point")} from ${pendingMove.title}?`
             : ""
         }
         confirmLabel="Move points"

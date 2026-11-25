@@ -24,6 +24,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
 import { useTeamsLocked } from "@/lib/useTeamsLocked";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FullScreenLoader } from "@/components/PixelatedLoader";
+import { plural } from "@/lib/plural";
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -32,6 +35,9 @@ export default function TeamDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<
+    { kind: "leave" } | { kind: "delete" } | { kind: "remove"; memberUserId: string } | null
+  >(null);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
@@ -107,18 +113,17 @@ export default function TeamDetailPage() {
     }
   };
 
-  if (!viewer) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl">Loading...</div>
-      </div>
-    );
+  if (!viewer || teamDetails === undefined) {
+    return <FullScreenLoader text="Loading team…" />;
   }
 
-  if (!teamDetails) {
+  if (teamDetails === null) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-red-400 text-xl">Team not found</div>
+        <div className="text-center space-y-4">
+          <div className="text-red-400 text-xl">Team not found</div>
+          <Link href="/hackathon/teams" className="text-cyan-300 underline">Back to teams</Link>
+        </div>
       </div>
     );
   }
@@ -136,10 +141,6 @@ export default function TeamDetailPage() {
   };
 
   const handleRemoveMember = async (memberUserId: string) => {
-    if (!confirm("Are you sure you want to remove this member from the team?")) {
-      return;
-    }
-
     try {
       const remove = viewer.isAdmin ? adminRemoveTeamMember : removeTeamMember;
       await remove({ teamId: teamId as any, memberUserId: memberUserId as any });
@@ -150,10 +151,6 @@ export default function TeamDetailPage() {
   };
 
   const handleLeaveTeam = async () => {
-    if (!confirm("Are you sure you want to leave this team?")) {
-      return;
-    }
-
     setIsLeaving(true);
     try {
       await leaveTeam({});
@@ -168,10 +165,6 @@ export default function TeamDetailPage() {
   };
 
   const handleDeleteTeam = async () => {
-    if (!confirm("Are you sure you want to delete this team? This will remove all members and cannot be undone.")) {
-      return;
-    }
-
     setIsDeleting(true);
     try {
       await deleteTeam({});
@@ -229,31 +222,29 @@ export default function TeamDetailPage() {
                   {isEditing ? (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
+                        <label htmlFor="edit-team-name" className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
                         <Input
+                          id="edit-team-name"
                           value={editForm.name}
                           onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                           className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 text-2xl font-mono"
-                          placeholder="Enter team name..."
+                          placeholder="Enter team name…"
                         />
                       </div>
                       <div>
-                        <label className="text-sm text-cyan-300 mb-2 block">Team Description</label>
+                        <label htmlFor="edit-team-description" className="text-sm text-cyan-300 mb-2 block">Team Description</label>
                         <textarea
+                          id="edit-team-description"
                           value={editForm.description}
                           onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                           rows={3}
                           className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50 text-lg"
-                          placeholder="Describe your team's vision and goals..."
+                          placeholder="Describe your team's vision and goals…"
                         />
                       </div>
-                      <div>
-                        <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
-                        <div className="flex items-center gap-2 p-2 bg-black/20 border border-cyan-400/30 rounded-md">
-                          <Badge className="bg-cyan-500 text-white">Max Members: 6</Badge>
-                          <span className="text-xs text-gray-400">Any mix of roles</span>
-                        </div>
-                      </div>
+                      <p className="text-sm text-gray-300">
+                        Up to {MAX_TEAM_SIZE} members, any mix of roles.
+                      </p>
                       <div className="flex gap-2">
                         <Button
                           onClick={handleSaveEdit}
@@ -281,6 +272,7 @@ export default function TeamDetailPage() {
                         {hackathonUser?.userId === teamDetails.team.leaderId && (
                           <Button
                             onClick={handleStartEdit}
+                            aria-label="Edit team"
                             size="sm"
                             variant="outline"
                             className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
@@ -307,18 +299,12 @@ export default function TeamDetailPage() {
                 {/* Team Stats */}
                 <div className="space-y-4">
                   <h3 className="text-cyan-300 font-bold text-lg">Team Composition</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-400/20">
-                      <div className="text-2xl font-bold text-blue-400">
-                        {teamDetails.team.currentDevs}/{teamDetails.team.maxDevs}
-                      </div>
-                      <div className="text-sm text-gray-400">Developers</div>
+                  <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-400/20">
+                    <div className="text-2xl font-bold text-blue-300">
+                      Members {teamDetails.team.currentDevs + teamDetails.team.currentNonDevs}/{MAX_TEAM_SIZE}
                     </div>
-                    <div className="text-center p-3 bg-pink-500/10 rounded-lg border border-pink-400/20">
-                      <div className="text-2xl font-bold text-pink-400">
-                        {teamDetails.team.currentNonDevs}/{teamDetails.team.maxNonDevs}
-                      </div>
-                      <div className="text-sm text-gray-400">Non-Developers</div>
+                    <div className="text-sm text-gray-400">
+                      {plural(teamDetails.team.currentDevs, "developer")} · {plural(teamDetails.team.currentNonDevs, "non-developer")}
                     </div>
                   </div>
                 </div>
@@ -332,7 +318,7 @@ export default function TeamDetailPage() {
                         <span className="text-white font-bold">👑</span>
                       </div>
                       <div>
-                        <div className="text-gray-400 text-sm">{teamDetails.leader?.username}</div>
+                        <div className="text-cyan-300 font-bold">{teamDetails.leaderName}</div>
                       </div>
                     </div>
                   </div>
@@ -409,7 +395,6 @@ export default function TeamDetailPage() {
                     </div>
                     <div className="flex-1">
                       <div className="text-cyan-300 font-bold">{member.userName}</div>
-                      <div className="text-gray-400 text-sm">{member.userEmail}</div>
                       <div className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
                         member.role === 'dev' ? 'bg-blue-500 text-white' : 'bg-pink-500 text-white'
                       }`}>
@@ -423,7 +408,7 @@ export default function TeamDetailPage() {
                       {(viewer.isAdmin || (!locked && hackathonUser?.userId === teamDetails.team.leaderId)) && member.userId !== teamDetails.team.leaderId && (
                         <Button
                           size="sm"
-                          onClick={() => handleRemoveMember(member.userId)}
+                          onClick={() => setPendingConfirm({ kind: "remove", memberUserId: member.userId })}
                           className="bg-red-500 hover:bg-red-600 text-white"
                         >
                           Remove
@@ -457,21 +442,21 @@ export default function TeamDetailPage() {
                   <div className="flex flex-col sm:flex-row gap-3">
                     {locked ? null : hackathonUser?.userId === teamDetails.team.leaderId ? (
                       <Button
-                        onClick={handleDeleteTeam}
+                        onClick={() => setPendingConfirm({ kind: "delete" })}
                         disabled={isDeleting}
                         className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
                       >
                         <TrashIcon className="mr-2 h-4 w-4" />
-                        {isDeleting ? "Deleting Team..." : "Delete Team"}
+                        {isDeleting ? "Deleting team…" : "Delete Team"}
                       </Button>
                     ) : (
                       <Button
-                        onClick={handleLeaveTeam}
+                        onClick={() => setPendingConfirm({ kind: "leave" })}
                         disabled={isLeaving}
                         className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
                       >
                         <ExitIcon className="mr-2 h-4 w-4" />
-                        {isLeaving ? "Leaving..." : "Leave Team"}
+                        {isLeaving ? "Leaving…" : "Leave Team"}
                       </Button>
                     )}
                     <Button asChild variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
@@ -494,10 +479,10 @@ export default function TeamDetailPage() {
                   <h4 className="text-green-400 font-bold text-xl mb-2">{teamDetails.idea.title}</h4>
                   <p className="text-green-300 mb-3">{teamDetails.idea.description}</p>
                   <div className="flex gap-2">
-                    <Badge className="bg-pink-500 text-white">{teamDetails.idea.votes} votes</Badge>
-                    <Badge className="bg-blue-500 text-white">
-                      {String(teamDetails.idea.authorId) === String(viewer._id) ? "Your Idea" : "External Idea"}
-                    </Badge>
+                    <Badge className="bg-pink-500 text-white">{plural(teamDetails.idea.votes, "upvote")}</Badge>
+                    {String(teamDetails.idea.authorId) === String(viewer._id) && (
+                      <Badge className="bg-blue-500 text-white">Your idea</Badge>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -505,6 +490,7 @@ export default function TeamDetailPage() {
           )}
 
           {/* Status Management */}
+          {hackathonUser?.userId === teamDetails.team.leaderId && (
           <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
             <CardHeader>
               <CardTitle className="text-yellow-400 font-mono">⚙️ Team Status Management</CardTitle>
@@ -531,7 +517,7 @@ export default function TeamDetailPage() {
                     </SelectContent>
                   </Select>
                   {isUpdatingStatus && (
-                    <div className="text-cyan-300 text-sm">Updating...</div>
+                    <div className="text-cyan-300 text-sm">Updating…</div>
                   )}
                 </div>
                 <div className="text-xs text-gray-400 space-y-1">
@@ -543,8 +529,41 @@ export default function TeamDetailPage() {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       </div>
+      <ConfirmDialog
+        open={pendingConfirm !== null}
+        onOpenChange={(open) => !open && setPendingConfirm(null)}
+        title={
+          pendingConfirm?.kind === "delete"
+            ? "Delete this team?"
+            : pendingConfirm?.kind === "remove"
+              ? "Remove this member?"
+              : "Leave this team?"
+        }
+        confirmLabel={
+          pendingConfirm?.kind === "delete"
+            ? "Delete team"
+            : pendingConfirm?.kind === "remove"
+              ? "Remove member"
+              : "Leave team"
+        }
+        tone="destructive"
+        onConfirm={() => {
+          if (pendingConfirm?.kind === "delete") handleDeleteTeam();
+          else if (pendingConfirm?.kind === "remove") handleRemoveMember(pendingConfirm.memberUserId);
+          else handleLeaveTeam();
+        }}
+      >
+        <p>
+          {pendingConfirm?.kind === "delete"
+            ? "This removes the team and all its members from it. It can't be undone."
+            : pendingConfirm?.kind === "remove"
+              ? "They can join another team afterwards while teams are open."
+              : "You can join another team afterwards while teams are open."}
+        </p>
+      </ConfirmDialog>
     </main>
   );
 }
