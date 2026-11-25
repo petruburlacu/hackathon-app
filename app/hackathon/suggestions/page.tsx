@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,6 @@ export default function SuggestionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "votes" | "title">("newest");
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<Id<"suggestions"> | null>(null);
 
   const viewer = useQuery(api.users.viewer);
@@ -111,14 +110,7 @@ export default function SuggestionsPage() {
     }
   };
 
-  const toggleExpanded = (id: string) =>
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
+  const isFiltering = searchQuery !== "" || categoryFilter !== "all";
   const query = searchQuery.toLowerCase();
   const filteredSuggestions = (suggestions ?? []).filter(
     (suggestion) =>
@@ -301,19 +293,22 @@ export default function SuggestionsPage() {
               <CardContent className="p-12 text-center">
                 <div className="text-6xl mb-4" aria-hidden="true">💡</div>
                 <h2 className="text-2xl font-bold text-yellow-400 mb-4">
-                  {searchQuery ? "No Suggestions Found" : "No Suggestions Yet"}
+                  {isFiltering ? "No Suggestions Found" : "No Suggestions Yet"}
                 </h2>
                 <p className="text-cyan-200 mb-6">
-                  {searchQuery
-                    ? `No suggestions match your search for “${searchQuery}”. Try a different search term.`
+                  {isFiltering
+                    ? "No suggestions match your search or category. Try clearing the filters."
                     : "Be the first to submit a suggestion for improving the hackathon!"}
                 </p>
-                {searchQuery && (
+                {isFiltering && (
                   <Button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCategoryFilter("all");
+                    }}
                     className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
                   >
-                    Clear Search
+                    Clear Filters
                   </Button>
                 )}
               </CardContent>
@@ -322,8 +317,6 @@ export default function SuggestionsPage() {
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredSuggestions.map((suggestion) => {
                 const upvoted = hasUpvoted(suggestion._id);
-                const isExpanded = expanded.has(suggestion._id);
-                const isLong = suggestion.description.length > 150;
                 return (
                   <Card
                     key={suggestion._id}
@@ -336,23 +329,7 @@ export default function SuggestionsPage() {
                       </span>
                     </CardHeader>
                     <CardContent className="flex flex-1 flex-col">
-                      <p
-                        className={`text-cyan-200 text-sm leading-relaxed whitespace-pre-line break-words ${
-                          isExpanded ? "" : "line-clamp-3"
-                        }`}
-                      >
-                        {suggestion.description}
-                      </p>
-                      {isLong && (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpanded(suggestion._id)}
-                          aria-expanded={isExpanded}
-                          className="mt-1 self-start text-xs text-cyan-400 underline underline-offset-2 hover:text-cyan-300"
-                        >
-                          {isExpanded ? "Show less" : "Read more"}
-                        </button>
-                      )}
+                      <ClampedText text={suggestion.description} />
 
                       <div className="mt-auto flex items-center justify-between gap-2 pt-4">
                         <span className="min-w-0 truncate text-sm text-gray-400">
@@ -413,5 +390,44 @@ export default function SuggestionsPage() {
         <p>The suggestion and its upvotes will be removed. This can&apos;t be undone.</p>
       </ConfirmDialog>
     </main>
+  );
+}
+
+function ClampedText({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || expanded) return;
+    const measure = () => setOverflows(el.scrollHeight > el.clientHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p
+        ref={ref}
+        className={`text-cyan-200 text-sm leading-relaxed whitespace-pre-line break-words ${
+          expanded ? "" : "line-clamp-3"
+        }`}
+      >
+        {text}
+      </p>
+      {(overflows || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          className="mt-1 self-start text-xs text-cyan-400 underline underline-offset-2 hover:text-cyan-300"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </>
   );
 }

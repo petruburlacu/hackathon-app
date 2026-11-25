@@ -11,7 +11,6 @@ type UrlDialogProps = {
   hint: string;
   initialValue?: string;
   submitLabel: string;
-  // Returns an error message to show inline, or null when the value is accepted.
   validate: (value: string) => string | null;
   onSubmit: (value: string) => void;
 };
@@ -50,6 +49,7 @@ function UrlForm({
 
   return (
     <form
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
         const problem = validate(value);

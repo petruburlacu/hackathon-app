@@ -295,7 +295,7 @@ export default function AdminPage() {
               >
                 <h3 id="danger-zone-heading" className="text-red-300 font-bold">⚠️ Danger zone</h3>
                 <p className="text-sm text-red-200">
-                  These delete every idea, team, upvote, user profile and team submission. They can&apos;t be undone.
+                  These delete every idea, team, idea upvote, user profile and team submission. Feedback suggestions are kept. They can&apos;t be undone.
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button
@@ -450,7 +450,7 @@ export default function AdminPage() {
         {pending?.kind === "clear" || pending?.kind === "clearAndSeed" ? (
           <>
             <p>
-              This permanently deletes {plural(ideas.length, "idea")}, {plural(teams.length, "team")}, every upvote,
+              This permanently deletes {plural(ideas.length, "idea")}, {plural(teams.length, "team")}, every idea upvote,
               every user profile and every team submission.
               {pending.kind === "clearAndSeed" && " Six sample ideas are added afterwards."}
             </p>

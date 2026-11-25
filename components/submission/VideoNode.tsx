@@ -22,7 +22,6 @@ const SHARING_REMINDER = "Check sharing is set to People in Opus 2.";
 export const VIDEO_URL_HINT =
   "Paste a YouTube, Loom, Vimeo, SharePoint or Stream video link.";
 
-// Turns what was typed into a supported video URL, or null if it isn't one.
 export function toVideoUrl(input: string): string | null {
   const url = normaliseHref(input);
   return url && parseVideoUrl(url) ? url : null;
