@@ -12,6 +12,7 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   onConfirm: () => void;
   tone?: "default" | "destructive";
+  confirmDisabled?: boolean;
 };
 
 export function ConfirmDialog({
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   onConfirm,
   tone = "default",
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -47,6 +49,7 @@ export function ConfirmDialog({
               </Button>
             </Dialog.Close>
             <Button
+              disabled={confirmDisabled}
               className={
                 tone === "destructive"
                   ? "bg-red-500 text-white hover:bg-red-600"
