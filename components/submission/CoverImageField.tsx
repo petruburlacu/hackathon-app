@@ -59,7 +59,7 @@ export function CoverImageField({
         <StoredImage storageId={coverImageId} alt="" sizes={COVER_SIZES} />
       ) : (
         <p className="text-sm text-gray-400">
-          Shown on the gallery and the leaderboard.
+          Shown on the Submissions page and the leaderboard.
         </p>
       )}
       <div className="flex flex-wrap gap-2">

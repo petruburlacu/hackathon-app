@@ -335,7 +335,7 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
         <p className="text-cyan-200">{teamName}</p>
       </div>
 
-      <div className="sticky top-20 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-cyan-400/30 bg-slate-900/95 p-3 backdrop-blur-sm">
+      <div className="sticky top-16 md:top-20 z-[5] flex flex-wrap items-center justify-between gap-3 rounded-lg border border-cyan-400/30 bg-slate-900/95 p-3 backdrop-blur-sm">
         <p className="text-sm text-gray-100" aria-live="polite">
           {status}
         </p>
@@ -501,8 +501,8 @@ export function SubmissionWorkspace(props: SubmissionWorkspaceProps) {
 
       <div className="space-y-1 rounded-lg border border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-gray-100">
         <p className="font-semibold text-yellow-300">
-          Don&apos;t include customer names or confidential data; the site is
-          public.
+          Everyone at Opus 2 can read your submission. Don&apos;t include
+          customer names or confidential data.
         </p>
         <p>
           Demo videos: 5 minutes max. <RecordingHelp />
@@ -629,9 +629,11 @@ function Notice({
     info: "border-cyan-400/40 bg-cyan-400/10",
     warning: "border-orange-400/50 bg-orange-400/10",
   };
+  // Neutral notices describe the event phase and don't change while you're on the page,
+  // so only the info and warning ones are announced.
   return (
     <div
-      role="status"
+      role={tone === "neutral" ? undefined : "status"}
       className={`rounded-lg border p-4 text-gray-100 ${tones[tone]}`}
     >
       {children}

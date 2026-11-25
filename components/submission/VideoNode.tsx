@@ -8,9 +8,10 @@ import {
   type NodeViewProps,
 } from "@tiptap/react";
 import type { DOMOutputSpec } from "@tiptap/pm/model";
-import { toast } from "sonner";
+import { useState } from "react";
 import { normaliseHref } from "../../lib/safeHref";
 import { parseVideoUrl, type ParsedVideo } from "../../lib/parseVideoUrl";
+import { UrlDialog } from "./UrlDialog";
 
 const IFRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox";
@@ -18,19 +19,18 @@ const UNSUPPORTED = "Unsupported video link";
 const MAX_LENGTH = "Demo videos: 5 minutes max.";
 const SHARING_REMINDER = "Check sharing is set to People in Opus 2.";
 
-// Asks for a link and turns what was typed into a supported video URL, or explains why not.
-export function promptVideoUrl(previous = ""): string | null {
-  const input = window.prompt(
-    "Paste a YouTube, Loom, Vimeo, SharePoint or Stream video link.",
-    previous,
-  );
-  if (input === null || input.trim() === "") return null;
+export const VIDEO_URL_HINT =
+  "Paste a YouTube, Loom, Vimeo, SharePoint or Stream video link.";
+
+// Turns what was typed into a supported video URL, or null if it isn't one.
+export function toVideoUrl(input: string): string | null {
   const url = normaliseHref(input);
-  if (!url || !parseVideoUrl(url)) {
-    toast.error(UNSUPPORTED);
-    return null;
-  }
-  return url;
+  return url && parseVideoUrl(url) ? url : null;
+}
+
+export function videoUrlError(input: string): string | null {
+  if (input.trim() === "") return "Paste a video link.";
+  return toVideoUrl(input) ? null : `${UNSUPPORTED}. ${VIDEO_URL_HINT}`;
 }
 
 export const Video = Node.create({
@@ -88,11 +88,7 @@ function VideoView({
   const url = String(node.attrs.url ?? "");
   const video = parseVideoUrl(url);
   const editable = editor.isEditable;
-
-  const changeLink = () => {
-    const next = promptVideoUrl(url);
-    if (next) updateAttributes({ url: next });
-  };
+  const [changing, setChanging] = useState(false);
 
   return (
     <NodeViewWrapper className="my-4" data-video="">
@@ -109,7 +105,7 @@ function VideoView({
           </span>
           <button
             type="button"
-            onClick={changeLink}
+            onClick={() => setChanging(true)}
             className="rounded px-2 py-1 text-cyan-300 hover:bg-white/10"
           >
             Change link
@@ -121,6 +117,20 @@ function VideoView({
           >
             Remove video
           </button>
+          <UrlDialog
+            open={changing}
+            onOpenChange={setChanging}
+            title="Change video link"
+            label="Video link"
+            hint={VIDEO_URL_HINT}
+            initialValue={url}
+            submitLabel="Save link"
+            validate={videoUrlError}
+            onSubmit={(value) => {
+              const next = toVideoUrl(value);
+              if (next) updateAttributes({ url: next });
+            }}
+          />
         </div>
       )}
     </NodeViewWrapper>

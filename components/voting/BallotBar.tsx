@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ballotSlots } from "@/lib/ballot";
+import { plural } from "@/lib/plural";
 import { formatUkDayTime } from "@/lib/ukTime";
 import { cn } from "@/lib/utils";
 
@@ -44,15 +45,17 @@ export function BallotBar() {
                     <Link
                       href={`/hackathon/submissions/${holder.submissionId}`}
                       className={chip}
-                      title={`${points} points on ${holder.title}`}
-                      aria-label={`${points} points on ${holder.title}`}
+                      title={`${plural(points, "point")} on ${holder.title}`}
+                      aria-label={`${plural(points, "point")} on ${holder.title}`}
                     >
                       {points}
                     </Link>
                   ) : (
                     <span className={chip}>
                       {points}
-                      <span className="sr-only"> points left</span>
+                      <span className="sr-only">
+                        {points === 1 ? " point left" : " points left"}
+                      </span>
                     </span>
                   )}
                 </li>
