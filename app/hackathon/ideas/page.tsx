@@ -6,47 +6,57 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
-import { PlusIcon, StarIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
+import { plural } from "@/lib/plural";
+import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import { FullScreenLoader } from "@/components/PixelatedLoader";
 import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
+import { IdeaDialog } from "@/components/ideas/IdeaDialog";
+import { UpvoteButton } from "@/components/ideas/UpvoteButton";
+import {
+  EMPTY_IDEA_FORM,
+  IdeaFormFields,
+  parseTags,
+  validateIdeaForm,
+  type IdeaFormValues,
+} from "@/components/ideas/IdeaFormFields";
 import { useEventPhase } from "@/lib/useEventPhase";
 import { teamsLocked } from "@/lib/eventPhase";
 import Link from "next/link";
+
+type Idea = Doc<"ideas">;
+type SortKey = "votes" | "newest" | "title";
+
+const panelClass = "bg-black/40 backdrop-blur-xs border-cyan-400/20";
+const chipClass = "bg-white/10 text-gray-200 text-xs font-normal border-transparent";
 
 export default function IdeasPage() {
   const settings = useQuery(api.hackathon.getSettings);
   const ideaSubmissionsEnabled = settings?.enableIdeaSubmissions ?? true;
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newIdeaTitle, setNewIdeaTitle] = useState("");
-  const [newIdeaDescription, setNewIdeaDescription] = useState("");
-  const [newIdeaCategory, setNewIdeaCategory] = useState<string>("");
-  const [newIdeaTags, setNewIdeaTags] = useState("");
+  const [createValues, setCreateValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "title">("title");
-  
-  // Edit state
-  const [editingIdea, setEditingIdea] = useState<any>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editCategory, setEditCategory] = useState<string>("");
-  const [editTags, setEditTags] = useState("");
-  
-  // Loading states
+  const [sortBy, setSortBy] = useState<SortKey>("votes");
+
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
+  const [editValues, setEditValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
+  const [detailsIdeaId, setDetailsIdeaId] = useState<Id<"ideas"> | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ idea: Idea; asAdmin: boolean } | null>(null);
+
   const [isCreatingIdea, setIsCreatingIdea] = useState(false);
   const [isUpdatingIdea, setIsUpdatingIdea] = useState(false);
-  const [isDeletingIdea, setIsDeletingIdea] = useState(false);
-  const [isVoting, setIsVoting] = useState<string | null>(null);
+  const [votingIdeaId, setVotingIdeaId] = useState<Id<"ideas"> | null>(null);
 
   const viewer = useQuery(api.users.viewer);
-  const hackathonUser = useQuery(api.hackathon.getHackathonUser);
-  const ideas = useQuery(api.hackathon.getIdeas) || [];
-  const teams = useQuery(api.hackathon.getTeams) || [];
+  const ideas = useQuery(api.hackathon.getIdeas);
+  const teams = useQuery(api.hackathon.getTeams) ?? [];
   const myTeamDetails = useQuery(api.hackathon.getMyTeamDetails);
   const phase = useEventPhase(useQuery(api.eventClock.getEventTimes));
   const locked = phase !== undefined && teamsLocked(phase);
@@ -60,64 +70,36 @@ export default function IdeasPage() {
   const deleteIdea = useMutation(api.hackathon.deleteIdea);
   const adminDeleteIdea = useMutation(api.hackathon.adminDeleteIdea);
 
-  if (!viewer) {
-    return <FullScreenLoader text="Loading ideas..." />;
+  if (!viewer || ideas === undefined) {
+    return <FullScreenLoader text="Loading ideas…" />;
   }
 
-  // Simple admin check - in a real app, you'd have proper role-based access
-  const isAdmin = viewer?.isAdmin ?? false;
-
-  // Debug function to help identify the issue
-  const debugAuthorInfo = (idea: any) => {
-    console.log("Debug Author Info:", {
-      ideaId: idea._id,
-      ideaTitle: idea.title,
-      authorId: idea.authorId,
-      authorIdType: typeof idea.authorId,
-      viewerId: viewer?._id,
-      viewerIdType: typeof viewer?._id,
-      viewerUsername: viewer?.username,
-      match: viewer && String(idea.authorId) === String(viewer._id)
-    });
-  };
+  const isAdmin = viewer.isAdmin;
+  // Server mutations compare idea.authorId with the auth user id, which is viewer._id.
+  const isMine = (idea: Idea) => idea.authorId === viewer._id;
+  const hasUpvoted = (ideaId: Id<"ideas">) => voteStatus?.ideaVotes?.some((id) => id === ideaId) ?? false;
+  const teamCount = (ideaId: Id<"ideas">) => teams.filter((team) => team.ideaId === ideaId).length;
+  const myTeam = myTeamDetails?.team;
+  const canAssign = !locked && Boolean(myTeam) && Boolean(myTeamDetails?.isLeader);
+  const detailsIdea = ideas.find((idea) => idea._id === detailsIdeaId) ?? null;
 
   const handleCreateIdea = async () => {
-    if (!ideaSubmissionsEnabled) {
-      toast.error("Idea submissions are currently closed");
+    const error = validateIdeaForm(createValues);
+    if (error) {
+      toast.error(error);
       return;
     }
-    if (!newIdeaTitle.trim() || !newIdeaDescription.trim()) {
-      toast.error("Please fill in both title and description");
-      return;
-    }
-
-    if (newIdeaTitle.trim().length < 5) {
-      toast.error("Idea title must be at least 5 characters long");
-      return;
-    }
-
-    if (newIdeaDescription.trim().length < 20) {
-      toast.error("Idea description must be at least 20 characters long");
-      return;
-    }
-
-    // Parse tags from comma-separated string
-    const tags = newIdeaTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-
     setIsCreatingIdea(true);
     try {
       await createIdea({
-        title: newIdeaTitle.trim(),
-        description: newIdeaDescription.trim(),
-        category: newIdeaCategory,
-        tags: tags,
+        title: createValues.title.trim(),
+        description: createValues.description.trim(),
+        category: createValues.category,
+        tags: parseTags(createValues.tags),
       });
-      setNewIdeaTitle("");
-      setNewIdeaDescription("");
-      setNewIdeaTags("");
-      setNewIdeaCategory("web-app");
+      setCreateValues(EMPTY_IDEA_FORM);
       setShowCreateForm(false);
-      toast.success("Idea submitted successfully!");
+      toast.success("Idea submitted");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to submit idea"));
     } finally {
@@ -125,158 +107,189 @@ export default function IdeasPage() {
     }
   };
 
-  // Filter and sort ideas
+  const query = searchQuery.toLowerCase();
   const filteredAndSortedIdeas = ideas
-    .filter((idea: any) => {
-      // Text search
-      const matchesSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        idea.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        idea.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      // Category filter
+    .filter((idea) => {
+      const matchesSearch =
+        idea.title.toLowerCase().includes(query) ||
+        idea.description.toLowerCase().includes(query) ||
+        idea.tags?.some((tag) => tag.toLowerCase().includes(query));
       const matchesCategory = categoryFilter === "all" || idea.category === categoryFilter;
-      
       return matchesSearch && matchesCategory;
     })
-    .sort((a: any, b: any) => {
+    .sort((a, b) => {
       switch (sortBy) {
         case "newest":
           return b.createdAt - a.createdAt;
-        case "votes":
-          return b.votes - a.votes;
         case "title":
           return a.title.localeCompare(b.title);
         default:
-          return b.votes - a.votes;
+          return b.votes - a.votes || b.createdAt - a.createdAt;
       }
     });
+  const isFiltering = searchQuery !== "" || categoryFilter !== "all";
 
-  const handleToggleIdeaVote = async (ideaId: string) => {
-    setIsVoting(ideaId);
+  const handleToggleUpvote = async (ideaId: Id<"ideas">) => {
+    setVotingIdeaId(ideaId);
     try {
-      const result = await toggleIdeaVote({ ideaId: ideaId as any });
-      if (result.action === "added") {
-        toast.success("Upvoted!");
-      } else {
-        toast.success("Upvote removed");
-      }
+      await toggleIdeaVote({ ideaId });
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to update upvote"));
     } finally {
-      setIsVoting(null);
+      setVotingIdeaId(null);
     }
   };
 
-  const hasVotedForIdea = (ideaId: string) => {
-    if (!voteStatus) return false; // Still loading
-    const ideaIdStr = String(ideaId);
-    return voteStatus.ideaVotes?.some((votedIdeaId: string) => String(votedIdeaId) === ideaIdStr) || false;
-  };
-
-  const handleAssignIdea = async (ideaId: string) => {
-    if (!myTeamDetails?.team) {
-      toast.error("You must be in a team to assign ideas");
-      return;
-    }
-    
+  const handleAssignIdea = async (ideaId: Id<"ideas">) => {
+    if (!myTeam) return;
     try {
-      await assignIdeaToTeam({ teamId: myTeamDetails.team._id, ideaId: ideaId as any });
-      toast.success("Idea assigned to your team!");
+      await assignIdeaToTeam({ teamId: myTeam._id, ideaId });
+      toast.success("Idea assigned to your team");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to assign idea to team"));
     }
   };
 
   const handleRemoveIdea = async () => {
-    if (!myTeamDetails?.team) {
-      toast.error("You must be in a team to remove ideas");
-      return;
-    }
-    
+    if (!myTeam) return;
     try {
-      await removeIdeaFromTeam({ teamId: myTeamDetails.team._id });
-      toast.success("Idea removed from your team!");
+      await removeIdeaFromTeam({ teamId: myTeam._id });
+      toast.success("Idea removed from your team");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to remove idea from team"));
     }
   };
 
-  const handleDeleteIdea = async (ideaId: string) => {
-    if (!confirm("Are you sure you want to delete this idea? This action cannot be undone.")) {
-      return;
-    }
-    
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    const { idea, asAdmin } = pendingDelete;
     try {
-      await deleteIdea({ ideaId: ideaId as any });
-      toast.success("Idea deleted successfully!");
+      if (asAdmin) {
+        await adminDeleteIdea({ ideaId: idea._id });
+      } else {
+        await deleteIdea({ ideaId: idea._id });
+      }
+      if (detailsIdeaId === idea._id) setDetailsIdeaId(null);
+      toast.success("Idea deleted");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to delete idea"));
     }
   };
 
-  const handleAdminDeleteIdea = async (ideaId: string) => {
-    if (!confirm("Are you sure you want to admin delete this idea? This will remove it from all teams and cannot be undone.")) {
-      return;
-    }
-    
-    try {
-      await adminDeleteIdea({ ideaId: ideaId as any });
-      toast.success("Idea admin deleted successfully!");
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to delete idea"));
-    }
-  };
-
-  const handleEditIdea = (idea: any) => {
+  const handleEditIdea = (idea: Idea) => {
     setEditingIdea(idea);
-    setEditTitle(idea.title);
-    setEditDescription(idea.description);
-    setEditCategory(idea.category || "web-app");
-    setEditTags(idea.tags ? idea.tags.join(", ") : "");
+    setEditValues({
+      title: idea.title,
+      description: idea.description,
+      category: idea.category ?? "",
+      tags: idea.tags?.join(", ") ?? "",
+    });
   };
 
   const handleSaveEdit = async () => {
     if (!editingIdea) return;
-
-    if (!editTitle.trim() || !editDescription.trim()) {
-      toast.error("Please fill in both title and description");
+    const error = validateIdeaForm(editValues);
+    if (error) {
+      toast.error(error);
       return;
     }
-
-    if (editTitle.trim().length < 5) {
-      toast.error("Idea title must be at least 5 characters long");
-      return;
-    }
-
-    if (editDescription.trim().length < 20) {
-      toast.error("Idea description must be at least 20 characters long");
-      return;
-    }
-
-    // Parse tags from comma-separated string
-    const tags = editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-
+    setIsUpdatingIdea(true);
     try {
       await updateIdea({
         ideaId: editingIdea._id,
-        title: editTitle.trim(),
-        description: editDescription.trim(),
-        category: editCategory,
-        tags: tags,
+        title: editValues.title.trim(),
+        description: editValues.description.trim(),
+        category: editValues.category,
+        tags: parseTags(editValues.tags),
       });
       setEditingIdea(null);
-      toast.success("Idea updated successfully!");
+      toast.success("Idea updated");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to update idea"));
+    } finally {
+      setIsUpdatingIdea(false);
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingIdea(null);
-    setEditTitle("");
-    setEditDescription("");
-    setEditCategory("web-app");
-    setEditTags("");
+  const ownerActions = (idea: Idea) => (
+    <>
+      {isMine(idea) && (
+        <>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEditIdea(idea)}
+            className="text-cyan-300 hover:bg-cyan-400/10 hover:text-cyan-200"
+          >
+            <Pencil1Icon className="mr-1 h-4 w-4" />
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setPendingDelete({ idea, asAdmin: false })}
+            className="text-red-300 hover:bg-red-500/10 hover:text-red-200"
+          >
+            <TrashIcon className="mr-1 h-4 w-4" />
+            Delete
+          </Button>
+        </>
+      )}
+      {isAdmin && !isMine(idea) && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete({ idea, asAdmin: true })}
+          className="text-red-300 hover:bg-red-500/10 hover:text-red-200"
+        >
+          <TrashIcon className="mr-1 h-4 w-4" />
+          Delete (admin)
+        </Button>
+      )}
+    </>
+  );
+
+  const tagChips = (idea: Idea) =>
+    (idea.category || (idea.tags?.length ?? 0) > 0) && (
+      <div className="flex flex-wrap gap-2">
+        {idea.category && <Badge variant="secondary" className={chipClass}>{idea.category}</Badge>}
+        {idea.tags?.map((tag) => (
+          <Badge key={tag} variant="secondary" className={chipClass}>#{tag}</Badge>
+        ))}
+      </div>
+    );
+
+  const teamNote = (idea: Idea) => {
+    const count = teamCount(idea._id);
+    return count > 0 ? <span className="text-xs text-blue-300">Picked by {plural(count, "team")}</span> : null;
+  };
+
+  const assignmentRow = (idea: Idea) => {
+    if (myTeam?.ideaId === idea._id) {
+      return (
+        <div className="flex items-center justify-between rounded border border-green-400/20 bg-green-500/10 px-2 py-1">
+          <span className="text-xs font-medium text-green-300">✅ Your team&apos;s idea</span>
+          {myTeamDetails?.isLeader && !locked && (
+            <Button size="sm" variant="ghost" onClick={handleRemoveIdea} className="h-7 text-xs text-red-300 hover:bg-red-500/10 hover:text-red-200">
+              Remove
+            </Button>
+          )}
+        </div>
+      );
+    }
+    if (canAssign) {
+      return (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handleAssignIdea(idea._id)}
+          className="w-full border-blue-400/60 bg-transparent text-blue-300 hover:bg-blue-400/10 hover:text-blue-200"
+        >
+          Pick for my team
+        </Button>
+      );
+    }
+    return null;
   };
 
   return (
@@ -295,16 +308,15 @@ export default function IdeasPage() {
           )}
           {locked && myTeamDetails?.isLeader && <TeamsLockedNotice />}
 
-          {/* Submit New Idea */}
           {ideaSubmissionsEnabled && !showCreateForm ? (
-            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+            <Card className={panelClass}>
               <CardContent className="p-4 sm:p-6 text-center">
-                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💡</div>
-                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4" aria-hidden>💡</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
                   Share Your Ideas
-                </h3>
+                </h2>
                 <p className="text-cyan-200 mb-4 sm:mb-6 text-sm sm:text-base hackathon-text">
-                  Have an idea for the hackathon? Submit it and let the community upvote it!
+                  Have an idea for the hackathon? Submit it and let everyone upvote it.
                 </p>
                 <Button
                   onClick={() => setShowCreateForm(true)}
@@ -316,104 +328,44 @@ export default function IdeasPage() {
               </CardContent>
             </Card>
           ) : ideaSubmissionsEnabled ? (
-            <Card id="create-idea-form" className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-400 font-mono flex items-center gap-2">
-                <PlusIcon className="h-5 w-5" />
-                Submit New Idea
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Idea title..."
-                value={newIdeaTitle}
-                onChange={(e) => setNewIdeaTitle(e.target.value)}
-                className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-              />
-              <textarea
-                placeholder="Describe your idea in detail..."
-                value={newIdeaDescription}
-                onChange={(e) => setNewIdeaDescription(e.target.value)}
-                rows={6}
-                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
-              />
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Category</label>
-                  <div className="space-y-2">
-                    <Select value={newIdeaCategory} onValueChange={setNewIdeaCategory}>
-                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue placeholder="Select or create category" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="Development">💻 Development</SelectItem>
-                        <SelectItem value="Product">📦 Product</SelectItem>
-                        <SelectItem value="Automation">🤖 Automation</SelectItem>
-                        <SelectItem value="Productivity">⚡ Productivity</SelectItem>
-                        <SelectItem value="User Experience">🎨 User Experience</SelectItem>
-                        <SelectItem value="Other">🔧 Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Or enter custom category..."
-                      value={newIdeaCategory}
-                      onChange={(e) => setNewIdeaCategory(e.target.value)}
-                      className="bg-black/20 border-cyan-400/30 text-white placeholder-gray-400"
-                    />
-                  </div>
+            <Card id="create-idea-form" className={panelClass}>
+              <CardHeader>
+                <h2 className="text-yellow-400 font-mono font-semibold flex items-center gap-2">
+                  <PlusIcon className="h-5 w-5" />
+                  Submit New Idea
+                </h2>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <IdeaFormFields idPrefix="new-idea" values={createValues} onChange={setCreateValues} />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={handleCreateIdea}
+                    disabled={isCreatingIdea}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 disabled:opacity-50"
+                  >
+                    {isCreatingIdea ? "Submitting…" : "Submit Idea"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setCreateValues(EMPTY_IDEA_FORM);
+                    }}
+                    disabled={isCreatingIdea}
+                    className="border-gray-400 bg-transparent text-gray-300 hover:bg-gray-400 hover:text-black py-3"
+                  >
+                    Cancel
+                  </Button>
                 </div>
-                
-                <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Tags (comma-separated)</label>
-                  <Input
-                    placeholder="react, api, ui, etc..."
-                    value={newIdeaTags}
-                    onChange={(e) => setNewIdeaTags(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleCreateIdea}
-                  disabled={isCreatingIdea}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCreatingIdea ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                      Submitting...
-                    </div>
-                  ) : (
-                    "Submit Idea"
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setNewIdeaTitle("");
-                    setNewIdeaDescription("");
-                    setNewIdeaCategory("");
-                    setNewIdeaTags("");
-                  }}
-                  disabled={isCreatingIdea}
-                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black py-3 disabled:opacity-50"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           ) : (
-            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+            <Card className={panelClass}>
               <CardContent className="p-6 text-center">
-                <div className="text-4xl sm:text-6xl mb-3">⛔</div>
-                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
+                <div className="text-4xl sm:text-6xl mb-3" aria-hidden>⛔</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 hackathon-title">
                   Idea submissions are closed
-                </h3>
+                </h2>
                 <p className="text-cyan-200 text-sm">
                   You can still browse, search, and upvote existing ideas.
                 </p>
@@ -421,348 +373,206 @@ export default function IdeasPage() {
             </Card>
           )}
 
-          {/* Search and Sort Controls */}
-          <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+          <Card className={panelClass}>
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-4">
-                <div className="w-full">
-                  <Input
-                    placeholder="Search ideas by title, description, or tags..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
-                  />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                <Input
+                  type="search"
+                  aria-label="Search ideas"
+                  placeholder="Search ideas by title, description, or tags…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
+                />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                    <SelectTrigger aria-label="Filter by category" className="w-full sm:w-44 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {Array.from(new Set(ideas.map((idea: any) => idea.category)))
+                      <SelectItem value="all">All categories</SelectItem>
+                      {Array.from(new Set(ideas.map((idea) => idea.category)))
                         .filter((category): category is string => Boolean(category))
                         .sort()
-                        .map((category: string) => (
+                        .map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}
                           </SelectItem>
                         ))}
                     </SelectContent>
                   </Select>
-                  <Select value={sortBy} onValueChange={(value: "newest" | "votes" | "title") => setSortBy(value)}>
-                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                  <Select value={sortBy} onValueChange={(value: SortKey) => setSortBy(value)}>
+                    <SelectTrigger aria-label="Sort ideas" className="w-full sm:w-44 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                      <SelectItem value="votes">Most Upvotes</SelectItem>
+                      <SelectItem value="votes">Most upvotes</SelectItem>
                       <SelectItem value="newest">Newest</SelectItem>
                       <SelectItem value="title">Alphabetical</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1 self-center">
-                    {filteredAndSortedIdeas.length} ideas
-                  </Badge>
+                  <span className="text-sm text-gray-400 sm:ml-2" aria-live="polite">
+                    {isFiltering
+                      ? `${plural(filteredAndSortedIdeas.length, "idea")} of ${ideas.length}`
+                      : plural(ideas.length, "idea")}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Ideas List */}
           {filteredAndSortedIdeas.length === 0 ? (
-            <Card className="bg-black/40 backdrop-blur-xs border-cyan-400/20">
+            <Card className={panelClass}>
               <CardContent className="p-8 sm:p-12 text-center">
-                <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">💡</div>
-                <h3 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
-                  {searchQuery ? "No Ideas Found" : "No Ideas Yet"}
-                </h3>
+                <div className="text-4xl sm:text-6xl mb-4 sm:mb-6" aria-hidden>💡</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4 hackathon-title">
+                  {isFiltering ? "No Ideas Found" : "No Ideas Yet"}
+                </h2>
                 <p className="text-cyan-200 mb-6 sm:mb-8 text-sm sm:text-base hackathon-text">
-                  {searchQuery 
-                    ? `No ideas match your search for "${searchQuery}". Try a different search term.`
-                    : "Be the first to submit an innovative idea for the hackathon! Your creativity could inspire amazing projects."
-                  }
+                  {isFiltering
+                    ? "No ideas match your search or filter. Try a different term or category."
+                    : "Be the first to submit an idea for the hackathon."}
                 </p>
-                {searchQuery && (
+                {isFiltering && (
                   <Button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCategoryFilter("all");
+                    }}
                     className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
                   >
-                    Clear Search
+                    Clear Filters
                   </Button>
                 )}
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredAndSortedIdeas.map((idea: any) => (
-              <Card key={idea._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105 flex flex-col h-full">
-                <CardHeader className="shrink-0">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-yellow-400 font-mono text-lg">{idea.title}</CardTitle>
-                    <div className="flex gap-2">
-                      <Badge variant="secondary" className="bg-pink-500 text-white">
-                        {idea.votes} upvotes
-                      </Badge>
-                      <Badge variant="secondary" className="bg-blue-500 text-white">
-                        {teams.filter((team: any) => team.ideaId === idea._id).length} teams
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  {/* Category and Tags */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {idea.category && (
-                      <Badge variant="secondary" className="bg-gray-600 text-white text-xs">
-                        {idea.category}
-                      </Badge>
-                    )}
-                    {idea.tags && idea.tags.length > 0 && (
-                      <>
-                        {idea.tags.map((tag: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="bg-gray-600 text-white text-xs">
-                            #{tag}
-                          </Badge>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <div className="flex-1">
-                    <p className="text-cyan-200 mb-4 text-sm leading-relaxed">
-                      {idea.description.length > 150 
-                        ? `${idea.description.substring(0, 150)}...` 
-                        : idea.description
-                      }
-                    </p>
-                  
-                  {/* Team Assignment Status */}
-                  {myTeamDetails?.team && myTeamDetails.team.ideaId === idea._id && (
-                    <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-400/20">
-                      <div className="flex items-center justify-between">
-                        <span className="text-green-400 text-xs font-medium">✅ Assigned to your team</span>
-                        {myTeamDetails?.isLeader && !locked && (
-                          <Button
-                            size="sm"
-                            onClick={handleRemoveIdea}
-                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1"
+            <ul className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedIdeas.map((idea) => (
+                <li key={idea._id}>
+                  <Card className={`${panelClass} hover:border-cyan-400/50 transition-colors flex flex-col h-full`}>
+                    <CardHeader className="shrink-0 space-y-3">
+                      <CardTitle className="text-yellow-400 font-mono text-lg leading-snug text-balance wrap-break-word">
+                        <h3>
+                          <button
+                            type="button"
+                            onClick={() => setDetailsIdeaId(idea._id)}
+                            className="text-left hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-cyan-400 rounded-sm"
                           >
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Admin Controls - Only visible to admin users for ideas they don't own */}
-                  {isAdmin && idea.authorId !== hackathonUser?.userId && (
-                    <div className="mb-4 p-3 bg-red-500/10 rounded-lg border border-red-400/20">
-                      <h4 className="text-red-400 text-sm font-bold mb-2 flex items-center gap-2">
-                        🚨 Admin Controls
-                      </h4>
-                      <div className="space-y-2">
-                        <p className="text-red-300 text-xs">
-                          Admin-only actions. Use with caution!
-                        </p>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAdminDeleteIdea(idea._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white w-full"
-                        >
-                          Admin Delete Idea
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  
-                  </div>
-                  
-                  {/* Sticky bottom section */}
-                  <div className="mt-auto space-y-3 pt-4 border-t border-cyan-400/20">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">
-                        by {viewer && String(idea.authorId) === String(viewer._id) ? "You" : "Anonymous"}
-                        {isAdmin && (
-                          <button 
-                            onClick={() => debugAuthorInfo(idea)}
-                            className="ml-2 text-xs text-yellow-400 hover:text-yellow-300"
-                          >
-                            Debug
+                            {idea.title}
                           </button>
-                        )}
-                      </span>
-                      <Button
-                        size="sm"
-                        onClick={() => handleToggleIdeaVote(idea._id)}
-                        disabled={isVoting === idea._id}
-                        className={`transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
-                          hasVotedForIdea(idea._id)
-                            ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-300 shadow-lg shadow-green-500/25"
-                            : "bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-300 shadow-lg shadow-pink-500/25"
-                        }`}
+                        </h3>
+                      </CardTitle>
+                      {tagChips(idea)}
+                    </CardHeader>
+                    <CardContent className="flex flex-col flex-1 gap-3">
+                      <p className="flex-1 text-cyan-200 text-sm leading-relaxed line-clamp-4 wrap-break-word">
+                        {idea.description}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setDetailsIdeaId(idea._id)}
+                        className="self-start text-sm text-cyan-300 underline underline-offset-4 hover:text-cyan-100"
                       >
-                        {isVoting === idea._id ? (
-                          <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                            Voting...
-                          </div>
-                        ) : (
-                          <>
-                            <StarIcon className="mr-1 h-4 w-4" />
-                            {hasVotedForIdea(idea._id) ? "Upvoted" : "Upvote"}
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    
-                    {/* Action buttons - organized in rows */}
-                    <div className="space-y-2">
-                      {/* Primary actions row */}
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4"
-                          onClick={() => {
-                            // TODO: Implement idea details modal or page
-                            alert(`Idea Details:\n\nTitle: ${idea.title}\n\nDescription: ${idea.description}\n\nUpvotes: ${idea.votes}\n\nTeams using this idea: ${teams.filter((team: any) => team.ideaId === idea._id).length}`);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                        {!locked && myTeamDetails?.team && myTeamDetails.team.ideaId !== idea._id && myTeamDetails?.isLeader && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleAssignIdea(idea._id)}
-                            variant="outline"
-                            className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4"
-                          >
-                            Assign to Team
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {/* Owner actions row */}
-                      {idea.authorId === hackathonUser?.userId && (
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleEditIdea(idea)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4"
-                          >
-                            <Pencil1Icon className="mr-1 h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleDeleteIdea(idea._id)}
-                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              ))}
-            </div>
-          )}
+                        Read more
+                      </button>
 
+                      {assignmentRow(idea)}
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cyan-400/20 pt-3">
+                        <UpvoteButton
+                          count={idea.votes}
+                          upvoted={hasUpvoted(idea._id)}
+                          pending={votingIdeaId === idea._id}
+                          onToggle={() => handleToggleUpvote(idea._id)}
+                        />
+                        <div className="flex flex-col items-end gap-0.5 text-right">
+                          {isMine(idea) && <span className="text-xs text-yellow-300">Your idea</span>}
+                          {teamNote(idea)}
+                        </div>
+                      </div>
+                      {(isMine(idea) || isAdmin) && (
+                        <div className="-mx-2 flex flex-wrap gap-1">{ownerActions(idea)}</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
-      {/* Edit Idea Modal */}
-      {editingIdea && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl bg-black/90 border-cyan-400/30 text-white">
-            <CardHeader className="relative">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-yellow-400 font-mono text-xl">
-                  Edit Idea
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancelEdit}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <Cross2Icon className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Idea title..."
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
+      <IdeaDialog
+        open={detailsIdea !== null}
+        onOpenChange={(open) => !open && setDetailsIdeaId(null)}
+        title={detailsIdea?.title ?? ""}
+      >
+        {detailsIdea && (
+          <div className="space-y-4">
+            {tagChips(detailsIdea)}
+            <p className="whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-cyan-100">
+              {detailsIdea.description}
+            </p>
+            {assignmentRow(detailsIdea)}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cyan-400/20 pt-4">
+              <UpvoteButton
+                count={detailsIdea.votes}
+                upvoted={hasUpvoted(detailsIdea._id)}
+                pending={votingIdeaId === detailsIdea._id}
+                onToggle={() => handleToggleUpvote(detailsIdea._id)}
               />
-              <textarea
-                placeholder="Describe your idea in detail..."
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                rows={6}
-                className="w-full bg-black/20 border border-cyan-400/30 text-white placeholder:text-gray-400 rounded-md px-3 py-2 resize-vertical focus:outline-hidden focus:ring-2 focus:ring-cyan-400/50"
-              />
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Category</label>
-                  <div className="space-y-2">
-                    <Select value={editCategory} onValueChange={setEditCategory}>
-                      <SelectTrigger className="bg-black/20 border-cyan-400/30 text-white">
-                        <SelectValue placeholder="Select or create category" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
-                        <SelectItem value="Development">💻 Development</SelectItem>
-                        <SelectItem value="Product">📦 Product</SelectItem>
-                        <SelectItem value="Automation">🤖 Automation</SelectItem>
-                        <SelectItem value="Productivity">⚡ Productivity</SelectItem>
-                        <SelectItem value="User Experience">🎨 User Experience</SelectItem>
-                        <SelectItem value="Other">🔧 Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Or enter custom category..."
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value)}
-                      className="bg-black/20 border-cyan-400/30 text-white placeholder-gray-400"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Tags (comma-separated)</label>
-                  <Input
-                    placeholder="react, api, ui, etc..."
-                    value={editTags}
-                    onChange={(e) => setEditTags(e.target.value)}
-                    className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
-                  />
-                </div>
+              <div className="flex flex-col items-end gap-0.5 text-right">
+                {isMine(detailsIdea) && <span className="text-xs text-yellow-300">Your idea</span>}
+                {teamNote(detailsIdea)}
               </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={handleSaveEdit}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold flex-1"
-                >
-                  Save Changes
-                </Button>
-                <Button
-                  onClick={handleCancelEdit}
-                  variant="outline"
-                  className="border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-black flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            {(isMine(detailsIdea) || isAdmin) && (
+              <div className="-mx-2 flex flex-wrap gap-1">{ownerActions(detailsIdea)}</div>
+            )}
+          </div>
+        )}
+      </IdeaDialog>
+
+      <IdeaDialog
+        open={editingIdea !== null}
+        onOpenChange={(open) => !open && setEditingIdea(null)}
+        title="Edit Idea"
+      >
+        <div className="space-y-4">
+          <IdeaFormFields idPrefix="edit-idea" values={editValues} onChange={setEditValues} />
+          <div className="flex gap-2 pt-2">
+            <Button
+              onClick={handleSaveEdit}
+              disabled={isUpdatingIdea}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold flex-1"
+            >
+              {isUpdatingIdea ? "Saving…" : "Save Changes"}
+            </Button>
+            <Button
+              onClick={() => setEditingIdea(null)}
+              variant="outline"
+              className="border-gray-400 bg-transparent text-gray-300 hover:bg-gray-400 hover:text-black flex-1"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
-      )}
+      </IdeaDialog>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title={pendingDelete?.asAdmin ? "Delete this idea as admin?" : "Delete your idea?"}
+        confirmLabel="Delete Idea"
+        tone="destructive"
+        onConfirm={handleConfirmDelete}
+      >
+        <p>
+          &ldquo;{pendingDelete?.idea.title}&rdquo; and its upvotes will be removed
+          {pendingDelete?.asAdmin ? ", including from any team that picked it" : ""}. This can&apos;t be undone.
+        </p>
+      </ConfirmDialog>
     </main>
   );
 }
