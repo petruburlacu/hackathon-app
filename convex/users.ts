@@ -4,13 +4,13 @@ import { components } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, query, type QueryCtx } from "./_generated/server";
 
-const DEFAULT_ADMIN_USERNAMES = ["admin@hackathon.com"];
-
+// Unset means no admins: a built-in default username could be claimed by
+// whoever signs up with it first.
 function adminUsernames(): string[] {
-  const configured = process.env.ADMIN_USERNAMES?.split(",")
+  return (process.env.ADMIN_USERNAMES ?? "")
+    .split(",")
     .map((name) => name.trim().toLowerCase())
     .filter(Boolean);
-  return configured?.length ? configured : DEFAULT_ADMIN_USERNAMES;
 }
 
 function isAdminUsername(username: string | null): boolean {
