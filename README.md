@@ -29,7 +29,7 @@ You don't need any auth keys or other env vars for local development.
 ### Create your first users
 
 1. Go to <http://localhost:3000/signin> and choose **Join the hackathon**.
-2. Sign up with the username `admin@hackathon.com` to get the admin role. Any other username is a regular participant (see *Admins* below to change who is admin).
+2. Set `ADMIN_USERNAMES` (see *Admins* below), then sign up with one of those usernames to get the admin role. Any other username is a regular participant.
 3. Passwords need at least 10 characters and can't be a common password.
 4. As admin, the **Admin** page can seed sample ideas and toggle submissions.
 
@@ -37,14 +37,14 @@ You don't need any auth keys or other env vars for local development.
 
 ### Admins
 
-By default the only admin is `admin@hackathon.com`. To use your own accounts instead, set `ADMIN_USERNAMES` on the Convex deployment to a comma-separated list (matching ignores case):
+There are no admins until you set `ADMIN_USERNAMES` on the Convex deployment to a comma-separated list of usernames (matching ignores case):
 
 ```sh
 npx convex env set ADMIN_USERNAMES "alice@opus2.com,bob@opus2.com"          # dev
 npx convex env set --prod ADMIN_USERNAMES "alice@opus2.com,bob@opus2.com"   # production
 ```
 
-Once it is set, `admin@hackathon.com` is no longer an admin unless you include it. Only list usernames that are already registered by the right person.
+Only list usernames that are already registered by the right person, or register them before sharing the URL.
 
 ## Scripts
 
@@ -79,7 +79,7 @@ How auth works: Convex Auth v2 keeps auth data in Convex **components**, not in 
 | Where | Variable | Purpose |
 |---|---|---|
 | Convex deployment env (optional) | `ENABLE_IDEA_SUBMISSIONS`, `ENABLE_TEAM_SUBMISSIONS` | Default for submissions when the admin hasn't set them in the app (`"false"` closes them). Admin settings in the database win. |
-| Convex deployment env (optional) | `ADMIN_USERNAMES` | Comma-separated admin usernames. Defaults to `admin@hackathon.com`. See [Admins](#admins). |
+| Convex deployment env (optional) | `ADMIN_USERNAMES` | Comma-separated admin usernames. No admins when unset. See [Admins](#admins). |
 | Vercel | `CONVEX_DEPLOY_KEY` | Lets the Vercel build deploy Convex functions (see below). |
 
 `NEXT_PUBLIC_CONVEX_URL` is set for you: by `convex dev` locally, and by `convex deploy` on Vercel.
@@ -106,7 +106,7 @@ Easiest and safest way: create a **new Convex project** and point Vercel at it. 
 1. Create a new project in the [Convex dashboard](https://dashboard.convex.dev). Or run `npx convex dev --configure new` locally, which also switches your `.env.local` to it.
 2. Generate a production deploy key for the new project and replace `CONVEX_DEPLOY_KEY` in Vercel (Production).
 3. Redeploy on Vercel. The first build creates the schema and installs the auth components.
-4. Register `admin@hackathon.com` right away (see above), then seed or configure from the Admin page.
+4. Set `ADMIN_USERNAMES` with `--prod` and register those accounts right away (see above), then seed or configure from the Admin page.
 5. When you no longer need the old Convex project, delete it from its dashboard *Settings*.
 
 Update the event details too: the event name and start date live in [`lib/event.ts`](./lib/event.ts).

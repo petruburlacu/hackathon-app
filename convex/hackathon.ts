@@ -28,9 +28,8 @@ export const createHackathonUser = mutation({
       throw new ConvexError("Not signed in");
     }
 
-    // Only allow admin role for admin@hackathon.com
     if (args.role === "admin" && !(await isAdmin(ctx, userId))) {
-      throw new ConvexError("Admin role can only be assigned to admin@hackathon.com");
+      throw new ConvexError("Admin role can only be assigned to admin accounts");
     }
 
     // Check if user already exists

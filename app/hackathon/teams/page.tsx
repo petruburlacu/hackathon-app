@@ -52,7 +52,6 @@ export default function TeamsPage() {
     return <FullScreenLoader text="Loading teams..." />;
   }
 
-  // Admin check - only allow admin@hackathon.com
   const isAdmin = viewer.isAdmin;
 
   const handleCreateTeam = async () => {
