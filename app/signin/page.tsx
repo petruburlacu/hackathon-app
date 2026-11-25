@@ -9,7 +9,6 @@ import {
 } from "@convex-dev/auth/methods/username-password/react";
 import { DEFAULT_MIN_PASSWORD_LENGTH } from "@convex-dev/auth/methods/username-password";
 import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import { useState } from "react";
 
@@ -19,7 +18,6 @@ export default function SignInPage() {
   const { signIn, pending: signInPending } = useSignInWithUsernamePassword(api.auth);
   const { signUp, pending: signUpPending } = useSignUpWithUsernamePassword(api.auth);
   const isLoading = signInPending || signUpPending;
-  const router = useRouter();
 
   const validateForm = (username: string, password: string) => {
     const newErrors: {username?: string; password?: string} = {};
@@ -60,7 +58,10 @@ export default function SignInPage() {
 
     if (result.status === "complete") {
       toast.success(isSignUp ? "Account created successfully!" : "Signed in successfully!");
-      router.push("/hackathon");
+      // Hard navigation: the client router may hold a cached signed-out
+      // redirect for /hackathon (-> /signin), which router.push would replay.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/hackathon");
       return;
     }
 
