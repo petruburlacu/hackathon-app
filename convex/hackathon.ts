@@ -1,8 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { components } from "./_generated/api";
-import { isAdmin } from "./users";
+import { displayNameOf, isAdmin, UNNAMED } from "./users";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
 import { ConvexError, v } from "convex/values";
 import { loadEventTimes } from "./eventClock";
 import { deleteSubmissionCascade } from "./submissions";
@@ -534,17 +533,6 @@ export const updateTeam = mutation({
     return args.teamId;
   },
 });
-
-// Usernames are often email addresses, so only display names leave the server.
-const UNNAMED = "Unnamed participant";
-
-async function displayNameOf(ctx: QueryCtx, userId: Id<"users">) {
-  const profile = await ctx.db
-    .query("hackathonUsers")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .first();
-  return profile?.displayName || UNNAMED;
-}
 
 export const getTeams = query({
   args: {},
@@ -1277,14 +1265,7 @@ export const getSuggestions = query({
     return await Promise.all(
       suggestions.map(async ({ authorId, ...suggestion }) => {
         const isMine = viewerId !== null && authorId === viewerId;
-        let authorName: string | null = null;
-        if (!suggestion.isAnonymous) {
-          const author = await ctx.db
-            .query("hackathonUsers")
-            .withIndex("by_user", (q) => q.eq("userId", authorId))
-            .first();
-          authorName = author?.displayName ?? null;
-        }
+        const authorName = suggestion.isAnonymous ? null : await displayNameOf(ctx, authorId);
         return { ...suggestion, authorName, isMine, canDelete: isMine || viewerIsAdmin };
       }),
     );
