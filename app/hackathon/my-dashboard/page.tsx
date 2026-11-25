@@ -17,10 +17,14 @@ import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
 import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
 import { useTeamsLocked } from "@/lib/useTeamsLocked";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { plural } from "@/lib/plural";
+import { MAX_TEAM_SIZE } from "@/lib/event";
 
 export default function MyDashboardPage() {
   const [isLeaving, setIsLeaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"leave" | "delete" | null>(null);
 
   const viewer = useQuery(api.users.viewer);
   const myIdeas = useQuery(api.hackathon.getMyIdeas) || [];
@@ -34,7 +38,7 @@ export default function MyDashboardPage() {
   if (!viewer) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-yellow-400 text-xl">Loading...</div>
+        <div className="text-yellow-400 text-xl">Loading…</div>
       </div>
     );
   }
@@ -52,10 +56,6 @@ export default function MyDashboardPage() {
   };
 
   const handleDeleteTeam = async () => {
-    if (!confirm("Are you sure you want to delete this team? This action cannot be undone.")) {
-      return;
-    }
-    
     setIsDeleting(true);
     try {
       await deleteTeam({});
@@ -123,10 +123,7 @@ export default function MyDashboardPage() {
                 <div className="text-center py-8">
                   <div className="text-6xl mb-4">💡</div>
                   <h3 className="text-xl font-bold text-yellow-400 mb-2">No Ideas Yet</h3>
-                  <p className="text-cyan-200 mb-4">Start by submitting your first hackathon idea!</p>
-                  <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-                    <Link href="/hackathon/ideas">Submit Idea</Link>
-                  </Button>
+                  <p className="text-cyan-200">Start by submitting your first hackathon idea!</p>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -135,18 +132,13 @@ export default function MyDashboardPage() {
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="text-yellow-400 font-bold text-lg">{idea.title}</h4>
                         <div className="flex gap-2">
-                          <Badge className="bg-pink-500 text-white text-xs">{idea.votes} upvotes</Badge>
+                          <Badge className="bg-pink-500 text-white text-xs">{plural(idea.votes, "upvote")}</Badge>
                         </div>
                       </div>
                       <p className="text-cyan-200 text-sm mb-3 line-clamp-3">{idea.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400">
-                          Submitted {new Date(idea.createdAt).toLocaleDateString()}
-                        </span>
-                        <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black">
-                          <Link href="/hackathon/ideas">View All Ideas</Link>
-                        </Button>
-                      </div>
+                      <span className="text-xs text-gray-400">
+                        Submitted {new Date(idea.createdAt).toLocaleDateString("en-GB")}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -169,16 +161,9 @@ export default function MyDashboardPage() {
                   ) : (
                     <p className="text-cyan-200 mb-4">Join a team or create your own to start collaborating!</p>
                   )}
-                  <div className="flex gap-4 justify-center">
-                    <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white font-bold">
-                      <Link href="/hackathon/teams">Browse Teams</Link>
-                    </Button>
-                    {!locked && (
-                      <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
-                        <Link href="/hackathon/teams">Create Team</Link>
-                      </Button>
-                    )}
-                  </div>
+                  <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+                    <Link href="/hackathon/teams">{locked ? "Browse teams" : "Find or create a team"}</Link>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -202,18 +187,12 @@ export default function MyDashboardPage() {
                     </div>
                     
                     {/* Team Stats */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-cyan-300">
-                          {myTeamDetails.team.currentDevs}/{myTeamDetails.team.maxDevs}
-                        </div>
-                        <div className="text-xs text-gray-400">Developers</div>
+                    <div className="mb-4">
+                      <div className="text-lg font-bold text-cyan-300">
+                        Members {myTeamDetails.team.currentDevs + myTeamDetails.team.currentNonDevs}/{MAX_TEAM_SIZE}
                       </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-cyan-300">
-                          {myTeamDetails.team.currentNonDevs}/{myTeamDetails.team.maxNonDevs}
-                        </div>
-                        <div className="text-xs text-gray-400">Non-Developers</div>
+                      <div className="text-xs text-gray-400">
+                        {plural(myTeamDetails.team.currentDevs, "developer")} · {plural(myTeamDetails.team.currentNonDevs, "non-developer")}
                       </div>
                     </div>
 
@@ -233,28 +212,28 @@ export default function MyDashboardPage() {
                     {locked && <TeamsLockedNotice className="mb-3" />}
                     <div className="flex gap-2">
                       <Button asChild size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
-                        <Link href="/hackathon/teams">View Team Details</Link>
+                        <Link href={`/hackathon/teams/${myTeamDetails.team._id}`}>View Team Details</Link>
                       </Button>
                       
                       {locked ? null : !myTeamDetails.isLeader ? (
                         <Button
                           size="sm"
-                          onClick={handleLeaveTeam}
+                          onClick={() => setConfirmAction("leave")}
                           disabled={isLeaving}
                           className="bg-red-500 hover:bg-red-600 text-white"
                         >
                           <ExitIcon className="mr-1 h-4 w-4" />
-                          {isLeaving ? "Leaving..." : "Leave Team"}
+                          {isLeaving ? "Leaving…" : "Leave Team"}
                         </Button>
                       ) : (
                         <Button
                           size="sm"
-                          onClick={handleDeleteTeam}
+                          onClick={() => setConfirmAction("delete")}
                           disabled={isDeleting}
                           className="bg-red-500 hover:bg-red-600 text-white"
                         >
                           <TrashIcon className="mr-1 h-4 w-4" />
-                          {isDeleting ? "Deleting..." : "Delete Team"}
+                          {isDeleting ? "Deleting…" : "Delete Team"}
                         </Button>
                       )}
                     </div>
@@ -273,7 +252,7 @@ export default function MyDashboardPage() {
                               {member.role === 'dev' ? '💻 Dev' : '🎨 Non-Dev'}
                             </span>
                             <span className="text-cyan-200 text-sm">
-                              {member.userId === viewer._id ? "You" : "Anonymous"}
+                              {member.userId === viewer._id ? "You" : member.userName}
                             </span>
                           </div>
                           {member.userId === myTeamDetails.team.leaderId && (
@@ -289,6 +268,20 @@ export default function MyDashboardPage() {
           </Card>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction === "delete" ? "Delete this team?" : "Leave this team?"}
+        confirmLabel={confirmAction === "delete" ? "Delete team" : "Leave team"}
+        tone="destructive"
+        onConfirm={confirmAction === "delete" ? handleDeleteTeam : handleLeaveTeam}
+      >
+        <p>
+          {confirmAction === "delete"
+            ? "This removes the team for everyone. It can't be undone."
+            : "You can join another team afterwards while teams are open."}
+        </p>
+      </ConfirmDialog>
     </main>
   );
 }

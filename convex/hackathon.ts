@@ -1,7 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { components } from "./_generated/api";
-import { getUsername, isAdmin } from "./users";
+import { isAdmin } from "./users";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { ConvexError, v } from "convex/values";
 import { loadEventTimes } from "./eventClock";
 import { deleteSubmissionCascade } from "./submissions";
@@ -282,10 +283,7 @@ export const getUserVoteStatus = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    console.log("getUserVoteStatus - userId:", userId);
-    
     if (userId === null) {
-      console.log("getUserVoteStatus - user not signed in");
       return { ideaVotes: [], suggestionVotes: [] };
     }
 
@@ -301,13 +299,10 @@ export const getUserVoteStatus = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const result = {
+    return {
       ideaVotes: ideaVotes.map(vote => vote.ideaId),
       suggestionVotes: suggestionVotes.map(vote => vote.suggestionId),
     };
-
-    console.log("getUserVoteStatus - result:", result);
-    return result;
   },
 });
 
@@ -540,10 +535,27 @@ export const updateTeam = mutation({
   },
 });
 
+// Usernames are often email addresses, so only display names leave the server.
+const UNNAMED = "Unnamed participant";
+
+async function displayNameOf(ctx: QueryCtx, userId: Id<"users">) {
+  const profile = await ctx.db
+    .query("hackathonUsers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
+  return profile?.displayName || UNNAMED;
+}
+
 export const getTeams = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("teams").collect();
+    const teams = await ctx.db.query("teams").collect();
+    return await Promise.all(
+      teams.map(async (team) => ({
+        ...team,
+        leaderName: await displayNameOf(ctx, team.leaderId),
+      })),
+    );
   },
 });
 
@@ -1068,23 +1080,11 @@ export const getMyTeamDetails = query({
       .collect();
 
     // Get user details for each member
-    const membersWithDetails = await Promise.all(
-      members.map(async (member) => {
-        const username = await getUsername(ctx, member.userId);
-        return {
-          ...member,
-          userName: member.displayName || username || "Unknown",
-          userEmail: username || "Unknown",
-        };
-      })
-    );
-
-    // Get team leader details
-    const leaderUser = await ctx.db.get(team.leaderId);
-    const leader = leaderUser && {
-      ...leaderUser,
-      username: await getUsername(ctx, team.leaderId),
-    };
+    const membersWithDetails = members.map((member) => ({
+      ...member,
+      userName: member.displayName || UNNAMED,
+    }));
+    const leaderName = await displayNameOf(ctx, team.leaderId);
 
     // Get assigned idea details
     let idea = null;
@@ -1095,7 +1095,7 @@ export const getMyTeamDetails = query({
     return {
       team,
       members: membersWithDetails,
-      leader,
+      leaderName,
       idea,
       isLeader: team.leaderId === userId,
     };
@@ -1169,23 +1169,11 @@ export const getTeamDetails = query({
       .collect();
 
     // Get user details for each member
-    const membersWithDetails = await Promise.all(
-      members.map(async (member) => {
-        const username = await getUsername(ctx, member.userId);
-        return {
-          ...member,
-          userName: member.displayName || username || "Unknown",
-          userEmail: username || "Unknown",
-        };
-      })
-    );
-
-    // Get team leader details
-    const leaderUser = await ctx.db.get(team.leaderId);
-    const leader = leaderUser && {
-      ...leaderUser,
-      username: await getUsername(ctx, team.leaderId),
-    };
+    const membersWithDetails = members.map((member) => ({
+      ...member,
+      userName: member.displayName || UNNAMED,
+    }));
+    const leaderName = await displayNameOf(ctx, team.leaderId);
 
     // Get assigned idea details
     let idea = null;
@@ -1196,7 +1184,7 @@ export const getTeamDetails = query({
     return {
       team,
       members: membersWithDetails,
-      leader,
+      leaderName,
       idea,
     };
   },
@@ -1283,7 +1271,23 @@ export const getSuggestions = query({
       }
     });
 
-    return suggestions;
+    // authorId never leaves the server: anonymous authors must stay anonymous.
+    const viewerId = await getAuthUserId(ctx);
+    const viewerIsAdmin = viewerId !== null && (await isAdmin(ctx, viewerId));
+    return await Promise.all(
+      suggestions.map(async ({ authorId, ...suggestion }) => {
+        const isMine = viewerId !== null && authorId === viewerId;
+        let authorName: string | null = null;
+        if (!suggestion.isAnonymous) {
+          const author = await ctx.db
+            .query("hackathonUsers")
+            .withIndex("by_user", (q) => q.eq("userId", authorId))
+            .first();
+          authorName = author?.displayName ?? null;
+        }
+        return { ...suggestion, authorName, isMine, canDelete: isMine || viewerIsAdmin };
+      }),
+    );
   },
 });
 

@@ -11,12 +11,14 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errorMessage";
-import { RocketIcon, AvatarIcon, StarIcon, Pencil1Icon } from "@radix-ui/react-icons";
+import { RocketIcon, AvatarIcon, StarIcon } from "@radix-ui/react-icons";
 import { HackathonNav } from "@/components/HackathonNav";
 import Link from "next/link";
 import { FullScreenLoader, GridSkeleton } from "@/components/PixelatedLoader";
 import { TeamsLockedNotice } from "@/components/TeamsLockedNotice";
 import { useTeamsLocked } from "@/lib/useTeamsLocked";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { plural } from "@/lib/plural";
 
 export default function TeamsPage() {
   const settings = useQuery(api.hackathon.getSettings);
@@ -26,8 +28,8 @@ export default function TeamsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDescription, setNewTeamDescription] = useState("");
-  // Role-specific caps removed; total team size is fixed at 6
-  
+  const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
+
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -49,7 +51,7 @@ export default function TeamsPage() {
   const adminDeleteTeam = useMutation(api.hackathon.adminDeleteTeam);
 
   if (!viewer) {
-    return <FullScreenLoader text="Loading teams..." />;
+    return <FullScreenLoader text="Loading teams…" />;
   }
 
   const isAdmin = viewer.isAdmin;
@@ -124,10 +126,6 @@ export default function TeamsPage() {
   };
 
   const handleAdminDeleteTeam = async (teamId: string) => {
-    if (!confirm("Are you sure you want to admin delete this team? This will remove all members and cannot be undone.")) {
-      return;
-    }
-    
     try {
       await adminDeleteTeam({ teamId: teamId as any });
       toast.success("Team admin deleted successfully!");
@@ -204,9 +202,10 @@ export default function TeamsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
+                  <label htmlFor="new-team-name" className="text-sm text-cyan-300 mb-2 block">Team Name *</label>
                   <Input
-                    placeholder="Enter a creative team name..."
+                    id="new-team-name"
+                    placeholder="Enter a creative team name…"
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
                     className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400"
@@ -216,9 +215,10 @@ export default function TeamsPage() {
                 </div>
                 
                 <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Team Description (Optional)</label>
+                  <label htmlFor="new-team-description" className="text-sm text-cyan-300 mb-2 block">Team Description (Optional)</label>
                   <textarea
-                    placeholder="Describe your team's vision, goals, and what you're looking for in members..."
+                    id="new-team-description"
+                    placeholder="Describe your team's vision, goals, and what you're looking for in members…"
                     value={newTeamDescription}
                     onChange={(e) => setNewTeamDescription(e.target.value)}
                     rows={4}
@@ -228,19 +228,9 @@ export default function TeamsPage() {
                   <p className="text-xs text-gray-400 mt-1">Help others understand your team&apos;s focus</p>
                 </div>
                 
-                <div>
-                  <label className="text-sm text-cyan-300 mb-2 block">Max Members</label>
-                  <div className="flex items-center gap-2 p-2 bg-black/20 border border-cyan-400/30 rounded-md">
-                    <Badge className="bg-cyan-500 text-white">Max Members: 6</Badge>
-                    <span className="text-xs text-gray-400">Any mix of roles</span>
-                  </div>
-                </div>
-                
-                <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
-                  <p className="text-blue-200 text-sm">
-                    💡 <strong>Tip:</strong> Balanced teams (1 dev + 1 non-dev) often work well, but you can adjust based on your project needs.
-                  </p>
-                </div>
+                <p className="text-sm text-gray-300">
+                  Up to {MAX_TEAM_SIZE} members, any mix of roles.
+                </p>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
@@ -293,13 +283,14 @@ export default function TeamsPage() {
                       🎲 Join a Random Team
                     </Button>
                     <p className="text-xs text-gray-400 self-center">
-                      We’ll place you into an open team that has capacity for your role.
+                      We’ll place you in an open team that has space.
                     </p>
                   </div>
                 )}
                 <div className="w-full">
                   <Input
-                    placeholder="Search teams by name or description..."
+                    aria-label="Search teams"
+                    placeholder="Search teams by name or description…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-black/20 border-cyan-400/30 text-white placeholder:text-gray-400 w-full"
@@ -307,7 +298,7 @@ export default function TeamsPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                    <SelectTrigger aria-label="Filter by status" className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
@@ -319,7 +310,7 @@ export default function TeamsPage() {
                     </SelectContent>
                   </Select>
                   <Select value={sortBy} onValueChange={(value: "newest" | "name") => setSortBy(value)}>
-                    <SelectTrigger className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
+                    <SelectTrigger aria-label="Sort teams" className="w-full sm:w-40 bg-black/20 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 border-cyan-400/30 text-white">
@@ -327,9 +318,9 @@ export default function TeamsPage() {
                       <SelectItem value="name">Alphabetical</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Badge variant="secondary" className="bg-cyan-500 text-white px-3 py-1 self-center">
-                    {filteredAndSortedTeams.length} teams
-                  </Badge>
+                  <span className="text-sm text-gray-300 self-center">
+                    {plural(filteredAndSortedTeams.length, "team")}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -359,31 +350,24 @@ export default function TeamsPage() {
                   >
                     Clear Filters
                   </Button>
-                ) : !userCreatedTeam && !locked ? (
+                ) : !locked && teamSubmissionsEnabled && !hackathonUser?.teamId ? (
                   <Button
                     onClick={() => {
-                      // Scroll to the create form
-                      const formElement = document.getElementById('create-team-form');
-                      if (formElement) {
-                        formElement.scrollIntoView({ behavior: 'smooth' });
-                      }
+                      setShowCreateForm(true);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3"
                   >
                     <RocketIcon className="mr-2 h-4 w-4" />
                     Create First Team
                   </Button>
-                ) : userCreatedTeam ? (
-                  <p className="text-cyan-300 text-sm">
-                    You've already created a team! Check it out below.
-                  </p>
                 ) : null}
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedTeams.map((team: any) => (
-              <Card key={team._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-all hover:scale-105">
+              <Card key={team._id} className="bg-black/40 backdrop-blur-xs border-cyan-400/20 hover:border-cyan-400/40 transition-colors">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-yellow-400 font-mono text-lg wrap-break-word line-clamp-1">{team.name}</CardTitle>
@@ -394,13 +378,14 @@ export default function TeamsPage() {
                     <p className="text-cyan-200 mb-4 text-sm leading-relaxed wrap-break-word line-clamp-3">{team.description}</p>
                   )}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-cyan-300">Developers:</span>
-                      <span className="text-white">{team.currentDevs}/{team.maxDevs}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-cyan-300">Non-Developers:</span>
-                      <span className="text-white">{team.currentNonDevs}/{team.maxNonDevs}</span>
+                    <div className="text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-cyan-300">Members:</span>
+                        <span className="text-white">{team.currentDevs + team.currentNonDevs}/{MAX_TEAM_SIZE}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 text-right">
+                        {plural(team.currentDevs, "developer")} · {plural(team.currentNonDevs, "non-developer")}
+                      </div>
                     </div>
                     <div className="text-sm">
                       <div className="text-cyan-300 mb-1">Current Idea:</div>
@@ -480,7 +465,7 @@ export default function TeamsPage() {
                                     <div className="flex items-center gap-2">
                                       <span>{idea.title}</span>
                                       <Badge className="bg-pink-500 text-white text-xs ml-2">
-                                        {idea.votes} upvotes
+                                        {plural(idea.votes, "upvote")}
                                       </Badge>
                                     </div>
                                   </SelectItem>
@@ -488,45 +473,13 @@ export default function TeamsPage() {
                               )}
                             </SelectContent>
                           </Select>
-                          <div className="flex flex-col gap-2">
-                            <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
-                              <Link href="/hackathon/ideas">Browse All Ideas</Link>
-                            </Button>
-                            {ideaSubmissionsEnabled && (
-                              <Button asChild size="sm" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black py-2 px-4">
-                                <Link href="/hackathon/ideas">Submit New Idea</Link>
-                              </Button>
-                            )}
-                          </div>
+                          <Button asChild size="sm" variant="outline" className="w-full border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
+                            <Link href="/hackathon/ideas">
+                              {ideaSubmissionsEnabled ? "Browse or submit ideas" : "Browse ideas"}
+                            </Link>
+                          </Button>
                         </div>
                       )}
-                    </div>
-                  )}
-
-                  {/* Team Member Management */}
-                  {team.leaderId === hackathonUser?.userId && (
-                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-400/20">
-                      <h4 className="text-cyan-300 text-sm font-bold mb-2 flex items-center gap-2">
-                        <AvatarIcon className="h-4 w-4" /> Team Management
-                      </h4>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-xs">
-                          As team leader, you can manage your team members and settings.
-                        </p>
-                        <div className="flex flex-col gap-2">
-                          <Button asChild size="sm" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black py-2 px-4">
-                            <Link href={`/hackathon/teams/${team._id}`}>
-                              Manage Members
-                            </Link>
-                          </Button>
-                          <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
-                            <Link href={`/hackathon/teams/${team._id}`}>
-                              <Pencil1Icon className="mr-1 h-4 w-4" />
-                              Edit Team
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
                     </div>
                   )}
 
@@ -542,7 +495,7 @@ export default function TeamsPage() {
                         </p>
                         <Button
                           size="sm"
-                          onClick={() => handleAdminDeleteTeam(team._id)}
+                          onClick={() => setTeamToDelete(team._id)}
                           className="bg-red-500 hover:bg-red-600 text-white w-full"
                         >
                           Admin Delete Team
@@ -554,11 +507,11 @@ export default function TeamsPage() {
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-400">
-                                Leader: {team.leaderId === hackathonUser?.userId ? "You" : "Anonymous"}
+                                Leader: {team.leaderId === hackathonUser?.userId ? "You" : team.leaderName}
                               </span>
                               <Button asChild size="sm" variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black py-2 px-4">
                                 <Link href={`/hackathon/teams/${team._id}`}>
-                                  View Details
+                                  {team.leaderId === hackathonUser?.userId ? "Manage team" : "View details"}
                                 </Link>
                               </Button>
                             </div>
@@ -583,6 +536,16 @@ export default function TeamsPage() {
 
         </div>
       </div>
+      <ConfirmDialog
+        open={teamToDelete !== null}
+        onOpenChange={(open) => !open && setTeamToDelete(null)}
+        title="Delete this team?"
+        confirmLabel="Delete team"
+        tone="destructive"
+        onConfirm={() => teamToDelete && handleAdminDeleteTeam(teamToDelete)}
+      >
+        <p>This removes the team and all its members from it. It can&apos;t be undone.</p>
+      </ConfirmDialog>
     </main>
   );
 }
